@@ -1,36 +1,46 @@
 import SwiftUI
 
 struct ContentView: View {
+    var manager: PracticeManager
+    @State private var selectedTab: Int = 0
+
     var body: some View {
-        TabView {
-            ReadingView()
+        TabView(selection: $selectedTab) {
+            HomeView(manager: manager, selectedTab: $selectedTab)
+                .tag(0)
                 .tabItem {
-                    Label("Reading", systemImage: "book")
+                    Image(systemName: "house.fill")
+                    Text("Home")
                 }
 
-            WriteSpeakView()
+            ReadingView(manager: manager)
+                .tag(1)
                 .tabItem {
-                    Label("Write & Speak", systemImage: "pencil.and.outline")
+                    Image(systemName: "book.fill")
+                    Text("Reading")
                 }
 
-            VocabularyView()
+            WriteSpeakView(manager: manager)
+                .tag(2)
                 .tabItem {
-                    Label("Vocabulary", systemImage: "textformat.abc")
+                    Image(systemName: "pencil.and.outline")
+                    Text("Write & Speak")
                 }
 
-            ListeningView()
+            VocabularyView(manager: manager)
+                .tag(3)
                 .tabItem {
-                    Label("Listening", systemImage: "headphones")
+                    Image(systemName: "textformat.abc")
+                    Text("Vocabulary")
                 }
 
-            ProfileView()
+            ProfileView(manager: manager)
+                .tag(4)
                 .tabItem {
-                    Label("Profile", systemImage: "person.circle")
+                    Image(systemName: "person.fill")
+                    Text("Me")
                 }
         }
+        .tint(.appTeal)
     }
-}
-
-#Preview {
-    ContentView()
 }

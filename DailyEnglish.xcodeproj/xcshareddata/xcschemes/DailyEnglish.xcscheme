@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D76734766B754A10810EE695"
+               BlueprintIdentifier = "E637090E74DD4699AB41E72B"
                BuildableName = "DailyEnglish.app"
                BlueprintName = "DailyEnglish"
                ReferencedContainer = "container:DailyEnglish.xcodeproj">
@@ -43,7 +43,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76734766B754A10810EE695"
+            BlueprintIdentifier = "E637090E74DD4699AB41E72B"
             BuildableName = "DailyEnglish.app"
             BlueprintName = "DailyEnglish"
             ReferencedContainer = "container:DailyEnglish.xcodeproj">
@@ -60,7 +60,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76734766B754A10810EE695"
+            BlueprintIdentifier = "E637090E74DD4699AB41E72B"
             BuildableName = "DailyEnglish.app"
             BlueprintName = "DailyEnglish"
             ReferencedContainer = "container:DailyEnglish.xcodeproj">
