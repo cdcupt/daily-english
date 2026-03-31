@@ -41,6 +41,6 @@ struct ContentView: View {
                     Text("Me")
                 }
         }
-        .tint(.appTeal)
+        .tint(Color.appTeal)
     }
 }

@@ -35,10 +35,10 @@ struct ReadingView: View {
                 .font(.system(size: 60))
             Text("Let's practice reading today!")
                 .font(.roundedTitle3())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
             Text("Generate articles to start your reading practice.")
                 .font(.subheadline)
-                .foregroundStyle(.appWarmGray)
+                .foregroundColor(Color.appWarmGray)
                 .multilineTextAlignment(.center)
 
             Button {
@@ -66,7 +66,7 @@ struct ReadingView: View {
                         Text(article.title)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundStyle(.appCharcoal)
+                            .foregroundColor(Color.appCharcoal)
                             .lineLimit(2)
 
                         HStack(spacing: 8) {
@@ -80,13 +80,13 @@ struct ReadingView: View {
                             if article.isRead {
                                 Label("Read", systemImage: "checkmark.circle.fill")
                                     .font(.caption)
-                                    .foregroundStyle(.appGreen)
+                                    .foregroundColor(Color.appGreen)
                             }
 
                             if let score = article.quizScore, let total = article.quizTotal {
                                 Text("\(score)/\(total)")
                                     .font(.caption)
-                                    .foregroundStyle(.appWarmGray)
+                                    .foregroundColor(Color.appWarmGray)
                             }
                         }
                     }
@@ -95,7 +95,7 @@ struct ReadingView: View {
 
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                 }
                 .padding(.vertical, 4)
             }
@@ -110,7 +110,7 @@ struct ReadingView: View {
                 .font(.roundedHeadline())
             Text(error.localizedDescription)
                 .font(.caption)
-                .foregroundStyle(.appWarmGray)
+                .foregroundColor(Color.appWarmGray)
                 .multilineTextAlignment(.center)
             Button("Try Again") {
                 Task { await generateArticles() }
@@ -155,7 +155,7 @@ struct ArticleDetailView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text(article.title)
                     .font(.roundedTitle2())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 Text(article.topic.capitalized)
                     .font(.caption)
@@ -166,7 +166,7 @@ struct ArticleDetailView: View {
 
                 Text(article.content)
                     .font(.body)
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
                     .lineSpacing(6)
 
                 if !showQuiz && article.quizScore == nil {
@@ -211,7 +211,7 @@ struct ArticleDetailView: View {
         VStack(spacing: 16) {
             Text("Question \(currentQuestionIndex + 1)/\(quizQuestions.count)")
                 .font(.roundedHeadline())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
 
             let q = quizQuestions[currentQuestionIndex]
             QuizQuestionView(
@@ -253,10 +253,10 @@ struct ArticleDetailView: View {
                 .font(.system(size: 40))
             Text("\(correct)/\(quizQuestions.count)")
                 .font(.roundedLargeNumber())
-                .foregroundStyle(.skillReading)
+                .foregroundColor(Color.skillReading)
             Text("Quiz Complete!")
                 .font(.roundedHeadline())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
         }
         .frame(maxWidth: .infinity)
         .padding(20)

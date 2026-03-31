@@ -36,10 +36,10 @@ struct VocabularyView: View {
                 .font(.system(size: 60))
             Text("20 IELTS Words")
                 .font(.roundedTitle2())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
             Text("Test your vocabulary with today's quiz!")
                 .font(.subheadline)
-                .foregroundStyle(.appWarmGray)
+                .foregroundColor(Color.appWarmGray)
 
             if let error {
                 Text(error)
@@ -79,10 +79,10 @@ struct VocabularyView: View {
             HStack {
                 Text("Word \(currentIndex + 1)/20")
                     .font(.roundedHeadline())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
                 Spacer()
                 ProgressView(value: Double(currentIndex + 1), total: 20)
-                    .tint(.skillVocabulary)
+                    .tint(Color.skillVocabulary)
                     .frame(width: 100)
             }
             .padding(.horizontal)
@@ -93,11 +93,11 @@ struct VocabularyView: View {
 
                     Text(word.word)
                         .font(.roundedTitle())
-                        .foregroundStyle(.skillVocabulary)
+                        .foregroundColor(Color.skillVocabulary)
 
                     Text(word.meaning)
                         .font(.subheadline)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                         .italic()
 
                     QuizQuestionView(
@@ -117,7 +117,7 @@ struct VocabularyView: View {
                     if showAnswer {
                         Text("📝 \(word.exampleSentence)")
                             .font(.subheadline)
-                            .foregroundStyle(.appWarmGray)
+                            .foregroundColor(Color.appWarmGray)
                             .padding()
                             .background(Color.skillVocabulary.opacity(0.05))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -151,10 +151,10 @@ struct VocabularyView: View {
                     .font(.system(size: 50))
                 Text("\(correct)/20")
                     .font(.roundedLargeNumber())
-                    .foregroundStyle(.skillVocabulary)
+                    .foregroundColor(Color.skillVocabulary)
                 Text("Quiz Complete!")
                     .font(.roundedTitle3())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 // Word review list
                 VStack(spacing: 8) {
@@ -162,7 +162,7 @@ struct VocabularyView: View {
                         HStack {
                             Image(systemName: word.userAnswer == word.correctIndex
                                   ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundStyle(word.userAnswer == word.correctIndex ? .appGreen : .red)
+                                .foregroundColor(word.userAnswer == word.correctIndex ? Color.appGreen : .red)
 
                             Text(word.word)
                                 .font(.subheadline)
@@ -172,7 +172,7 @@ struct VocabularyView: View {
 
                             Text(word.options[word.correctIndex])
                                 .font(.caption)
-                                .foregroundStyle(.appWarmGray)
+                                .foregroundColor(Color.appWarmGray)
                         }
                         .padding(.vertical, 4)
                     }

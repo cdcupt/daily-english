@@ -9,7 +9,7 @@ struct LevelGrowthChart: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Level Growth")
                 .font(.roundedHeadline())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
 
             Chart {
                 ForEach(Skill.allCases) { skill in
@@ -62,7 +62,7 @@ struct LevelGrowthChart: View {
                                 .frame(width: 8, height: 8)
                             Text(skill.displayName)
                                 .font(.caption2)
-                                .foregroundStyle(.appWarmGray)
+                                .foregroundColor(Color.appWarmGray)
                         }
                     }
                 }

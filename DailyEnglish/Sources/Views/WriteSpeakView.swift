@@ -48,11 +48,11 @@ struct WriteSpeakView: View {
                 .font(.system(size: 60))
             Text("Today's Topic")
                 .font(.roundedTitle2())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
 
             Text(topic.isEmpty ? "Tap below to get your topic" : topic)
                 .font(.body)
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
                 .multilineTextAlignment(.center)
                 .padding()
                 .frame(maxWidth: .infinity)
@@ -83,7 +83,7 @@ struct WriteSpeakView: View {
         VStack(spacing: 16) {
             Text(topic)
                 .font(.subheadline)
-                .foregroundStyle(.appWarmGray)
+                .foregroundColor(Color.appWarmGray)
                 .padding(.horizontal)
 
             TextEditor(text: $essayText)
@@ -98,7 +98,7 @@ struct WriteSpeakView: View {
                 let wordCount = essayText.split(separator: " ").count
                 Text("\(wordCount) words")
                     .font(.caption)
-                    .foregroundStyle(wordCount >= 10 ? .appGreen : .appWarmGray)
+                    .foregroundColor(wordCount >= 10 ? Color.appGreen : Color.appWarmGray)
 
                 Spacer()
 
@@ -146,10 +146,10 @@ struct WriteSpeakView: View {
                         VStack(alignment: .leading) {
                             Text("\(review.score)/100")
                                 .font(.roundedLargeNumber())
-                                .foregroundStyle(.skillWriting)
+                                .foregroundColor(Color.skillWriting)
                             Text("Writing Score")
                                 .font(.caption)
-                                .foregroundStyle(.appWarmGray)
+                                .foregroundColor(Color.appWarmGray)
                         }
                     }
 
@@ -169,7 +169,7 @@ struct WriteSpeakView: View {
                             ForEach(review.grammarIssues, id: \.self) { issue in
                                 Text("• \(issue)")
                                     .font(.subheadline)
-                                    .foregroundStyle(.appWarmGray)
+                                    .foregroundColor(Color.appWarmGray)
                             }
                         }
                     }
@@ -180,7 +180,7 @@ struct WriteSpeakView: View {
                             .font(.roundedHeadline())
                         Text(review.correctedText)
                             .font(.subheadline)
-                            .foregroundStyle(.appCharcoal)
+                            .foregroundColor(Color.appCharcoal)
                             .padding()
                             .background(Color.skillWriting.opacity(0.05))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -207,10 +207,10 @@ struct WriteSpeakView: View {
         VStack(spacing: 4) {
             Text("\(score)/25")
                 .font(.roundedScore())
-                .foregroundStyle(.skillWriting)
+                .foregroundColor(Color.skillWriting)
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(.appWarmGray)
+                .foregroundColor(Color.appWarmGray)
         }
         .frame(maxWidth: .infinity)
         .padding(8)
@@ -227,7 +227,7 @@ struct WriteSpeakView: View {
             if let corrected = writingReview?.correctedText {
                 Text(corrected)
                     .font(.subheadline)
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
                     .padding()
                     .cardStyle()
             }
@@ -264,10 +264,10 @@ struct WriteSpeakView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Your speech:")
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                     Text(manager.speechService.recognizedText)
                         .font(.subheadline)
-                        .foregroundStyle(.appCharcoal)
+                        .foregroundColor(Color.appCharcoal)
                 }
                 .padding()
                 .cardStyle()
@@ -292,41 +292,41 @@ struct WriteSpeakView: View {
 
                 Text("\(Int(overall))/100")
                     .font(.roundedLargeNumber())
-                    .foregroundStyle(.skillWriting)
+                    .foregroundColor(Color.skillWriting)
 
                 Text("Speaking Score")
                     .font(.roundedHeadline())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 HStack(spacing: 20) {
                     VStack {
                         Text("\(Int(result.accuracyScore))/100")
                             .font(.roundedScore())
-                            .foregroundStyle(.skillWriting)
+                            .foregroundColor(Color.skillWriting)
                         Text("Accuracy")
                             .font(.caption)
-                            .foregroundStyle(.appWarmGray)
+                            .foregroundColor(Color.appWarmGray)
                     }
                     VStack {
                         Text("\(Int(result.fluencyScore))/100")
                             .font(.roundedScore())
-                            .foregroundStyle(.skillWriting)
+                            .foregroundColor(Color.skillWriting)
                         Text("Fluency")
                             .font(.caption)
-                            .foregroundStyle(.appWarmGray)
+                            .foregroundColor(Color.appWarmGray)
                     }
                 }
 
                 ForEach(result.notes, id: \.self) { note in
                     Text("💡 \(note)")
                         .font(.subheadline)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                 }
             }
 
             Text("Write & Speak Complete! ✓")
                 .font(.roundedHeadline())
-                .foregroundStyle(.appGreen)
+                .foregroundColor(Color.appGreen)
         }
         .padding()
     }

@@ -40,10 +40,10 @@ struct ListeningView: View {
                 .font(.system(size: 60))
             Text("Listening Practice")
                 .font(.roundedTitle2())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
             Text("Generate sessions to start listening practice.")
                 .font(.subheadline)
-                .foregroundStyle(.appWarmGray)
+                .foregroundColor(Color.appWarmGray)
 
             if let error {
                 Text(error).font(.caption).foregroundStyle(.red)
@@ -74,11 +74,11 @@ struct ListeningView: View {
                         Text(session.scenario)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundStyle(.appCharcoal)
+                            .foregroundColor(Color.appCharcoal)
 
                         Text("Session \(session.sessionIndex + 1)")
                             .font(.caption)
-                            .foregroundStyle(.appWarmGray)
+                            .foregroundColor(Color.appWarmGray)
                     }
 
                     Spacer()
@@ -88,13 +88,13 @@ struct ListeningView: View {
                             Text("\(score)/\(session.questions.count)")
                                 .font(.caption)
                                 .fontWeight(.bold)
-                                .foregroundStyle(.appGreen)
+                                .foregroundColor(Color.appGreen)
                         }
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.appGreen)
+                            .foregroundColor(Color.appGreen)
                     } else {
                         Image(systemName: "chevron.right")
-                            .foregroundStyle(.appWarmGray)
+                            .foregroundColor(Color.appWarmGray)
                     }
                 }
                 .padding(.vertical, 4)
@@ -164,7 +164,7 @@ struct ListeningSessionView: View {
             VStack(spacing: 20) {
                 Text(session.scenario)
                     .font(.roundedTitle3())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 // Audio player
                 AudioPlayerButton(
@@ -214,10 +214,10 @@ struct ListeningSessionView: View {
                             .font(.system(size: 40))
                         Text("\(correct)/\(session.questions.count)")
                             .font(.roundedLargeNumber())
-                            .foregroundStyle(.skillListening)
+                            .foregroundColor(Color.skillListening)
                         Text("Session Complete!")
                             .font(.roundedHeadline())
-                            .foregroundStyle(.appCharcoal)
+                            .foregroundColor(Color.appCharcoal)
                     }
                     .padding()
 
@@ -225,7 +225,7 @@ struct ListeningSessionView: View {
                         dismiss()
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(.skillListening)
+                    .tint(Color.skillListening)
                 }
             }
             .padding()

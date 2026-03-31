@@ -15,7 +15,7 @@ struct SkillProgressBar: View {
                 Text(skill.displayName)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 Spacer()
 
@@ -49,7 +49,7 @@ struct SkillProgressBar: View {
                 Text("\(averageScore)/100")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundStyle(.appWarmGray)
+                    .foregroundColor(Color.appWarmGray)
                     .monospacedDigit()
                     .frame(width: 50, alignment: .trailing)
             }

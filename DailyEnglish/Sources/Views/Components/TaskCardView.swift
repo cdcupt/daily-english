@@ -27,20 +27,20 @@ struct TaskCardView: View {
 
                 Text(skill.displayName)
                     .font(.roundedHeadline())
-                    .foregroundStyle(isCompleted ? .white : .appCharcoal)
+                    .foregroundColor(isCompleted ? .white : Color.appCharcoal)
 
                 if isCompleted, let score = scoreDisplay {
                     Text("Score: \(score)")
                         .font(.caption)
-                        .foregroundStyle(isCompleted ? .white.opacity(0.8) : .appWarmGray)
+                        .foregroundColor(isCompleted ? .white.opacity(0.8) : Color.appWarmGray)
                 } else if let progress = progressText {
                     Text(progress)
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                 } else {
                     Text("Start")
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                 }
             }
             .padding(16)

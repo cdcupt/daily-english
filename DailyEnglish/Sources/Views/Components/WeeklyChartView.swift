@@ -9,13 +9,13 @@ struct WeeklyChartView: View {
             HStack {
                 Text("This Week")
                     .font(.roundedHeadline())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 Spacer()
 
                 Text("\(completedDays)/7 days")
                     .font(.caption)
-                    .foregroundStyle(.appWarmGray)
+                    .foregroundColor(Color.appWarmGray)
             }
 
             Chart(weekData, id: \.date) { item in
@@ -34,7 +34,7 @@ struct WeeklyChartView: View {
                         if let intValue = value.as(Int.self) {
                             Text("\(intValue)")
                                 .font(.caption2)
-                                .foregroundStyle(.appWarmGray)
+                                .foregroundColor(Color.appWarmGray)
                         }
                     }
                 }

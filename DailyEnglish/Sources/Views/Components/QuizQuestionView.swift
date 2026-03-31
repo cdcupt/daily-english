@@ -12,7 +12,7 @@ struct QuizQuestionView: View {
             Text(question)
                 .font(.body)
                 .fontWeight(.medium)
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(spacing: 10) {
@@ -33,14 +33,14 @@ struct QuizQuestionView: View {
 
                             Text(option)
                                 .font(.subheadline)
-                                .foregroundStyle(.appCharcoal)
+                                .foregroundColor(Color.appCharcoal)
                                 .multilineTextAlignment(.leading)
 
                             Spacer()
 
                             if showResult && index == correctIndex {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.appGreen)
+                                    .foregroundColor(Color.appGreen)
                             } else if showResult && index == selectedIndex && index != correctIndex {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundStyle(.red)

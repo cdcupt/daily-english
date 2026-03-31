@@ -47,19 +47,19 @@ struct ProfileView: View {
 
                 Text("Level \(level.level)")
                     .font(.roundedLargeNumber())
-                    .foregroundStyle(.appTeal)
+                    .foregroundColor(Color.appTeal)
 
                 Text(level.label)
                     .font(.roundedHeadline())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 Text("CEFR: \(level.cefr)")
                     .font(.caption)
-                    .foregroundStyle(.appWarmGray)
+                    .foregroundColor(Color.appWarmGray)
 
                 Text("Tap to see detailed proficiency mapping →")
                     .font(.caption2)
-                    .foregroundStyle(.appTeal)
+                    .foregroundColor(Color.appTeal)
             }
             .frame(maxWidth: .infinity)
             .padding(20)
@@ -74,14 +74,14 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Settings")
                 .font(.roundedHeadline())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
 
             if let settings = manager.settings {
                 // AI Provider
                 VStack(alignment: .leading, spacing: 4) {
                     Text("AI Provider")
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                     Picker("Provider", selection: Binding(
                         get: { settings.provider },
                         set: {
@@ -100,7 +100,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("API Key")
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                     SecureField("Enter your API key", text: Binding(
                         get: { settings.apiKey },
                         set: {
@@ -115,7 +115,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Custom Model (optional)")
                         .font(.caption)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                     TextField("Default: \(settings.provider.defaultModel)", text: Binding(
                         get: { settings.aiModel },
                         set: {
@@ -168,10 +168,10 @@ struct LevelDetailView: View {
                 VStack(spacing: 4) {
                     Text("Overall Level: \(level.level)")
                         .font(.roundedTitle2())
-                        .foregroundStyle(.appTeal)
+                        .foregroundColor(Color.appTeal)
                     Text(level.label)
                         .font(.roundedHeadline())
-                        .foregroundStyle(.appCharcoal)
+                        .foregroundColor(Color.appCharcoal)
                 }
 
                 // Comparison card
@@ -205,7 +205,7 @@ struct LevelDetailView: View {
                         .font(.roundedHeadline())
                     Text(level.cefrDescription)
                         .font(.subheadline)
-                        .foregroundStyle(.appWarmGray)
+                        .foregroundColor(Color.appWarmGray)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -232,12 +232,12 @@ struct LevelDetailView: View {
                             if lvl.level == level.level {
                                 Text("← You")
                                     .font(.caption)
-                                    .foregroundStyle(.appTeal)
+                                    .foregroundColor(Color.appTeal)
                                     .fontWeight(.bold)
                             }
                         }
                         .font(.caption)
-                        .foregroundStyle(lvl.level == level.level ? .appTeal : .appCharcoal)
+                        .foregroundColor(lvl.level == level.level ? Color.appTeal : Color.appCharcoal)
                         .padding(.vertical, 2)
                     }
                 }
@@ -248,7 +248,7 @@ struct LevelDetailView: View {
                 // Disclaimer
                 Text("ⓘ These are estimated equivalents based on your practice scores. For official certification, take the actual IELTS/TOEFL exam.")
                     .font(.caption)
-                    .foregroundStyle(.appWarmGray)
+                    .foregroundColor(Color.appWarmGray)
                     .multilineTextAlignment(.center)
 
                 // Per-skill breakdown
@@ -269,10 +269,10 @@ struct LevelDetailView: View {
                                 .fontWeight(.bold)
                             Text(skillLvl.cefr)
                                 .font(.caption)
-                                .foregroundStyle(.appWarmGray)
+                                .foregroundColor(Color.appWarmGray)
                             Text("IELTS ~\(skillLvl.ielts)")
                                 .font(.caption)
-                                .foregroundStyle(.appWarmGray)
+                                .foregroundColor(Color.appWarmGray)
                         }
                     }
                 }

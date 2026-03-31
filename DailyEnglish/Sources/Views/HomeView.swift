@@ -43,16 +43,16 @@ struct HomeView: View {
                         .font(.title)
                     Text(greetingText)
                         .font(.roundedTitle3())
-                        .foregroundStyle(.appCharcoal)
+                        .foregroundColor(Color.appCharcoal)
                 }
 
                 Text(streakMessage)
                     .font(.subheadline)
-                    .foregroundStyle(.appWarmGray)
+                    .foregroundColor(Color.appWarmGray)
 
                 Text(Date.now.formattedDate)
                     .font(.caption)
-                    .foregroundStyle(.appWarmGray)
+                    .foregroundColor(Color.appWarmGray)
             }
 
             Spacer()
@@ -64,7 +64,7 @@ struct HomeView: View {
                         .font(.title2)
                     Text("\(streak.currentStreak)")
                         .font(.roundedScore())
-                        .foregroundStyle(.appCoral)
+                        .foregroundColor(Color.appCoral)
                 }
                 .padding(12)
                 .background(Color.appCoral.opacity(0.1))
@@ -97,7 +97,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Skill Progress")
                 .font(.roundedHeadline())
-                .foregroundStyle(.appCharcoal)
+                .foregroundColor(Color.appCharcoal)
 
             ForEach(Skill.allCases) { skill in
                 SkillProgressBar(
@@ -118,7 +118,7 @@ struct HomeView: View {
             HStack {
                 Text("Today's Tasks")
                     .font(.roundedHeadline())
-                    .foregroundStyle(.appCharcoal)
+                    .foregroundColor(Color.appCharcoal)
 
                 Spacer()
 
@@ -126,7 +126,7 @@ struct HomeView: View {
                 Text("\(completed)/4 ✓")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.appTeal)
+                    .foregroundColor(Color.appTeal)
             }
 
             LazyVGrid(columns: columns, spacing: 12) {
