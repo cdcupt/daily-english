@@ -88,6 +88,14 @@ struct ProfileView: View {
 struct SettingsSheet: View {
     var manager: PracticeManager
     @Environment(\.dismiss) private var dismiss
+    @State private var showExportOptions = false
+    @State private var showImportPicker = false
+    @State private var exportFileURL: IdentifiableURL?
+    @State private var importMessage: String?
+    @State private var importSuccess = false
+    @State private var showPasswordPrompt = false
+    @State private var password = ""
+    @State private var pendingAction: (() -> Void)?
 
     var body: some View {
         NavigationStack {
@@ -213,14 +221,6 @@ struct SettingsSheet: View {
                                         Text(voice.displayName).tag(voice)
                                     }
                                 }
-
-                                HStack(spacing: 4) {
-                                    Image(systemName: "info.circle")
-                                        .font(.caption2)
-                                    Text("Get credentials at console.volcengine.com/speech/app")
-                                        .font(.caption)
-                                }
-                                .foregroundColor(Color.skillListening)
                             }
                         }
 
@@ -259,6 +259,70 @@ struct SettingsSheet: View {
                                 .fixedSize()
                             }
                         }
+                        // Import / Export Section
+                        settingsCard(
+                            icon: "arrow.up.arrow.down",
+                            iconColor: Color.appTeal,
+                            title: "Config Sharing",
+                            mascot: "🦊"
+                        ) {
+                            // Export
+                            Button {
+                                showExportOptions = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .foregroundColor(Color.appTeal)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Export Config")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(Color.appCharcoal)
+                                        Text("Share or backup your settings")
+                                            .font(.caption)
+                                            .foregroundColor(Color.appWarmGray)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(Color.appWarmGray)
+                                }
+                            }
+
+                            Divider()
+
+                            // Import
+                            Button {
+                                showImportPicker = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.down")
+                                        .foregroundColor(Color.skillWriting)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Import Config")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(Color.appCharcoal)
+                                        Text("Load settings from .elc file")
+                                            .font(.caption)
+                                            .foregroundColor(Color.appWarmGray)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(Color.appWarmGray)
+                                }
+                            }
+
+                            if let importMessage {
+                                HStack(spacing: 4) {
+                                    Image(systemName: importSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                    Text(importMessage)
+                                        .font(.caption)
+                                }
+                                .foregroundColor(importSuccess ? Color.appGreen : .red)
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, 16)
@@ -266,6 +330,19 @@ struct SettingsSheet: View {
             }
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
+            .confirmationDialog("Export Config", isPresented: $showExportOptions) {
+                Button("Share (without API keys)") { exportConfig(mode: .share) }
+                Button("Backup (with API keys)") { exportConfig(mode: .backup) }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Share mode strips sensitive keys. Backup includes everything.")
+            }
+            .fileImporter(isPresented: $showImportPicker, allowedContentTypes: [.json, .data], allowsMultipleSelection: false) { result in
+                handleImport(result)
+            }
+            .sheet(item: $exportFileURL) { url in
+                ActivityView(activityItems: [url])
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -332,6 +409,120 @@ struct SettingsSheet: View {
             content()
         }
     }
+
+    // MARK: - Export
+
+    private func exportConfig(mode: ConfigExportMode) {
+        guard let settings = manager.settings else { return }
+
+        var config: [String: Any] = [
+            "aiProvider": settings.aiProvider,
+            "aiModel": settings.aiModel,
+            "articlesPerDay": settings.articlesPerDay,
+            "listeningSessionsPerDay": settings.listeningSessionsPerDay,
+            "ttsProvider": settings.ttsProvider,
+            "openAITTSVoice": settings.openAITTSVoice,
+            "bytedanceCluster": settings.bytedanceCluster,
+            "bytedanceVoice": settings.bytedanceVoice,
+        ]
+
+        if mode == .backup {
+            config["apiKey"] = settings.apiKey
+            config["openAITTSApiKey"] = settings.openAITTSApiKey ?? ""
+            config["bytedanceAppId"] = settings.bytedanceAppId
+            config["bytedanceToken"] = settings.bytedanceToken
+        }
+
+        let envelope: [String: Any] = [
+            "version": 1,
+            "mode": mode.rawValue,
+            "createdAt": ISO8601DateFormatter().string(from: .now),
+            "config": config,
+        ]
+
+        guard let data = try? JSONSerialization.data(withJSONObject: envelope, options: .prettyPrinted) else { return }
+
+        let fileName = mode == .share ? "daily-english-share.elc" : "daily-english-backup.elc"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try? data.write(to: tempURL)
+        exportFileURL = IdentifiableURL(url: tempURL)
+    }
+
+    // MARK: - Import
+
+    private func handleImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            guard url.startAccessingSecurityScopedResource() else {
+                importMessage = "Cannot access file"
+                importSuccess = false
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+
+            guard let data = try? Data(contentsOf: url),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let version = json["version"] as? Int, version == 1,
+                  let config = json["config"] as? [String: Any]
+            else {
+                importMessage = "Invalid config file"
+                importSuccess = false
+                return
+            }
+
+            let mode = json["mode"] as? String ?? "share"
+            guard let settings = manager.settings else { return }
+
+            // Apply non-sensitive fields
+            if let v = config["aiProvider"] as? String { settings.aiProvider = v }
+            if let v = config["aiModel"] as? String { settings.aiModel = v }
+            if let v = config["articlesPerDay"] as? Int { settings.articlesPerDay = v }
+            if let v = config["listeningSessionsPerDay"] as? Int { settings.listeningSessionsPerDay = v }
+            if let v = config["ttsProvider"] as? String { settings.ttsProvider = v }
+            if let v = config["openAITTSVoice"] as? String { settings.openAITTSVoice = v }
+            if let v = config["bytedanceCluster"] as? String { settings.bytedanceCluster = v }
+            if let v = config["bytedanceVoice"] as? String { settings.bytedanceVoice = v }
+
+            // Only apply sensitive fields from backup
+            if mode == "backup" {
+                if let v = config["apiKey"] as? String, !v.isEmpty { settings.apiKey = v }
+                if let v = config["openAITTSApiKey"] as? String, !v.isEmpty { settings.openAITTSApiKey = v }
+                if let v = config["bytedanceAppId"] as? String, !v.isEmpty { settings.bytedanceAppId = v }
+                if let v = config["bytedanceToken"] as? String, !v.isEmpty { settings.bytedanceToken = v }
+            }
+
+            manager.syncAISettings()
+            importMessage = mode == "backup" ? "Backup restored successfully" : "Config imported (API keys preserved)"
+            importSuccess = true
+
+        case .failure:
+            importMessage = "Failed to open file"
+            importSuccess = false
+        }
+    }
+}
+
+// MARK: - Helper Types
+
+enum ConfigExportMode: String {
+    case share
+    case backup
+}
+
+struct IdentifiableURL: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Level Detail View
