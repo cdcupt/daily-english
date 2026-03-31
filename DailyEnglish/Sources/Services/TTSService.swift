@@ -10,7 +10,7 @@ final class TTSService {
 
     // MARK: - OpenAI TTS
 
-    func synthesize(text: String, apiKey: String, voice: String = "alloy") async throws -> Data {
+    func synthesizeOpenAI(text: String, apiKey: String, voice: String = "alloy") async throws -> Data {
         let url = URL(string: "https://api.openai.com/v1/audio/speech")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -36,6 +36,80 @@ final class TTSService {
         return data
     }
 
+    // MARK: - ByteDance TTS
+
+    func synthesizeBytedance(
+        text: String,
+        appId: String,
+        token: String,
+        cluster: String = "volcano_tts",
+        voice: String = "en_female_dacey_uranus_bigtts",
+        speed: Double = 1.0
+    ) async throws -> Data {
+        let url = URL(string: "https://openspeech.bytedance.com/api/v3/tts/unidirectional/sse")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(appId, forHTTPHeaderField: "X-Api-App-Key")
+        request.setValue(token, forHTTPHeaderField: "X-Api-Access-Key")
+        request.setValue("seed-tts-2.0", forHTTPHeaderField: "X-Api-Resource-Id")
+        request.setValue(UUID().uuidString, forHTTPHeaderField: "X-Api-Request-Id")
+
+        let speedRate = Int((speed - 1.0) * 100)
+        let body: [String: Any] = [
+            "user": ["uid": "daily_english_ios"],
+            "req_params": [
+                "text": text,
+                "speaker": voice,
+                "audio_params": [
+                    "format": "mp3",
+                    "sample_rate": 24000,
+                    "speech_rate": speedRate,
+                ],
+            ],
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode)
+        else {
+            throw TTSError.synthesizeFailed
+        }
+
+        // Parse SSE response — extract base64 audio from event code 352
+        return try parseBytedanceSSE(data)
+    }
+
+    private func parseBytedanceSSE(_ data: Data) throws -> Data {
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw TTSError.synthesizeFailed
+        }
+
+        var audioChunks: [Data] = []
+
+        for line in text.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard trimmed.hasPrefix("data:") else { continue }
+            let jsonStr = String(trimmed.dropFirst(5)).trimmingCharacters(in: .whitespaces)
+            guard let jsonData = jsonStr.data(using: .utf8),
+                  let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                  let eventCode = json["event_code"] as? Int,
+                  eventCode == 352,
+                  let audioBase64 = json["data"] as? String,
+                  let chunk = Data(base64Encoded: audioBase64)
+            else { continue }
+            audioChunks.append(chunk)
+        }
+
+        guard !audioChunks.isEmpty else {
+            throw TTSError.synthesizeFailed
+        }
+
+        return audioChunks.reduce(Data()) { $0 + $1 }
+    }
+
     // MARK: - Play Audio Data
 
     @MainActor
@@ -48,7 +122,6 @@ final class TTSService {
             audioPlayer?.play()
             isPlaying = true
 
-            // Monitor playback completion
             Task {
                 while audioPlayer?.isPlaying == true {
                     try? await Task.sleep(for: .milliseconds(200))

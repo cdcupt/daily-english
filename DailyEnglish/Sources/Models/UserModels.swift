@@ -6,18 +6,36 @@ import SwiftData
 @Model
 final class AppSettings {
     var id: UUID
+    // AI Provider
     var aiProvider: String  // AIProvider rawValue
     var apiKey: String
     var aiModel: String  // allows custom model override
+    // Practice
     var articlesPerDay: Int
     var listeningSessionsPerDay: Int
-    var useTTSOpenAI: Bool
+    // TTS
+    var ttsProvider: String  // TTSProvider rawValue
     var openAITTSApiKey: String?
-    var ttsVoice: String
+    var openAITTSVoice: String
+    // ByteDance TTS
+    var bytedanceAppId: String
+    var bytedanceToken: String
+    var bytedanceCluster: String
+    var bytedanceVoice: String  // BytedanceVoice rawValue
 
     var provider: AIProvider {
         get { AIProvider(rawValue: aiProvider) ?? .openai }
         set { aiProvider = newValue.rawValue }
+    }
+
+    var ttsProviderEnum: TTSProvider {
+        get { TTSProvider(rawValue: ttsProvider) ?? .system }
+        set { ttsProvider = newValue.rawValue }
+    }
+
+    var bytedanceVoiceEnum: BytedanceVoice {
+        get { BytedanceVoice(rawValue: bytedanceVoice) ?? .dacey }
+        set { bytedanceVoice = newValue.rawValue }
     }
 
     init() {
@@ -27,9 +45,13 @@ final class AppSettings {
         self.aiModel = ""
         self.articlesPerDay = 3
         self.listeningSessionsPerDay = 3
-        self.useTTSOpenAI = true
+        self.ttsProvider = TTSProvider.system.rawValue
         self.openAITTSApiKey = nil
-        self.ttsVoice = "alloy"
+        self.openAITTSVoice = "alloy"
+        self.bytedanceAppId = ""
+        self.bytedanceToken = ""
+        self.bytedanceCluster = "volcano_tts"
+        self.bytedanceVoice = BytedanceVoice.dacey.rawValue
     }
 }
 

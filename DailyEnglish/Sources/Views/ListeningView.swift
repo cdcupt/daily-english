@@ -238,16 +238,7 @@ struct ListeningSessionView: View {
     }
 
     private func playPassage() {
-        if let settings = manager.settings, settings.useTTSOpenAI {
-            let key = settings.openAITTSApiKey ?? settings.apiKey
-            Task {
-                if let data = try? await manager.ttsService.synthesize(text: session.passage, apiKey: key) {
-                    await manager.ttsService.playAudio(data: data)
-                }
-            }
-        } else {
-            manager.ttsService.speakWithSystem(text: session.passage)
-        }
+        manager.playTTS(text: session.passage)
     }
 
     private func submitAnswers() {

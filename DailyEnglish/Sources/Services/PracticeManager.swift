@@ -84,6 +84,39 @@ final class PracticeManager {
         return !settings.apiKey.isEmpty
     }
 
+    // MARK: - TTS Helper
+
+    func playTTS(text: String) {
+        guard let settings else {
+            ttsService.speakWithSystem(text: text)
+            return
+        }
+
+        switch settings.ttsProviderEnum {
+        case .openai:
+            let key = settings.openAITTSApiKey ?? settings.apiKey
+            Task {
+                if let data = try? await ttsService.synthesizeOpenAI(text: text, apiKey: key, voice: settings.openAITTSVoice) {
+                    await ttsService.playAudio(data: data)
+                }
+            }
+        case .bytedance:
+            Task {
+                if let data = try? await ttsService.synthesizeBytedance(
+                    text: text,
+                    appId: settings.bytedanceAppId,
+                    token: settings.bytedanceToken,
+                    cluster: settings.bytedanceCluster,
+                    voice: settings.bytedanceVoice
+                ) {
+                    await ttsService.playAudio(data: data)
+                }
+            }
+        case .system:
+            ttsService.speakWithSystem(text: text)
+        }
+    }
+
     // MARK: - Skill Level Queries
 
     func skillLevel(for skill: Skill) -> EnglishLevel {

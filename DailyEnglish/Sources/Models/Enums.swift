@@ -152,6 +152,42 @@ struct EnglishLevel {
     }
 }
 
+// MARK: - TTS Provider
+
+enum TTSProvider: String, Codable, CaseIterable, Identifiable {
+    case system
+    case openai
+    case bytedance
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .system: "System"
+        case .openai: "OpenAI"
+        case .bytedance: "ByteDance"
+        }
+    }
+}
+
+// MARK: - ByteDance Voice
+
+enum BytedanceVoice: String, Codable, CaseIterable, Identifiable {
+    case dacey = "en_female_dacey_uranus_bigtts"
+    case jackson = "BV504_streaming"
+    case ariana = "BV503_streaming"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .dacey: "Dacey (English Female - TTS 2.0)"
+        case .jackson: "Jackson (English Male)"
+        case .ariana: "Ariana (English Female)"
+        }
+    }
+}
+
 // MARK: - Quiz Question Sub-skill Tags
 
 enum ReadingSubSkill: String, Codable {

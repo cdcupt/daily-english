@@ -35,7 +35,7 @@ struct WriteSpeakView: View {
                 }
             }
             .background(Color.appBackground)
-            .navigationTitle("Write & Speak")
+            .navigationTitle("Writing")
         }
         .onAppear(perform: loadExisting)
     }
@@ -382,16 +382,7 @@ struct WriteSpeakView: View {
 
     private func playAudio() {
         guard let text = writingReview?.correctedText else { return }
-        if let settings = manager.settings, settings.useTTSOpenAI {
-            let key = settings.openAITTSApiKey ?? settings.apiKey
-            Task {
-                if let data = try? await manager.ttsService.synthesize(text: text, apiKey: key) {
-                    await manager.ttsService.playAudio(data: data)
-                }
-            }
-        } else {
-            manager.ttsService.speakWithSystem(text: text)
-        }
+        manager.playTTS(text: text)
     }
 
     private func evaluateSpeech(_ recognizedText: String) async {

@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     var manager: PracticeManager
     @State private var showLevelDetail = false
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -22,17 +23,27 @@ struct ProfileView: View {
                             }
                         )
                     )
-
-                    // Settings
-                    settingsSection
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 20)
             }
             .background(Color.appBackground)
             .navigationTitle("Me")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(Color.appTeal)
+                    }
+                }
+            }
             .navigationDestination(isPresented: $showLevelDetail) {
                 LevelDetailView(manager: manager)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsSheet(manager: manager)
             }
         }
     }
@@ -70,90 +81,139 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
     }
+}
 
-    // MARK: - Settings
+// MARK: - Settings Sheet
 
-    private var settingsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Settings")
-                .font(.roundedHeadline())
-                .foregroundColor(Color.appCharcoal)
+struct SettingsSheet: View {
+    var manager: PracticeManager
+    @Environment(\.dismiss) private var dismiss
 
-            if let settings = manager.settings {
-                // AI Provider
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("AI Provider")
-                        .font(.caption)
-                        .foregroundColor(Color.appWarmGray)
-                    Picker("Provider", selection: Binding(
-                        get: { settings.provider },
-                        set: {
-                            settings.provider = $0
-                            manager.syncAISettings()
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let settings = manager.settings {
+                    // AI Provider
+                    Section("AI Provider") {
+                        Picker("Provider", selection: Binding(
+                            get: { settings.provider },
+                            set: {
+                                settings.provider = $0
+                                manager.syncAISettings()
+                            }
+                        )) {
+                            ForEach(AIProvider.allCases) { provider in
+                                Text(provider.displayName).tag(provider)
+                            }
                         }
-                    )) {
-                        ForEach(AIProvider.allCases) { provider in
-                            Text(provider.displayName).tag(provider)
+
+                        SecureField("API Key", text: Binding(
+                            get: { settings.apiKey },
+                            set: {
+                                settings.apiKey = $0
+                                manager.syncAISettings()
+                            }
+                        ))
+
+                        TextField("Custom Model (optional)", text: Binding(
+                            get: { settings.aiModel },
+                            set: {
+                                settings.aiModel = $0
+                                manager.syncAISettings()
+                            }
+                        ))
+                        .autocorrectionDisabled()
+
+                        if settings.aiModel.isEmpty {
+                            Text("Default: \(settings.provider.defaultModel)")
+                                .font(.caption)
+                                .foregroundColor(Color.appWarmGray)
                         }
                     }
-                    .pickerStyle(.segmented)
-                }
 
-                // API Key
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("API Key")
-                        .font(.caption)
-                        .foregroundColor(Color.appWarmGray)
-                    SecureField("Enter your API key", text: Binding(
-                        get: { settings.apiKey },
-                        set: {
-                            settings.apiKey = $0
-                            manager.syncAISettings()
+                    // TTS Provider
+                    Section("Text-to-Speech") {
+                        Picker("TTS Provider", selection: Binding(
+                            get: { settings.ttsProviderEnum },
+                            set: { settings.ttsProviderEnum = $0 }
+                        )) {
+                            ForEach(TTSProvider.allCases) { provider in
+                                Text(provider.displayName).tag(provider)
+                            }
                         }
-                    ))
-                    .textFieldStyle(.roundedBorder)
-                }
 
-                // Model override
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Custom Model (optional)")
-                        .font(.caption)
-                        .foregroundColor(Color.appWarmGray)
-                    TextField("Default: \(settings.provider.defaultModel)", text: Binding(
-                        get: { settings.aiModel },
-                        set: {
-                            settings.aiModel = $0
-                            manager.syncAISettings()
+                        if settings.ttsProviderEnum == .openai {
+                            SecureField("OpenAI TTS API Key (optional)", text: Binding(
+                                get: { settings.openAITTSApiKey ?? "" },
+                                set: { settings.openAITTSApiKey = $0.isEmpty ? nil : $0 }
+                            ))
+                            Text("Leave empty to use your AI API key")
+                                .font(.caption)
+                                .foregroundColor(Color.appWarmGray)
                         }
-                    ))
-                    .textFieldStyle(.roundedBorder)
+
+                        if settings.ttsProviderEnum == .bytedance {
+                            TextField("App ID", text: Binding(
+                                get: { settings.bytedanceAppId },
+                                set: { settings.bytedanceAppId = $0 }
+                            ))
+                            .autocorrectionDisabled()
+
+                            SecureField("Access Token", text: Binding(
+                                get: { settings.bytedanceToken },
+                                set: { settings.bytedanceToken = $0 }
+                            ))
+
+                            TextField("Cluster", text: Binding(
+                                get: { settings.bytedanceCluster },
+                                set: { settings.bytedanceCluster = $0 }
+                            ))
+                            .autocorrectionDisabled()
+
+                            Picker("Voice", selection: Binding(
+                                get: { settings.bytedanceVoiceEnum },
+                                set: { settings.bytedanceVoiceEnum = $0 }
+                            )) {
+                                ForEach(BytedanceVoice.allCases) { voice in
+                                    Text(voice.displayName).tag(voice)
+                                }
+                            }
+
+                            Text("Get credentials at console.volcengine.com/speech/app")
+                                .font(.caption)
+                                .foregroundColor(Color.appWarmGray)
+                        }
+                    }
+
+                    // Practice
+                    Section("Practice") {
+                        Stepper("Articles per day: \(settings.articlesPerDay)",
+                                value: Binding(
+                                    get: { settings.articlesPerDay },
+                                    set: { settings.articlesPerDay = $0 }
+                                ),
+                                in: 2...5)
+
+                        Stepper("Listening sessions: \(settings.listeningSessionsPerDay)",
+                                value: Binding(
+                                    get: { settings.listeningSessionsPerDay },
+                                    set: { settings.listeningSessionsPerDay = $0 }
+                                ),
+                                in: 1...5)
+                    }
                 }
-
-                // Articles per day
-                Stepper("Articles per day: \(settings.articlesPerDay)",
-                        value: Binding(
-                            get: { settings.articlesPerDay },
-                            set: { settings.articlesPerDay = $0 }
-                        ),
-                        in: 2...5)
-
-                // Listening sessions per day
-                Stepper("Listening sessions: \(settings.listeningSessionsPerDay)",
-                        value: Binding(
-                            get: { settings.listeningSessionsPerDay },
-                            set: { settings.listeningSessionsPerDay = $0 }
-                        ),
-                        in: 1...5)
-
-                // TTS
-                Toggle("Use OpenAI TTS", isOn: Binding(
-                    get: { settings.useTTSOpenAI },
-                    set: { settings.useTTSOpenAI = $0 }
-                ))
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
             }
         }
-        .padding(16)
-        .cardStyle()
     }
 }
 
