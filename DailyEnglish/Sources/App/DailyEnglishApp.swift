@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct DailyEnglishApp: App {
     @State private var manager: PracticeManager?
+    @State private var showSplash = true
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -23,7 +24,6 @@ struct DailyEnglishApp: App {
             // Schema migration failed — delete old store and retry
             let url = config.url
             try? FileManager.default.removeItem(at: url)
-            // Also remove journal/wal files
             let dir = url.deletingLastPathComponent()
             let name = url.lastPathComponent
             for suffix in ["-shm", "-wal"] {
@@ -39,15 +39,25 @@ struct DailyEnglishApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if let manager {
+            ZStack {
+                if let manager, !showSplash {
                     ContentView(manager: manager)
-                } else {
-                    ProgressView()
-                        .onAppear {
-                            let context = sharedModelContainer.mainContext
-                            manager = PracticeManager(modelContext: context)
-                        }
+                        .transition(.opacity)
+                }
+
+                if showSplash {
+                    SplashView()
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.5), value: showSplash)
+            .onAppear {
+                let context = sharedModelContainer.mainContext
+                manager = PracticeManager(modelContext: context)
+
+                // Show splash for at least 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    showSplash = false
                 }
             }
         }
