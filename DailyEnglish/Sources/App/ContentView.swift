@@ -30,14 +30,8 @@ struct ContentView: View {
                     Image(systemName: "textformat.abc")
                 }
 
-            ListeningView(manager: manager)
-                .tag(4)
-                .tabItem {
-                    Image(systemName: "headphones")
-                }
-
             ProfileView(manager: manager)
-                .tag(5)
+                .tag(4)
                 .tabItem {
                     Image(systemName: "person.fill")
                 }

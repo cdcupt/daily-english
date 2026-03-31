@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     var manager: PracticeManager
     @Binding var selectedTab: Int
+    @State private var showListening = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -27,6 +28,9 @@ struct HomeView: View {
             }
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showListening) {
+                ListeningView(manager: manager)
+            }
         }
     }
 
@@ -160,7 +164,7 @@ struct HomeView: View {
                     scoreDisplay: nil,
                     progressText: nil
                 ) {
-                    selectedTab = 4  // Listening tab
+                    showListening = true  // Push via NavigationStack
                 }
             }
         }
