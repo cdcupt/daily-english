@@ -88,32 +88,33 @@ final class PracticeManager {
 
     func playTTS(text: String) {
         guard let settings else {
-            ttsService.speakWithSystem(text: text)
+            Task { @MainActor in ttsService.speakWithSystem(text: text) }
             return
         }
 
         switch settings.ttsProviderEnum {
         case .openai:
             let key = settings.openAITTSApiKey ?? settings.apiKey
+            let voice = settings.openAITTSVoice
             Task {
-                if let data = try? await ttsService.synthesizeOpenAI(text: text, apiKey: key, voice: settings.openAITTSVoice) {
+                if let data = try? await ttsService.synthesizeOpenAI(text: text, apiKey: key, voice: voice) {
                     await ttsService.playAudio(data: data)
                 }
             }
         case .bytedance:
+            let appId = settings.bytedanceAppId
+            let token = settings.bytedanceToken
+            let cluster = settings.bytedanceCluster
+            let voice = settings.bytedanceVoice
             Task {
                 if let data = try? await ttsService.synthesizeBytedance(
-                    text: text,
-                    appId: settings.bytedanceAppId,
-                    token: settings.bytedanceToken,
-                    cluster: settings.bytedanceCluster,
-                    voice: settings.bytedanceVoice
+                    text: text, appId: appId, token: token, cluster: cluster, voice: voice
                 ) {
                     await ttsService.playAudio(data: data)
                 }
             }
         case .system:
-            ttsService.speakWithSystem(text: text)
+            Task { @MainActor in ttsService.speakWithSystem(text: text) }
         }
     }
 
