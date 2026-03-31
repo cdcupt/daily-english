@@ -16,14 +16,11 @@ struct HomeView: View {
                     // Greeting + Streak
                     greetingSection
 
-                    // Weekly Chart
-                    WeeklyChartView(weekData: manager.weeklyRecords())
-
-                    // Skill Progress
-                    skillProgressSection
-
-                    // Today's Tasks
+                    // Today's Tasks (first)
                     todayTasksSection
+
+                    // Skill Progress (second)
+                    skillProgressSection
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 20)
@@ -163,7 +160,7 @@ struct HomeView: View {
                     scoreDisplay: nil,
                     progressText: nil
                 ) {
-                    // TODO: Push listening view
+                    selectedTab = 4  // Listening tab
                 }
             }
         }

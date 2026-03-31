@@ -11,6 +11,9 @@ struct ProfileView: View {
                     // Overall Level Card
                     overallLevelCard
 
+                    // Weekly Summary
+                    WeeklyChartView(weekData: manager.weeklyRecords())
+
                     // Level Growth Chart
                     LevelGrowthChart(
                         scores: Dictionary(

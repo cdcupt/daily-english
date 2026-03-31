@@ -10,35 +10,36 @@ struct ContentView: View {
                 .tag(0)
                 .tabItem {
                     Image(systemName: "house.fill")
-                    Text("Home")
                 }
 
             ReadingView(manager: manager)
                 .tag(1)
                 .tabItem {
                     Image(systemName: "book.fill")
-                    Text("Reading")
                 }
 
             WriteSpeakView(manager: manager)
                 .tag(2)
                 .tabItem {
                     Image(systemName: "pencil.and.outline")
-                    Text("Write & Speak")
                 }
 
             VocabularyView(manager: manager)
                 .tag(3)
                 .tabItem {
                     Image(systemName: "textformat.abc")
-                    Text("Vocabulary")
+                }
+
+            ListeningView(manager: manager)
+                .tag(4)
+                .tabItem {
+                    Image(systemName: "headphones")
                 }
 
             ProfileView(manager: manager)
-                .tag(4)
+                .tag(5)
                 .tabItem {
                     Image(systemName: "person.fill")
-                    Text("Me")
                 }
         }
         .tint(Color.appTeal)
