@@ -96,7 +96,7 @@ enum Skill: String, Codable, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .reading: "book.fill"
-        case .writing: "pencil.and.outline"
+        case .writing: "pencil.line"
         case .vocabulary: "textformat.abc"
         case .listening: "headphones"
         }

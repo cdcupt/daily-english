@@ -12,7 +12,7 @@ struct ContentView: View {
     private let tabs: [TabItem] = [
         TabItem(icon: "house.fill", tag: 0),
         TabItem(icon: "book.fill", tag: 1),
-        TabItem(icon: "pencil.and.outline", tag: 2),
+        TabItem(icon: "pencil.line", tag: 2),
         TabItem(icon: "textformat.abc", tag: 3),
         TabItem(icon: "headphones", tag: 4),
         TabItem(icon: "person.fill", tag: 5),
