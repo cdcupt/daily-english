@@ -85,6 +85,7 @@
 				8DC6BF2637C54035AECC1A5B /* Resources */,
 				BFB0DEB6E6C046DEA515A2D3 /* Products */,
 			);
+			path = DailyEnglish;
 			sourceTree = "<group>";
 		};
 		EC5056AFA6AA448FA8B9380C /* Sources */ = {
