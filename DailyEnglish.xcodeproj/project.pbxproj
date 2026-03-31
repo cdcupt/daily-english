@@ -22,6 +22,7 @@
 		B3B605AC47DD4BD897CC74D2 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4949C295C64F28811FCC3F /* Extensions.swift */; };
 		C3D71ECB96E5431C94BF40D5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0005FF73073949FFAAAAD38C /* HomeView.swift */; };
 		BB22CC33DD44EE55FF660011 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF66 /* SplashView.swift */; };
+		CC33DD44EE55FF66001122AA /* AppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD44EE55FF66001122AABB33 /* AppIconView.swift */; };
 		FCDBAE5B14CB4C2E8B9A37E8 /* ReadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EBB19D45F7C449687D95FF6 /* ReadingView.swift */; };
 		66F38746F4944350BD9905CB /* WriteSpeakView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33E00BBB96BC4A1780067A96 /* WriteSpeakView.swift */; };
 		D3791BBE5D8F4C1AA458435E /* VocabularyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB3E4D0DAE7472EBB0104F7 /* VocabularyView.swift */; };
@@ -53,6 +54,7 @@
 		2C4949C295C64F28811FCC3F /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		0005FF73073949FFAAAAD38C /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		AA11BB22CC33DD44EE55FF66 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		DD44EE55FF66001122AABB33 /* AppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconView.swift; sourceTree = "<group>"; };
 		1EBB19D45F7C449687D95FF6 /* ReadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingView.swift; sourceTree = "<group>"; };
 		33E00BBB96BC4A1780067A96 /* WriteSpeakView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriteSpeakView.swift; sourceTree = "<group>"; };
 		CDB3E4D0DAE7472EBB0104F7 /* VocabularyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyView.swift; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 			children = (
 				0005FF73073949FFAAAAD38C /* HomeView.swift */,
 				AA11BB22CC33DD44EE55FF66 /* SplashView.swift */,
+				DD44EE55FF66001122AABB33 /* AppIconView.swift */,
 				1EBB19D45F7C449687D95FF6 /* ReadingView.swift */,
 				33E00BBB96BC4A1780067A96 /* WriteSpeakView.swift */,
 				CDB3E4D0DAE7472EBB0104F7 /* VocabularyView.swift */,
@@ -267,6 +270,7 @@
 				B3B605AC47DD4BD897CC74D2 /* Extensions.swift in Sources */,
 				C3D71ECB96E5431C94BF40D5 /* HomeView.swift in Sources */,
 				BB22CC33DD44EE55FF660011 /* SplashView.swift in Sources */,
+				CC33DD44EE55FF66001122AA /* AppIconView.swift in Sources */,
 				FCDBAE5B14CB4C2E8B9A37E8 /* ReadingView.swift in Sources */,
 				66F38746F4944350BD9905CB /* WriteSpeakView.swift in Sources */,
 				D3791BBE5D8F4C1AA458435E /* VocabularyView.swift in Sources */,
