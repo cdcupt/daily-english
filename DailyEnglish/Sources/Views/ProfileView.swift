@@ -91,128 +91,245 @@ struct SettingsSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                if let settings = manager.settings {
-                    // AI Provider
-                    Section("AI Provider") {
-                        Picker("Provider", selection: Binding(
-                            get: { settings.provider },
-                            set: {
-                                settings.provider = $0
-                                manager.syncAISettings()
-                            }
-                        )) {
-                            ForEach(AIProvider.allCases) { provider in
-                                Text(provider.displayName).tag(provider)
-                            }
-                        }
-
-                        SecureField("API Key", text: Binding(
-                            get: { settings.apiKey },
-                            set: {
-                                settings.apiKey = $0
-                                manager.syncAISettings()
-                            }
-                        ))
-
-                        TextField("Custom Model (optional)", text: Binding(
-                            get: { settings.aiModel },
-                            set: {
-                                settings.aiModel = $0
-                                manager.syncAISettings()
-                            }
-                        ))
-                        .autocorrectionDisabled()
-
-                        if settings.aiModel.isEmpty {
-                            Text("Default: \(settings.provider.defaultModel)")
-                                .font(.caption)
-                                .foregroundColor(Color.appWarmGray)
-                        }
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header mascot
+                    VStack(spacing: 8) {
+                        Text("🐱")
+                            .font(.system(size: 56))
+                        Text("Settings")
+                            .font(.roundedTitle2())
+                            .foregroundColor(Color.appCharcoal)
+                        Text("Customize your learning experience")
+                            .font(.subheadline)
+                            .foregroundColor(Color.appWarmGray)
                     }
+                    .padding(.top, 8)
 
-                    // TTS Provider
-                    Section("Text-to-Speech") {
-                        Picker("TTS Provider", selection: Binding(
-                            get: { settings.ttsProviderEnum },
-                            set: { settings.ttsProviderEnum = $0 }
-                        )) {
-                            ForEach(TTSProvider.allCases) { provider in
-                                Text(provider.displayName).tag(provider)
+                    if let settings = manager.settings {
+                        // AI Provider Section
+                        settingsCard(
+                            icon: "brain",
+                            iconColor: Color.skillWriting,
+                            title: "AI Provider",
+                            mascot: "🦉"
+                        ) {
+                            Picker("Provider", selection: Binding(
+                                get: { settings.provider },
+                                set: {
+                                    settings.provider = $0
+                                    manager.syncAISettings()
+                                }
+                            )) {
+                                ForEach(AIProvider.allCases) { provider in
+                                    Text(provider.displayName).tag(provider)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            settingsField(label: "API Key", icon: "key.fill", iconColor: Color.appCoral) {
+                                SecureField("Enter your API key", text: Binding(
+                                    get: { settings.apiKey },
+                                    set: {
+                                        settings.apiKey = $0
+                                        manager.syncAISettings()
+                                    }
+                                ))
+                                .textFieldStyle(.roundedBorder)
+                            }
+
+                            settingsField(label: "Custom Model", icon: "cpu", iconColor: Color.appWarmGray) {
+                                TextField("Default: \(settings.provider.defaultModel)", text: Binding(
+                                    get: { settings.aiModel },
+                                    set: {
+                                        settings.aiModel = $0
+                                        manager.syncAISettings()
+                                    }
+                                ))
+                                .textFieldStyle(.roundedBorder)
+                                .autocorrectionDisabled()
                             }
                         }
 
-                        if settings.ttsProviderEnum == .openai {
-                            SecureField("OpenAI TTS API Key (optional)", text: Binding(
-                                get: { settings.openAITTSApiKey ?? "" },
-                                set: { settings.openAITTSApiKey = $0.isEmpty ? nil : $0 }
-                            ))
-                            Text("Leave empty to use your AI API key")
-                                .font(.caption)
-                                .foregroundColor(Color.appWarmGray)
-                        }
-
-                        if settings.ttsProviderEnum == .bytedance {
-                            TextField("App ID", text: Binding(
-                                get: { settings.bytedanceAppId },
-                                set: { settings.bytedanceAppId = $0 }
-                            ))
-                            .autocorrectionDisabled()
-
-                            SecureField("Access Token", text: Binding(
-                                get: { settings.bytedanceToken },
-                                set: { settings.bytedanceToken = $0 }
-                            ))
-
-                            TextField("Cluster", text: Binding(
-                                get: { settings.bytedanceCluster },
-                                set: { settings.bytedanceCluster = $0 }
-                            ))
-                            .autocorrectionDisabled()
-
-                            Picker("Voice", selection: Binding(
-                                get: { settings.bytedanceVoiceEnum },
-                                set: { settings.bytedanceVoiceEnum = $0 }
+                        // TTS Section
+                        settingsCard(
+                            icon: "speaker.wave.3.fill",
+                            iconColor: Color.skillListening,
+                            title: "Text-to-Speech",
+                            mascot: "🐻"
+                        ) {
+                            Picker("TTS Provider", selection: Binding(
+                                get: { settings.ttsProviderEnum },
+                                set: { settings.ttsProviderEnum = $0 }
                             )) {
-                                ForEach(BytedanceVoice.allCases) { voice in
-                                    Text(voice.displayName).tag(voice)
+                                ForEach(TTSProvider.allCases) { provider in
+                                    Text(provider.displayName).tag(provider)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            if settings.ttsProviderEnum == .openai {
+                                settingsField(label: "TTS API Key (optional)", icon: "key.fill", iconColor: Color.appCoral) {
+                                    SecureField("Uses AI key if empty", text: Binding(
+                                        get: { settings.openAITTSApiKey ?? "" },
+                                        set: { settings.openAITTSApiKey = $0.isEmpty ? nil : $0 }
+                                    ))
+                                    .textFieldStyle(.roundedBorder)
                                 }
                             }
 
-                            Text("Get credentials at console.volcengine.com/speech/app")
-                                .font(.caption)
-                                .foregroundColor(Color.appWarmGray)
+                            if settings.ttsProviderEnum == .bytedance {
+                                settingsField(label: "App ID", icon: "app.badge", iconColor: Color.skillVocabulary) {
+                                    TextField("Volcengine App ID", text: Binding(
+                                        get: { settings.bytedanceAppId },
+                                        set: { settings.bytedanceAppId = $0 }
+                                    ))
+                                    .textFieldStyle(.roundedBorder)
+                                    .autocorrectionDisabled()
+                                }
+
+                                settingsField(label: "Access Token", icon: "lock.fill", iconColor: Color.appCoral) {
+                                    SecureField("Volcengine access token", text: Binding(
+                                        get: { settings.bytedanceToken },
+                                        set: { settings.bytedanceToken = $0 }
+                                    ))
+                                    .textFieldStyle(.roundedBorder)
+                                }
+
+                                settingsField(label: "Cluster", icon: "server.rack", iconColor: Color.appWarmGray) {
+                                    TextField("e.g. volcano_tts", text: Binding(
+                                        get: { settings.bytedanceCluster },
+                                        set: { settings.bytedanceCluster = $0 }
+                                    ))
+                                    .textFieldStyle(.roundedBorder)
+                                    .autocorrectionDisabled()
+                                }
+
+                                Picker("Voice", selection: Binding(
+                                    get: { settings.bytedanceVoiceEnum },
+                                    set: { settings.bytedanceVoiceEnum = $0 }
+                                )) {
+                                    ForEach(BytedanceVoice.allCases) { voice in
+                                        Text(voice.displayName).tag(voice)
+                                    }
+                                }
+
+                                HStack(spacing: 4) {
+                                    Image(systemName: "info.circle")
+                                        .font(.caption2)
+                                    Text("Get credentials at console.volcengine.com/speech/app")
+                                        .font(.caption)
+                                }
+                                .foregroundColor(Color.skillListening)
+                            }
+                        }
+
+                        // Practice Section
+                        settingsCard(
+                            icon: "flame.fill",
+                            iconColor: Color.appCoral,
+                            title: "Daily Practice",
+                            mascot: "🐝"
+                        ) {
+                            HStack {
+                                Label("Articles per day", systemImage: "book.fill")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.appCharcoal)
+                                Spacer()
+                                Stepper("\(settings.articlesPerDay)",
+                                        value: Binding(
+                                            get: { settings.articlesPerDay },
+                                            set: { settings.articlesPerDay = $0 }
+                                        ),
+                                        in: 2...5)
+                                .fixedSize()
+                            }
+
+                            HStack {
+                                Label("Listening sessions", systemImage: "headphones")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.appCharcoal)
+                                Spacer()
+                                Stepper("\(settings.listeningSessionsPerDay)",
+                                        value: Binding(
+                                            get: { settings.listeningSessionsPerDay },
+                                            set: { settings.listeningSessionsPerDay = $0 }
+                                        ),
+                                        in: 1...5)
+                                .fixedSize()
+                            }
                         }
                     }
-
-                    // Practice
-                    Section("Practice") {
-                        Stepper("Articles per day: \(settings.articlesPerDay)",
-                                value: Binding(
-                                    get: { settings.articlesPerDay },
-                                    set: { settings.articlesPerDay = $0 }
-                                ),
-                                in: 2...5)
-
-                        Stepper("Listening sessions: \(settings.listeningSessionsPerDay)",
-                                value: Binding(
-                                    get: { settings.listeningSessionsPerDay },
-                                    set: { settings.listeningSessionsPerDay = $0 }
-                                ),
-                                in: 1...5)
-                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 20)
             }
-            .navigationTitle("Settings")
+            .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("Done")
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.appTeal)
                     }
-                    .fontWeight(.semibold)
                 }
             }
+        }
+    }
+
+    // MARK: - Settings Card
+
+    private func settingsCard<Content: View>(
+        icon: String,
+        iconColor: Color,
+        title: String,
+        mascot: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundColor(iconColor)
+                Text(title)
+                    .font(.roundedHeadline())
+                    .foregroundColor(Color.appCharcoal)
+                Spacer()
+                Text(mascot)
+                    .font(.title2)
+            }
+
+            Divider()
+
+            content()
+        }
+        .padding(16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.05), radius: 12, y: 6)
+    }
+
+    // MARK: - Settings Field
+
+    private func settingsField<Content: View>(
+        label: String,
+        icon: String,
+        iconColor: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.caption)
+                    .foregroundColor(iconColor)
+                Text(label)
+                    .font(.caption)
+                    .foregroundColor(Color.appWarmGray)
+            }
+            content()
         }
     }
 }

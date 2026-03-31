@@ -174,16 +174,16 @@ enum TTSProvider: String, Codable, CaseIterable, Identifiable {
 
 enum BytedanceVoice: String, Codable, CaseIterable, Identifiable {
     case dacey = "en_female_dacey_uranus_bigtts"
-    case jackson = "BV504_streaming"
-    case ariana = "BV503_streaming"
+    case stokie = "en_female_stokie_uranus_bigtts"
+    case tim = "en_male_tim_uranus_bigtts"
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .dacey: "Dacey (English Female - TTS 2.0)"
-        case .jackson: "Jackson (English Male)"
-        case .ariana: "Ariana (English Female)"
+        case .dacey: "Dacey (Female)"
+        case .stokie: "Stokie (Female)"
+        case .tim: "Tim (Male)"
         }
     }
 }
