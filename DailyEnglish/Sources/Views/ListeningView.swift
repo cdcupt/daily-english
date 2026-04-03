@@ -12,8 +12,9 @@ struct ListeningView: View {
             Group {
                 if isGenerating {
                     VStack(spacing: 12) {
-                        Text("🐻")
-                            .font(.system(size: 40))
+                        Image("mascot_bear")
+                            .resizable().scaledToFit()
+                            .frame(width: 48, height: 48)
                         ProgressView("Generating listening sessions...")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -36,8 +37,9 @@ struct ListeningView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("🐻")
-                .font(.system(size: 60))
+            Image("mascot_bear")
+                .resizable().scaledToFit()
+                .frame(width: 72, height: 72)
             Text("Listening Practice")
                 .font(.roundedTitle2())
                 .foregroundColor(Color.appCharcoal)
@@ -210,8 +212,9 @@ struct ListeningSessionView: View {
                         .filter { answers[$0.offset] == $0.element.correctIndex }.count
 
                     VStack(spacing: 8) {
-                        Text("🐻")
-                            .font(.system(size: 40))
+                        Image("mascot_bear")
+                            .resizable().scaledToFit()
+                            .frame(width: 48, height: 48)
                         Text("\(correct)/\(session.questions.count)")
                             .font(.roundedLargeNumber())
                             .foregroundColor(Color.skillListening)

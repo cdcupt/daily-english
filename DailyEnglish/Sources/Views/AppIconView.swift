@@ -36,16 +36,19 @@ struct AppIconView: View {
             // Main content
             VStack(spacing: 40) {
                 // Cat mascot
-                Text("🐱")
-                    .font(.system(size: 340))
+                Image("mascot_cat")
+                    .resizable().scaledToFit()
+                    .frame(width: 400, height: 400)
                     .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
 
                 // Small book accent
                 HStack(spacing: 24) {
-                    Text("📖")
-                        .font(.system(size: 80))
-                    Text("✨")
+                    Image(systemName: "book.fill")
                         .font(.system(size: 60))
+                        .foregroundStyle(.white.opacity(0.9))
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.white.opacity(0.7))
                         .offset(y: -20)
                 }
                 .offset(y: -30)

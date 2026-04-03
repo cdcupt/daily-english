@@ -32,8 +32,9 @@ struct VocabularyView: View {
 
     private var startView: some View {
         VStack(spacing: 16) {
-            Text("🐝")
-                .font(.system(size: 60))
+            Image("mascot_bee")
+                .resizable().scaledToFit()
+                .frame(width: 72, height: 72)
             Text("20 IELTS Words")
                 .font(.roundedTitle2())
                 .foregroundColor(Color.appCharcoal)
@@ -64,8 +65,9 @@ struct VocabularyView: View {
 
     private var loadingState: some View {
         VStack(spacing: 12) {
-            Text("🐝")
-                .font(.system(size: 40))
+            Image("mascot_bee")
+                .resizable().scaledToFit()
+                .frame(width: 48, height: 48)
             ProgressView("Generating words...")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -115,7 +117,7 @@ struct VocabularyView: View {
                     )
 
                     if showAnswer {
-                        Text("📝 \(word.exampleSentence)")
+                        Label(word.exampleSentence, systemImage: "pencil.line")
                             .font(.subheadline)
                             .foregroundColor(Color.appWarmGray)
                             .padding()
@@ -147,8 +149,9 @@ struct VocabularyView: View {
             VStack(spacing: 20) {
                 let correct = quiz.words.filter { $0.userAnswer == $0.correctIndex }.count
 
-                Text("🐝")
-                    .font(.system(size: 50))
+                Image("mascot_bee")
+                    .resizable().scaledToFit()
+                    .frame(width: 60, height: 60)
                 Text("\(correct)/20")
                     .font(.roundedLargeNumber())
                     .foregroundColor(Color.skillVocabulary)

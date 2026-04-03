@@ -44,8 +44,9 @@ struct WriteSpeakView: View {
 
     private var topicPhase: some View {
         VStack(spacing: 20) {
-            Text("🦊")
-                .font(.system(size: 60))
+            Image("mascot_fox")
+                .resizable().scaledToFit()
+                .frame(width: 72, height: 72)
             Text("Today's Topic")
                 .font(.roundedTitle2())
                 .foregroundColor(Color.appCharcoal)
@@ -141,8 +142,9 @@ struct WriteSpeakView: View {
                 if let review = writingReview {
                     // Score
                     HStack {
-                        Text("🦊")
-                            .font(.system(size: 40))
+                        Image("mascot_fox")
+                            .resizable().scaledToFit()
+                            .frame(width: 48, height: 48)
                         VStack(alignment: .leading) {
                             Text("\(review.score)/100")
                                 .font(.roundedLargeNumber())
@@ -221,8 +223,9 @@ struct WriteSpeakView: View {
 
     private var speakingPhase: some View {
         VStack(spacing: 20) {
-            Text("🦊")
-                .font(.system(size: 40))
+            Image("mascot_fox")
+                .resizable().scaledToFit()
+                .frame(width: 48, height: 48)
 
             if let corrected = writingReview?.correctedText {
                 Text(corrected)
@@ -284,8 +287,9 @@ struct WriteSpeakView: View {
 
     private var resultsPhase: some View {
         VStack(spacing: 20) {
-            Text("🦊")
-                .font(.system(size: 50))
+            Image("mascot_fox")
+                .resizable().scaledToFit()
+                .frame(width: 60, height: 60)
 
             if let result = pronunciationResult {
                 let overall = result.accuracyScore * 0.6 + result.fluencyScore * 0.4

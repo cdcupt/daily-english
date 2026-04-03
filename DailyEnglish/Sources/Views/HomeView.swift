@@ -35,8 +35,10 @@ struct HomeView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Text("🐱")
-                        .font(.title)
+                    Image("mascot_cat")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 36, height: 36)
                     Text(greetingText)
                         .font(.roundedTitle3())
                         .foregroundColor(Color.appCharcoal)
@@ -56,8 +58,9 @@ struct HomeView: View {
             // Streak badge
             if let streak = manager.streakData, streak.currentStreak > 0 {
                 VStack(spacing: 2) {
-                    Text("🔥")
+                    Image(systemName: "flame.fill")
                         .font(.title2)
+                        .foregroundColor(.orange)
                     Text("\(streak.currentStreak)")
                         .font(.roundedScore())
                         .foregroundColor(Color.appCoral)

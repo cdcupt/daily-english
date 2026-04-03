@@ -56,8 +56,10 @@ struct ProfileView: View {
             showLevelDetail = true
         } label: {
             VStack(spacing: 8) {
-                Text("🐱")
-                    .font(.system(size: 40))
+                Image("mascot_cat")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 48, height: 48)
 
                 Text("Level \(level.level)")
                     .font(.roundedLargeNumber())
@@ -103,8 +105,9 @@ struct SettingsSheet: View {
                 VStack(spacing: 20) {
                     // Header mascot
                     VStack(spacing: 8) {
-                        Text("🐱")
-                            .font(.system(size: 56))
+                        Image("mascot_cat")
+                            .resizable().scaledToFit()
+                            .frame(width: 64, height: 64)
                         Text("Settings")
                             .font(.roundedTitle2())
                             .foregroundColor(Color.appCharcoal)
@@ -120,7 +123,7 @@ struct SettingsSheet: View {
                             icon: "brain",
                             iconColor: Color.skillWriting,
                             title: "AI Provider",
-                            mascot: "🦉"
+                            mascot: "mascot_owl"
                         ) {
                             Picker("Provider", selection: Binding(
                                 get: { settings.provider },
@@ -164,7 +167,7 @@ struct SettingsSheet: View {
                             icon: "speaker.wave.3.fill",
                             iconColor: Color.skillListening,
                             title: "Text-to-Speech",
-                            mascot: "🐻"
+                            mascot: "mascot_bear"
                         ) {
                             Picker("TTS Provider", selection: Binding(
                                 get: { settings.ttsProviderEnum },
@@ -229,7 +232,7 @@ struct SettingsSheet: View {
                             icon: "flame.fill",
                             iconColor: Color.appCoral,
                             title: "Daily Practice",
-                            mascot: "🐝"
+                            mascot: "mascot_bee"
                         ) {
                             HStack {
                                 Label("Articles per day", systemImage: "book.fill")
@@ -264,7 +267,7 @@ struct SettingsSheet: View {
                             icon: "arrow.up.arrow.down",
                             iconColor: Color.appTeal,
                             title: "Config Sharing",
-                            mascot: "🦊"
+                            mascot: "mascot_fox"
                         ) {
                             // Export
                             Button {
@@ -375,8 +378,10 @@ struct SettingsSheet: View {
                     .font(.roundedHeadline())
                     .foregroundColor(Color.appCharcoal)
                 Spacer()
-                Text(mascot)
-                    .font(.title2)
+                Image(mascot)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
             }
 
             Divider()

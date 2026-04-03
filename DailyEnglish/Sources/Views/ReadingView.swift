@@ -31,8 +31,9 @@ struct ReadingView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("🦉")
-                .font(.system(size: 60))
+            Image("mascot_owl")
+                .resizable().scaledToFit()
+                .frame(width: 72, height: 72)
             Text("Let's practice reading today!")
                 .font(.roundedTitle3())
                 .foregroundColor(Color.appCharcoal)
@@ -249,8 +250,9 @@ struct ArticleDetailView: View {
         VStack(spacing: 12) {
             let correct = quizQuestions.enumerated().filter { answers[$0.offset] == $0.element.correctIndex }.count
 
-            Text("🦉")
-                .font(.system(size: 40))
+            Image("mascot_owl")
+                .resizable().scaledToFit()
+                .frame(width: 48, height: 48)
             Text("\(correct)/\(quizQuestions.count)")
                 .font(.roundedLargeNumber())
                 .foregroundColor(Color.skillReading)
