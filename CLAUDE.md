@@ -32,14 +32,14 @@ DailyEnglish/Sources/
 │   ├── DailyEnglishApp.swift          # Entry point, SwiftData modelContainer, splash → main transition
 │   └── ContentView.swift              # Custom 6-tab bar (not system TabView — supports 6 tabs without "More")
 ├── Models/
-│   ├── Enums.swift                    # AIProvider, TTSProvider, BytedanceVoice, Skill, EnglishLevel, ViewState
+│   ├── Enums.swift                    # AIProvider, AIModel, TTSProvider, GeminiVoice, OpenAIVoice, BytedanceVoice, Skill, EnglishLevel, ViewState
 │   ├── PracticeModels.swift           # Article, WritingEntry, VocabularyQuizDay, ListeningSession + Codable structs
 │   ├── UserModels.swift               # AppSettings (singleton), DailyRecord
 │   ├── StreakData.swift               # StreakData (singleton)
 │   └── DailySkillScore.swift          # Per-skill daily scores → level calculation
 ├── Services/
-│   ├── AIService.swift                # Multi-provider AI client (OpenAI, Claude, Kimi, DeepSeek, Gemini)
-│   ├── TTSService.swift               # OpenAI TTS + ByteDance TTS 2.0 (SSE) + AVSpeechSynthesizer fallback
+│   ├── AIService.swift                # Multi-provider AI client (Gemini, OpenAI, Kimi) — all OpenAI-compatible
+│   ├── TTSService.swift               # Gemini TTS + OpenAI TTS (gpt-4o-mini-tts) + ByteDance TTS 2.0 (SSE) + AVSpeechSynthesizer fallback
 │   ├── SpeechRecognitionService.swift  # SFSpeechRecognizer + AVAudioEngine wrapper
 │   └── PracticeManager.swift          # Central coordinator (@Observable) — daily state, scores, streaks, TTS routing
 ├── Views/
@@ -65,8 +65,8 @@ DailyEnglish/Sources/
 ## Key Notes
 
 - **Custom Tab Bar**: 6 tabs (Home, Reading, Writing, Vocabulary, Listening, Me) — icons only with dot indicator. Uses custom implementation instead of system TabView to avoid iOS 5-tab "More" overflow.
-- **AI Providers**: OpenAI, Claude (Anthropic native format), Kimi, DeepSeek, Gemini — single `switch` on `usesAnthropicFormat` handles the API difference.
-- **TTS Providers**: System (AVSpeechSynthesizer), OpenAI (`/v1/audio/speech`), ByteDance (Volcengine TTS 2.0 via SSE endpoint). Voices: Dacey, Stokie, Tim.
+- **AI Providers**: Gemini, OpenAI, Kimi — all use OpenAI-compatible chat completions format. Each provider has selectable models with pricing displayed in Settings.
+- **TTS Providers**: System (AVSpeechSynthesizer), Gemini (generateContent with audio modality, 6 voices), OpenAI (gpt-4o-mini-tts, 13 voices), ByteDance (Volcengine TTS 2.0 via SSE endpoint, 3 voices).
 - **Skill Levels**: 1-10 based on average of daily best scores → CEFR A1-C2 mapping (see SKILL.md)
 - **Scores displayed as fractions** (e.g., "17/20"), never percentages
 - **Mascot characters**: Cat Cleo (Home/Settings), Owl Ollie (Reading), Fox Fenn (Writing), Bee Buzz (Vocabulary), Bear Benny (Listening)

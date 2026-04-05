@@ -8,9 +8,59 @@ final class TTSService {
 
     var isPlaying: Bool = false
 
+    // MARK: - Gemini TTS
+
+    func synthesizeGemini(text: String, apiKey: String, voice: String = "Kore") async throws -> Data {
+        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=\(apiKey)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "contents": [
+                ["parts": [["text": text]]],
+            ],
+            "generationConfig": [
+                "response_modalities": ["AUDIO"],
+                "speech_config": [
+                    "voice_config": [
+                        "prebuilt_voice_config": [
+                            "voice_name": voice,
+                        ],
+                    ],
+                ],
+            ],
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode)
+        else {
+            throw TTSError.synthesizeFailed
+        }
+
+        return try parseGeminiAudio(data)
+    }
+
+    private func parseGeminiAudio(_ data: Data) throws -> Data {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let candidates = json["candidates"] as? [[String: Any]],
+              let content = candidates.first?["content"] as? [String: Any],
+              let parts = content["parts"] as? [[String: Any]],
+              let inlineData = parts.first?["inlineData"] as? [String: Any],
+              let audioBase64 = inlineData["data"] as? String,
+              let audioData = Data(base64Encoded: audioBase64)
+        else {
+            throw TTSError.synthesizeFailed
+        }
+        return audioData
+    }
+
     // MARK: - OpenAI TTS
 
-    func synthesizeOpenAI(text: String, apiKey: String, voice: String = "alloy") async throws -> Data {
+    func synthesizeOpenAI(text: String, apiKey: String, voice: String = "marin") async throws -> Data {
         let url = URL(string: "https://api.openai.com/v1/audio/speech")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -18,7 +68,7 @@ final class TTSService {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = [
-            "model": "tts-1",
+            "model": "gpt-4o-mini-tts",
             "voice": voice,
             "input": text,
             "speed": 0.9,

@@ -60,6 +60,7 @@ struct ProfileView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 48, height: 48)
+                    .mascotStyle()
 
                 Text("Level \(level.level)")
                     .font(.roundedLargeNumber())
@@ -108,6 +109,7 @@ struct SettingsSheet: View {
                         Image("mascot_cat")
                             .resizable().scaledToFit()
                             .frame(width: 64, height: 64)
+                            .mascotStyle(cornerRadius: 12)
                         Text("Settings")
                             .font(.roundedTitle2())
                             .foregroundColor(Color.appCharcoal)
@@ -129,6 +131,7 @@ struct SettingsSheet: View {
                                 get: { settings.provider },
                                 set: {
                                     settings.provider = $0
+                                    settings.aiModel = $0.defaultModel
                                     manager.syncAISettings()
                                 }
                             )) {
@@ -149,17 +152,55 @@ struct SettingsSheet: View {
                                 .textFieldStyle(.roundedBorder)
                             }
 
-                            settingsField(label: "Custom Model", icon: "cpu", iconColor: Color.appWarmGray) {
-                                TextField("Default: \(settings.provider.defaultModel)", text: Binding(
-                                    get: { settings.aiModel },
-                                    set: {
-                                        settings.aiModel = $0
-                                        manager.syncAISettings()
+                            DisclosureGroup {
+                                VStack(spacing: 0) {
+                                    let selectedModel = settings.aiModel.isEmpty ? settings.provider.defaultModel : settings.aiModel
+                                    ForEach(settings.provider.availableModels) { model in
+                                        Button {
+                                            settings.aiModel = model.id
+                                            manager.syncAISettings()
+                                        } label: {
+                                            HStack {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(model.displayName)
+                                                        .font(.subheadline)
+                                                        .foregroundColor(Color.appCharcoal)
+                                                    Text(model.price)
+                                                        .font(.caption)
+                                                        .foregroundColor(Color.appWarmGray)
+                                                }
+                                                Spacer()
+                                                if model.id == selectedModel {
+                                                    Image(systemName: "checkmark")
+                                                        .font(.caption)
+                                                        .fontWeight(.bold)
+                                                        .foregroundColor(Color.appTeal)
+                                                }
+                                            }
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 4)
+                                        }
+                                        if model.id != settings.provider.availableModels.last?.id {
+                                            Divider()
+                                        }
                                     }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .autocorrectionDisabled()
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "cpu")
+                                        .font(.caption)
+                                        .foregroundColor(Color.appWarmGray)
+                                    Text("Model")
+                                        .font(.caption)
+                                        .foregroundColor(Color.appWarmGray)
+                                    Spacer()
+                                    let displayModel = settings.provider.availableModels.first(where: { $0.id == (settings.aiModel.isEmpty ? settings.provider.defaultModel : settings.aiModel) })
+                                    Text(displayModel?.displayName ?? settings.provider.defaultModel)
+                                        .font(.caption)
+                                        .foregroundColor(Color.appTeal)
+                                }
                             }
+                            .tint(Color.appWarmGray)
                         }
 
                         // TTS Section
@@ -179,6 +220,17 @@ struct SettingsSheet: View {
                             }
                             .pickerStyle(.segmented)
 
+                            if settings.ttsProviderEnum == .gemini {
+                                Picker("Voice", selection: Binding(
+                                    get: { settings.geminiVoiceEnum },
+                                    set: { settings.geminiVoiceEnum = $0 }
+                                )) {
+                                    ForEach(GeminiVoice.allCases) { voice in
+                                        Text(voice.displayName).tag(voice)
+                                    }
+                                }
+                            }
+
                             if settings.ttsProviderEnum == .openai {
                                 settingsField(label: "TTS API Key (optional)", icon: "key.fill", iconColor: Color.appCoral) {
                                     SecureField("Uses AI key if empty", text: Binding(
@@ -186,6 +238,15 @@ struct SettingsSheet: View {
                                         set: { settings.openAITTSApiKey = $0.isEmpty ? nil : $0 }
                                     ))
                                     .textFieldStyle(.roundedBorder)
+                                }
+
+                                Picker("Voice", selection: Binding(
+                                    get: { settings.openAIVoiceEnum },
+                                    set: { settings.openAIVoiceEnum = $0 }
+                                )) {
+                                    ForEach(OpenAIVoice.allCases) { voice in
+                                        Text(voice.displayName).tag(voice)
+                                    }
                                 }
                             }
 
@@ -269,31 +330,6 @@ struct SettingsSheet: View {
                             title: "Config Sharing",
                             mascot: "mascot_fox"
                         ) {
-                            // Export
-                            Button {
-                                showExportOptions = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .foregroundColor(Color.appTeal)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Export Config")
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundColor(Color.appCharcoal)
-                                        Text("Share or backup your settings")
-                                            .font(.caption)
-                                            .foregroundColor(Color.appWarmGray)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundColor(Color.appWarmGray)
-                                }
-                            }
-
-                            Divider()
-
                             // Import
                             Button {
                                 showImportPicker = true
@@ -307,6 +343,31 @@ struct SettingsSheet: View {
                                             .fontWeight(.medium)
                                             .foregroundColor(Color.appCharcoal)
                                         Text("Load settings from .elc file")
+                                            .font(.caption)
+                                            .foregroundColor(Color.appWarmGray)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(Color.appWarmGray)
+                                }
+                            }
+
+                            Divider()
+
+                            // Export
+                            Button {
+                                showExportOptions = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .foregroundColor(Color.appTeal)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Export Config")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(Color.appCharcoal)
+                                        Text("Share or backup your settings")
                                             .font(.caption)
                                             .foregroundColor(Color.appWarmGray)
                                     }
@@ -382,6 +443,7 @@ struct SettingsSheet: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 32, height: 32)
+                    .mascotStyle(cornerRadius: 8)
             }
 
             Divider()
@@ -426,6 +488,7 @@ struct SettingsSheet: View {
             "articlesPerDay": settings.articlesPerDay,
             "listeningSessionsPerDay": settings.listeningSessionsPerDay,
             "ttsProvider": settings.ttsProvider,
+            "geminiVoice": settings.geminiVoice,
             "openAITTSVoice": settings.openAITTSVoice,
             "bytedanceCluster": settings.bytedanceCluster,
             "bytedanceVoice": settings.bytedanceVoice,
@@ -485,6 +548,7 @@ struct SettingsSheet: View {
             if let v = config["articlesPerDay"] as? Int { settings.articlesPerDay = v }
             if let v = config["listeningSessionsPerDay"] as? Int { settings.listeningSessionsPerDay = v }
             if let v = config["ttsProvider"] as? String { settings.ttsProvider = v }
+            if let v = config["geminiVoice"] as? String { settings.geminiVoice = v }
             if let v = config["openAITTSVoice"] as? String { settings.openAITTSVoice = v }
             if let v = config["bytedanceCluster"] as? String { settings.bytedanceCluster = v }
             if let v = config["bytedanceVoice"] as? String { settings.bytedanceVoice = v }

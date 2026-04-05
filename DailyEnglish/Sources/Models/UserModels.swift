@@ -17,6 +17,8 @@ final class AppSettings {
     var ttsProvider: String  // TTSProvider rawValue
     var openAITTSApiKey: String?
     var openAITTSVoice: String
+    // Gemini TTS
+    var geminiVoice: String  // GeminiVoice rawValue
     // ByteDance TTS
     var bytedanceAppId: String
     var bytedanceToken: String
@@ -24,13 +26,23 @@ final class AppSettings {
     var bytedanceVoice: String  // BytedanceVoice rawValue
 
     var provider: AIProvider {
-        get { AIProvider(rawValue: aiProvider) ?? .openai }
+        get { AIProvider(rawValue: aiProvider) ?? .gemini }
         set { aiProvider = newValue.rawValue }
     }
 
     var ttsProviderEnum: TTSProvider {
         get { TTSProvider(rawValue: ttsProvider) ?? .system }
         set { ttsProvider = newValue.rawValue }
+    }
+
+    var geminiVoiceEnum: GeminiVoice {
+        get { GeminiVoice(rawValue: geminiVoice) ?? .kore }
+        set { geminiVoice = newValue.rawValue }
+    }
+
+    var openAIVoiceEnum: OpenAIVoice {
+        get { OpenAIVoice(rawValue: openAITTSVoice) ?? .marin }
+        set { openAITTSVoice = newValue.rawValue }
     }
 
     var bytedanceVoiceEnum: BytedanceVoice {
@@ -40,14 +52,15 @@ final class AppSettings {
 
     init() {
         self.id = UUID()
-        self.aiProvider = AIProvider.openai.rawValue
+        self.aiProvider = AIProvider.gemini.rawValue
         self.apiKey = ""
         self.aiModel = ""
         self.articlesPerDay = 3
         self.listeningSessionsPerDay = 3
         self.ttsProvider = TTSProvider.system.rawValue
         self.openAITTSApiKey = nil
-        self.openAITTSVoice = "alloy"
+        self.openAITTSVoice = OpenAIVoice.marin.rawValue
+        self.geminiVoice = GeminiVoice.kore.rawValue
         self.bytedanceAppId = ""
         self.bytedanceToken = ""
         self.bytedanceCluster = "volcano_tts"

@@ -64,27 +64,28 @@ Complete all 4 tasks daily to build your streak. Track current and longest strea
 - **SwiftUI** — Declarative UI with NavigationStack
 - **SwiftData** — Local persistence (iOS 17+)
 - **Swift Charts** — Weekly bar chart and level growth line chart
-- **AVFoundation** — TTS audio playback (OpenAI TTS, ByteDance TTS, system fallback)
+- **AVFoundation** — TTS audio playback (Gemini TTS, OpenAI TTS, ByteDance TTS, system fallback)
 - **Speech Framework** — On-device speech recognition for pronunciation practice
 - **URLSession** — AI provider API calls
 - **No third-party dependencies**
 
 ## AI Providers
 
-| Provider | API Format | Default Model |
-|----------|-----------|---------------|
-| OpenAI | OpenAI-compatible | gpt-4o-mini |
-| Claude | Anthropic native | claude-sonnet-4-6 |
-| Kimi | OpenAI-compatible | moonshot-v1-8k |
-| DeepSeek | OpenAI-compatible | deepseek-chat |
-| Gemini | OpenAI-compatible | gemini-2.5-flash |
+| Provider | API Format | Models |
+|----------|-----------|--------|
+| Gemini | OpenAI-compatible | Gemini 3.1 Flash Lite, Gemini 3 Flash, Gemini 3.1 Pro |
+| OpenAI | OpenAI-compatible | GPT-5.4 Nano, GPT-5.4 Mini, GPT-5.4 |
+| Kimi | OpenAI-compatible | Kimi K2.5, Kimi K2 Turbo, Kimi K2 Thinking |
+
+Models are selectable in Settings with pricing info displayed.
 
 ## TTS Providers
 
 | Provider | Notes |
 |----------|-------|
 | System | iOS built-in AVSpeechSynthesizer (no API key needed) |
-| OpenAI | High-quality TTS via OpenAI API (voice: alloy) |
+| Gemini | TTS via Gemini generateContent API — 6 voices (Kore, Puck, Aoede, Charon, Fenrir, Leda) |
+| OpenAI | High-quality TTS via gpt-4o-mini-tts — 13 voices including Marin and Cedar |
 | ByteDance | Volcengine TTS 2.0 — voices: Dacey (Female), Stokie (Female), Tim (Male) |
 
 ## Project Structure
@@ -95,14 +96,14 @@ DailyEnglish/Sources/
 │   ├── DailyEnglishApp.swift          # Entry point, SwiftData container, splash screen
 │   └── ContentView.swift              # Custom 6-tab bar (Home, Reading, Writing, Vocab, Listening, Me)
 ├── Models/
-│   ├── Enums.swift                    # AIProvider, TTSProvider, BytedanceVoice, Skill, EnglishLevel
+│   ├── Enums.swift                    # AIProvider, AIModel, TTSProvider, GeminiVoice, OpenAIVoice, BytedanceVoice, Skill, EnglishLevel
 │   ├── PracticeModels.swift           # Article, WritingEntry, VocabularyQuizDay, ListeningSession
 │   ├── UserModels.swift               # AppSettings, DailyRecord
 │   ├── StreakData.swift               # Streak tracking
 │   └── DailySkillScore.swift          # Per-skill daily scores and level calculation
 ├── Services/
 │   ├── AIService.swift                # Multi-provider AI client
-│   ├── TTSService.swift               # OpenAI TTS + ByteDance TTS + system fallback
+│   ├── TTSService.swift               # Gemini TTS + OpenAI TTS + ByteDance TTS + system fallback
 │   ├── SpeechRecognitionService.swift  # SFSpeechRecognizer wrapper
 │   └── PracticeManager.swift          # Central coordinator (@Observable)
 ├── Views/

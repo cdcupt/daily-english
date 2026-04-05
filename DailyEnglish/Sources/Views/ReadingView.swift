@@ -34,6 +34,7 @@ struct ReadingView: View {
             Image("mascot_owl")
                 .resizable().scaledToFit()
                 .frame(width: 72, height: 72)
+                .mascotStyle(cornerRadius: 14)
             Text("Let's practice reading today!")
                 .font(.roundedTitle3())
                 .foregroundColor(Color.appCharcoal)
@@ -99,6 +100,7 @@ struct ReadingView: View {
                         .foregroundColor(Color.appWarmGray)
                 }
                 .padding(.vertical, 4)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
@@ -203,9 +205,6 @@ struct ArticleDetailView: View {
         }
         .background(Color.appBackground)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            article.isRead = true
-        }
     }
 
     private var quizSection: some View {
@@ -253,6 +252,7 @@ struct ArticleDetailView: View {
             Image("mascot_owl")
                 .resizable().scaledToFit()
                 .frame(width: 48, height: 48)
+                .mascotStyle()
             Text("\(correct)/\(quizQuestions.count)")
                 .font(.roundedLargeNumber())
                 .foregroundColor(Color.skillReading)
@@ -282,6 +282,7 @@ struct ArticleDetailView: View {
         let correct = quizQuestions.enumerated().filter { answers[$0.offset] == $0.element.correctIndex }.count
         article.quizScore = correct
         article.quizTotal = quizQuestions.count
+        article.isRead = true
         showQuiz = false
         showResults = true
 
