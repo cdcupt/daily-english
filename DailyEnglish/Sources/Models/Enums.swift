@@ -2,47 +2,66 @@ import Foundation
 
 // MARK: - AI Provider
 
+struct AIModel: Identifiable {
+    let id: String
+    let displayName: String
+    let price: String
+
+    init(_ id: String, name: String, price: String) {
+        self.id = id
+        self.displayName = name
+        self.price = price
+    }
+}
+
 enum AIProvider: String, Codable, CaseIterable, Identifiable {
-    case openai
-    case claude
-    case kimi
-    case deepseek
     case gemini
+    case openai
+    case kimi
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .openai: "OpenAI"
-        case .claude: "Claude"
-        case .kimi: "Kimi"
-        case .deepseek: "DeepSeek"
         case .gemini: "Gemini"
+        case .openai: "OpenAI"
+        case .kimi: "Kimi"
         }
     }
 
     var baseURL: String {
         switch self {
-        case .openai: "https://api.openai.com/v1/chat/completions"
-        case .claude: "https://api.anthropic.com/v1/messages"
-        case .kimi: "https://api.moonshot.cn/v1/chat/completions"
-        case .deepseek: "https://api.deepseek.com/v1/chat/completions"
         case .gemini: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        case .openai: "https://api.openai.com/v1/chat/completions"
+        case .kimi: "https://api.moonshot.cn/v1/chat/completions"
         }
     }
 
     var defaultModel: String {
-        switch self {
-        case .openai: "gpt-4o-mini"
-        case .claude: "claude-sonnet-4-6"
-        case .kimi: "moonshot-v1-8k"
-        case .deepseek: "deepseek-chat"
-        case .gemini: "gemini-2.5-flash"
-        }
+        availableModels.first?.id ?? ""
     }
 
-    var usesAnthropicFormat: Bool {
-        self == .claude
+    var availableModels: [AIModel] {
+        switch self {
+        case .gemini:
+            [
+                AIModel("gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite", price: "$0.25~$1.50"),
+                AIModel("gemini-3-flash-preview", name: "Gemini 3 Flash", price: "$0.50~$3"),
+                AIModel("gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", price: "$2~$12"),
+            ]
+        case .openai:
+            [
+                AIModel("gpt-5.4-nano", name: "GPT-5.4 Nano", price: "$0.20~$1.25"),
+                AIModel("gpt-5.4-mini", name: "GPT-5.4 Mini", price: "$0.75~$4.50"),
+                AIModel("gpt-5.4", name: "GPT-5.4", price: "$2.50~$15"),
+            ]
+        case .kimi:
+            [
+                AIModel("kimi-k2.5", name: "Kimi K2.5", price: "$0.60~$2.50"),
+                AIModel("kimi-k2-turbo-preview", name: "Kimi K2 Turbo", price: "$0.60~$2.50"),
+                AIModel("kimi-k2-thinking", name: "Kimi K2 Thinking", price: "$0.60~$3"),
+            ]
+        }
     }
 }
 
@@ -156,6 +175,7 @@ struct EnglishLevel {
 
 enum TTSProvider: String, Codable, CaseIterable, Identifiable {
     case system
+    case gemini
     case openai
     case bytedance
 
@@ -164,8 +184,71 @@ enum TTSProvider: String, Codable, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .system: "System"
+        case .gemini: "Gemini"
         case .openai: "OpenAI"
         case .bytedance: "ByteDance"
+        }
+    }
+}
+
+// MARK: - Gemini TTS Voice
+
+enum GeminiVoice: String, Codable, CaseIterable, Identifiable {
+    case kore = "Kore"
+    case puck = "Puck"
+    case aoede = "Aoede"
+    case charon = "Charon"
+    case fenrir = "Fenrir"
+    case leda = "Leda"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .kore: "Kore (Female)"
+        case .puck: "Puck (Male)"
+        case .aoede: "Aoede (Female)"
+        case .charon: "Charon (Male)"
+        case .fenrir: "Fenrir (Male)"
+        case .leda: "Leda (Female)"
+        }
+    }
+}
+
+// MARK: - OpenAI TTS Voice
+
+enum OpenAIVoice: String, Codable, CaseIterable, Identifiable {
+    case marin
+    case cedar
+    case alloy
+    case coral
+    case nova
+    case sage
+    case ash
+    case ballad
+    case echo
+    case fable
+    case onyx
+    case shimmer
+    case verse
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .marin: "Marin ★"
+        case .cedar: "Cedar ★"
+        case .alloy: "Alloy"
+        case .coral: "Coral"
+        case .nova: "Nova"
+        case .sage: "Sage"
+        case .ash: "Ash"
+        case .ballad: "Ballad"
+        case .echo: "Echo"
+        case .fable: "Fable"
+        case .onyx: "Onyx"
+        case .shimmer: "Shimmer"
+        case .verse: "Verse"
         }
     }
 }

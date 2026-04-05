@@ -93,6 +93,14 @@ final class PracticeManager {
         }
 
         switch settings.ttsProviderEnum {
+        case .gemini:
+            let key = settings.apiKey
+            let voice = settings.geminiVoice
+            Task {
+                if let data = try? await ttsService.synthesizeGemini(text: text, apiKey: key, voice: voice) {
+                    await ttsService.playAudio(data: data)
+                }
+            }
         case .openai:
             let key = settings.openAITTSApiKey ?? settings.apiKey
             let voice = settings.openAITTSVoice

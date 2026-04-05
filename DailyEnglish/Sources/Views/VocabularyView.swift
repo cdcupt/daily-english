@@ -35,6 +35,7 @@ struct VocabularyView: View {
             Image("mascot_bee")
                 .resizable().scaledToFit()
                 .frame(width: 72, height: 72)
+                .mascotStyle(cornerRadius: 14)
             Text("20 IELTS Words")
                 .font(.roundedTitle2())
                 .foregroundColor(Color.appCharcoal)
@@ -68,6 +69,7 @@ struct VocabularyView: View {
             Image("mascot_bee")
                 .resizable().scaledToFit()
                 .frame(width: 48, height: 48)
+                .mascotStyle()
             ProgressView("Generating words...")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -152,6 +154,7 @@ struct VocabularyView: View {
                 Image("mascot_bee")
                     .resizable().scaledToFit()
                     .frame(width: 60, height: 60)
+                    .mascotStyle(cornerRadius: 12)
                 Text("\(correct)/20")
                     .font(.roundedLargeNumber())
                     .foregroundColor(Color.skillVocabulary)

@@ -47,6 +47,7 @@ struct WriteSpeakView: View {
             Image("mascot_fox")
                 .resizable().scaledToFit()
                 .frame(width: 72, height: 72)
+                .mascotStyle(cornerRadius: 14)
             Text("Today's Topic")
                 .font(.roundedTitle2())
                 .foregroundColor(Color.appCharcoal)
@@ -145,6 +146,7 @@ struct WriteSpeakView: View {
                         Image("mascot_fox")
                             .resizable().scaledToFit()
                             .frame(width: 48, height: 48)
+                            .mascotStyle()
                         VStack(alignment: .leading) {
                             Text("\(review.score)/100")
                                 .font(.roundedLargeNumber())
@@ -226,6 +228,7 @@ struct WriteSpeakView: View {
             Image("mascot_fox")
                 .resizable().scaledToFit()
                 .frame(width: 48, height: 48)
+                .mascotStyle()
 
             if let corrected = writingReview?.correctedText {
                 Text(corrected)
@@ -290,6 +293,7 @@ struct WriteSpeakView: View {
             Image("mascot_fox")
                 .resizable().scaledToFit()
                 .frame(width: 60, height: 60)
+                .mascotStyle(cornerRadius: 12)
 
             if let result = pronunciationResult {
                 let overall = result.accuracyScore * 0.6 + result.fluencyScore * 0.4

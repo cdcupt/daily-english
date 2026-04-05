@@ -15,6 +15,7 @@ struct ListeningView: View {
                         Image("mascot_bear")
                             .resizable().scaledToFit()
                             .frame(width: 48, height: 48)
+                            .mascotStyle()
                         ProgressView("Generating listening sessions...")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -40,6 +41,7 @@ struct ListeningView: View {
             Image("mascot_bear")
                 .resizable().scaledToFit()
                 .frame(width: 72, height: 72)
+                .mascotStyle(cornerRadius: 14)
             Text("Listening Practice")
                 .font(.roundedTitle2())
                 .foregroundColor(Color.appCharcoal)
@@ -215,6 +217,7 @@ struct ListeningSessionView: View {
                         Image("mascot_bear")
                             .resizable().scaledToFit()
                             .frame(width: 48, height: 48)
+                            .mascotStyle()
                         Text("\(correct)/\(session.questions.count)")
                             .font(.roundedLargeNumber())
                             .foregroundColor(Color.skillListening)

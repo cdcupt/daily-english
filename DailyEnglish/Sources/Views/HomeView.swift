@@ -39,6 +39,7 @@ struct HomeView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 36, height: 36)
+                        .mascotStyle(cornerRadius: 8)
                     Text(greetingText)
                         .font(.roundedTitle3())
                         .foregroundColor(Color.appCharcoal)

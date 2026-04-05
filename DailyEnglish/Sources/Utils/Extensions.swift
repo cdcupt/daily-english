@@ -136,4 +136,10 @@ extension View {
     func cardStyle() -> some View {
         modifier(CardStyle())
     }
+
+    func mascotStyle(cornerRadius: CGFloat = 10) -> some View {
+        self
+            .background(Color.appBackground)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    }
 }

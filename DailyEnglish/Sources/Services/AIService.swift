@@ -66,7 +66,7 @@ struct ListeningQuestionResponse: Codable {
 
 @Observable
 final class AIService {
-    var provider: AIProvider = .openai
+    var provider: AIProvider = .gemini
     var apiKey: String = ""
     var model: String = ""
 
@@ -81,12 +81,7 @@ final class AIService {
             throw AIError.noAPIKey
         }
 
-        let request: URLRequest
-        if provider.usesAnthropicFormat {
-            request = buildAnthropicRequest(system: systemPrompt, user: userPrompt)
-        } else {
-            request = buildOpenAIRequest(system: systemPrompt, user: userPrompt)
-        }
+        let request = buildOpenAIRequest(system: systemPrompt, user: userPrompt)
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -105,20 +100,12 @@ final class AIService {
     // MARK: - Request Builders
 
     private func buildOpenAIRequest(system: String, user: String) -> URLRequest {
-        var url = URL(string: provider.baseURL)!
-
-        // Gemini passes API key as query param
-        if provider == .gemini {
-            url = URL(string: "\(provider.baseURL)?key=\(apiKey)")!
-        }
+        let url = URL(string: provider.baseURL)!
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if provider != .gemini {
-            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        }
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = [
             "model": effectiveModel,
@@ -133,41 +120,11 @@ final class AIService {
         return request
     }
 
-    private func buildAnthropicRequest(system: String, user: String) -> URLRequest {
-        var request = URLRequest(url: URL(string: provider.baseURL)!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-
-        let body: [String: Any] = [
-            "model": effectiveModel,
-            "max_tokens": 4096,
-            "system": system,
-            "messages": [
-                ["role": "user", "content": user],
-            ],
-        ]
-
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        return request
-    }
-
     // MARK: - Response Parsing
 
     private func parseResponse(data: Data) throws -> String {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw AIError.invalidResponse
-        }
-
-        // Anthropic format: content[0].text
-        if provider.usesAnthropicFormat {
-            guard let content = json["content"] as? [[String: Any]],
-                  let text = content.first?["text"] as? String
-            else {
-                throw AIError.invalidResponse
-            }
-            return text
         }
 
         // OpenAI-compatible format: choices[0].message.content
