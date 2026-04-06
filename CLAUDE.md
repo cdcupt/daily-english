@@ -73,6 +73,7 @@ DailyEnglish/Sources/
 - **SwiftData singletons**: AppSettings and StreakData — query first, create if missing
 - **Schema migration**: On failure, deletes old store and recreates (dev-only safety net)
 - **Audio session**: `.playback` for TTS, `.playAndRecord` for recording — `PracticeManager.playTTS()` routes to correct provider
+- **Demo Mode**: `AppSettings.demoMode` flag — when enabled, `AIService` returns hardcoded `DemoData` responses, TTS falls back to system voice, and `isConfigured` returns true. Toggle in Settings UI.
 - **Config sharing**: Export as `.elc` JSON (share strips keys, backup keeps all). Import merges with mode-aware logic.
 - **Design system**: Colors in `Extensions.swift` — use `Color.appCharcoal`, `Color.skillReading`, etc. Always use `foregroundColor(Color.xxx)` not `foregroundStyle(.xxx)`.
 - Bundle ID: `com.cdcupt.DailyEnglish`

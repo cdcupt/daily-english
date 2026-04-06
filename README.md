@@ -25,6 +25,10 @@ Standalone companion to the [English Learning Extension](https://github.com/cdcu
 
 Complete all 4 tasks daily to build your streak. Track current and longest streaks on the Home dashboard with mascot encouragement.
 
+### Demo Mode
+
+Enable Demo Mode in Settings to try all features without an API key. Uses pre-built sample content (articles, quizzes, vocabulary, listening passages) and system voice for TTS. Useful for App Store review or first-time exploration.
+
 ### Config Sharing
 
 - **Export** settings as `.elc` file (Share mode strips API keys, Backup mode includes everything)
@@ -46,7 +50,7 @@ Complete all 4 tasks daily to build your streak. Track current and longest strea
 
 - iOS 17.0+
 - Xcode 15+
-- An API key from one of the supported AI providers
+- An API key from one of the supported AI providers (or use Demo Mode)
 
 ## Getting Started
 

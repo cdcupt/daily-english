@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily English - Privacy Policy / 隐私政策</title>
+    <title>Daily English - Privacy Policy</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -17,96 +17,40 @@
         }
         h1 { font-size: 28px; margin: 30px 0 10px; color: #0D9488; }
         h2 { font-size: 20px; margin: 24px 0 8px; color: #1C1917; }
-        h3 { font-size: 16px; margin: 16px 0 6px; color: #78716C; }
         p, li { font-size: 15px; color: #44403C; margin-bottom: 8px; }
         ul { padding-left: 20px; }
         .date { color: #78716C; font-size: 13px; }
         .section { background: white; padding: 20px; border-radius: 16px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .lang-toggle { text-align: center; margin: 20px 0; }
-        .lang-toggle a { color: #0D9488; text-decoration: none; font-weight: 600; padding: 8px 16px; border: 2px solid #0D9488; border-radius: 20px; }
-        hr { border: none; border-top: 1px solid #E7E5E4; margin: 40px 0; }
+        .lang-btn { display: inline-block; color: #0D9488; font-weight: 600; padding: 6px 16px; border: 2px solid #0D9488; border-radius: 20px; cursor: pointer; font-size: 14px; background: none; }
+        .lang-btn:hover { background: #0D9488; color: white; }
+        .lang-switch { text-align: right; margin: 10px 0; }
+        .zh { display: none; }
     </style>
 </head>
 <body>
 
-<h1>🐱 Daily English</h1>
-<h2>隐私政策 / Privacy Policy</h2>
-<p class="date">最后更新 / Last Updated: 2026-04-01</p>
+<div class="lang-switch">
+    <button class="lang-btn" onclick="toggleLang()">中文</button>
+</div>
 
-<div class="lang-toggle"><a href="#english">English Version Below</a></div>
+<h1>Daily English</h1>
+<h2 class="en">Privacy Policy</h2>
+<h2 class="zh">隐私政策</h2>
+<p class="date en">Last Updated: 2026-04-06</p>
+<p class="date zh">最后更新：2026-04-06</p>
 
-<!-- 中文版 -->
 <div class="section">
-<h2>一、概述</h2>
-<p>Daily English（以下简称"本应用"）是一款英语学习应用。我们非常重视您的隐私保护。本隐私政策说明了本应用如何收集、使用和保护您的信息。</p>
+<h2 class="en">1. Overview</h2>
+<h2 class="zh">一、概述</h2>
+<p class="en">Daily English ("the App") is an English learning application. We take your privacy seriously. This Privacy Policy explains how the App collects, uses, and protects your information.</p>
+<p class="zh">Daily English（以下简称"本应用"）是一款英语学习应用。我们非常重视您的隐私保护。本隐私政策说明了本应用如何收集、使用和保护您的信息。</p>
 </div>
 
 <div class="section">
-<h2>二、数据收集与存储</h2>
-<h3>本地存储</h3>
-<p>本应用的所有用户数据（包括学习记录、成绩、设置配置）均存储在您的设备本地，使用 Apple SwiftData 框架。我们不运营任何服务器，不会收集或上传您的个人数据。</p>
+<h2 class="en">2. Data Collection & Storage</h2>
+<h2 class="zh">二、数据收集与存储</h2>
 
-<h3>API 密钥</h3>
-<p>为使用 AI 功能，您需要自行提供第三方 AI 服务的 API 密钥（如 OpenAI、Claude、Kimi、DeepSeek、Gemini）。这些密钥仅存储在您的设备本地，本应用不会将其发送到除您选择的 AI 服务商以外的任何地方。</p>
-
-<h3>TTS 凭据</h3>
-<p>如果您使用火山引擎（字节跳动）TTS 服务，相关的 App ID 和 Access Token 同样仅存储在本地设备。</p>
-</div>
-
-<div class="section">
-<h2>三、第三方服务</h2>
-<p>本应用会将您的学习内容发送至您选择的 AI 服务商进行处理，包括：</p>
-<ul>
-    <li>文章生成和测验题目生成</li>
-    <li>作文批改和反馈</li>
-    <li>发音评估</li>
-    <li>词汇测验生成</li>
-    <li>听力材料生成</li>
-    <li>语音合成（TTS）</li>
-</ul>
-<p>这些请求直接从您的设备发送至对应服务商，不经过我们的服务器。请参阅各服务商的隐私政策了解其数据处理方式。</p>
-</div>
-
-<div class="section">
-<h2>四、设备权限</h2>
-<ul>
-    <li><strong>麦克风</strong> — 用于口语练习中的语音录制（仅在您主动录音时使用）</li>
-    <li><strong>语音识别</strong> — 用于将您的语音转换为文字以进行发音评估（使用 Apple 设备端语音识别）</li>
-    <li><strong>网络访问</strong> — 用于向 AI 服务商发送请求</li>
-</ul>
-</div>
-
-<div class="section">
-<h2>五、数据分享</h2>
-<p>本应用提供配置导入/导出功能（.elc 文件）。在"分享"模式下，所有 API 密钥和敏感凭据会被自动移除。在"备份"模式下，文件包含完整配置。请妥善保管您的备份文件。</p>
-</div>
-
-<div class="section">
-<h2>六、儿童隐私</h2>
-<p>本应用不专门面向 13 岁以下儿童，也不会故意收集儿童的个人信息。</p>
-</div>
-
-<div class="section">
-<h2>七、隐私政策更新</h2>
-<p>我们可能会不时更新本隐私政策。更新后的政策将在本页面发布，并更新"最后更新"日期。</p>
-</div>
-
-<div class="section">
-<h2>八、联系方式</h2>
-<p>如果您对本隐私政策有任何疑问，请通过以下方式联系我们：</p>
-<p>GitHub: <a href="https://github.com/cdcupt/daily-english/issues">github.com/cdcupt/daily-english/issues</a></p>
-</div>
-
-<hr id="english">
-
-<!-- English Version -->
-<div class="section">
-<h2>1. Overview</h2>
-<p>Daily English ("the App") is an English learning application. We take your privacy seriously. This Privacy Policy explains how the App collects, uses, and protects your information.</p>
-</div>
-
-<div class="section">
-<h2>2. Data Collection & Storage</h2>
+<div class="en">
 <h3>Local Storage</h3>
 <p>All user data (including learning records, scores, and settings) is stored locally on your device using Apple's SwiftData framework. We do not operate any servers and do not collect or upload your personal data.</p>
 
@@ -117,10 +61,25 @@
 <p>If you use ByteDance (Volcengine) TTS, the App ID and Access Token are stored locally on your device only.</p>
 </div>
 
+<div class="zh">
+<h3>本地存储</h3>
+<p>本应用的所有用户数据（包括学习记录、成绩、设置配置）均存储在您的设备本地，使用 Apple SwiftData 框架。我们不运营任何服务器，不会收集或上传您的个人数据。</p>
+
+<h3>API 密钥</h3>
+<p>为使用 AI 功能，您需要自行提供第三方 AI 服务的 API 密钥（如 OpenAI、Claude、Kimi、DeepSeek、Gemini）。这些密钥仅存储在您的设备本地，本应用不会将其发送到除您选择的 AI 服务商以外的任何地方。</p>
+
+<h3>TTS 凭据</h3>
+<p>如果您使用火山引擎（字节跳动）TTS 服务，相关的 App ID 和 Access Token 同样仅存储在本地设备。</p>
+</div>
+</div>
+
 <div class="section">
-<h2>3. Third-Party Services</h2>
-<p>The App sends your learning content to your chosen AI provider for processing, including:</p>
-<ul>
+<h2 class="en">3. Third-Party Services</h2>
+<h2 class="zh">三、第三方服务</h2>
+
+<p class="en">The App sends your learning content to your chosen AI provider for processing, including:</p>
+<p class="zh">本应用会将您的学习内容发送至您选择的 AI 服务商进行处理，包括：</p>
+<ul class="en">
     <li>Article and quiz generation</li>
     <li>Essay review and feedback</li>
     <li>Pronunciation evaluation</li>
@@ -128,42 +87,76 @@
     <li>Listening material generation</li>
     <li>Text-to-speech synthesis</li>
 </ul>
-<p>These requests are sent directly from your device to the provider — they do not pass through our servers. Please refer to each provider's privacy policy for their data handling practices.</p>
+<ul class="zh">
+    <li>文章生成和测验题目生成</li>
+    <li>作文批改和反馈</li>
+    <li>发音评估</li>
+    <li>词汇测验生成</li>
+    <li>听力材料生成</li>
+    <li>语音合成（TTS）</li>
+</ul>
+<p class="en">These requests are sent directly from your device to the provider — they do not pass through our servers. Please refer to each provider's privacy policy for their data handling practices.</p>
+<p class="zh">这些请求直接从您的设备发送至对应服务商，不经过我们的服务器。请参阅各服务商的隐私政策了解其数据处理方式。</p>
 </div>
 
 <div class="section">
-<h2>4. Device Permissions</h2>
-<ul>
+<h2 class="en">4. Device Permissions</h2>
+<h2 class="zh">四、设备权限</h2>
+<ul class="en">
     <li><strong>Microphone</strong> — For recording speech during speaking practice (only when you actively record)</li>
     <li><strong>Speech Recognition</strong> — For converting your speech to text for pronunciation evaluation (uses Apple's on-device recognition)</li>
     <li><strong>Network Access</strong> — For sending requests to AI providers</li>
 </ul>
+<ul class="zh">
+    <li><strong>麦克风</strong> — 用于口语练习中的语音录制（仅在您主动录音时使用）</li>
+    <li><strong>语音识别</strong> — 用于将您的语音转换为文字以进行发音评估（使用 Apple 设备端语音识别）</li>
+    <li><strong>网络访问</strong> — 用于向 AI 服务商发送请求</li>
+</ul>
 </div>
 
 <div class="section">
-<h2>5. Data Sharing</h2>
-<p>The App offers config import/export (.elc files). In "Share" mode, all API keys and sensitive credentials are automatically removed. In "Backup" mode, the file contains the full configuration. Please keep your backup files secure.</p>
+<h2 class="en">5. Data Sharing</h2>
+<h2 class="zh">五、数据分享</h2>
+<p class="en">The App offers config import/export (.elc files). In "Share" mode, all API keys and sensitive credentials are automatically removed. In "Backup" mode, the file contains the full configuration. Please keep your backup files secure.</p>
+<p class="zh">本应用提供配置导入/导出功能（.elc 文件）。在"分享"模式下，所有 API 密钥和敏感凭据会被自动移除。在"备份"模式下，文件包含完整配置。请妥善保管您的备份文件。</p>
 </div>
 
 <div class="section">
-<h2>6. Children's Privacy</h2>
-<p>The App is not specifically directed at children under 13 and does not knowingly collect personal information from children.</p>
+<h2 class="en">6. Children's Privacy</h2>
+<h2 class="zh">六、儿童隐私</h2>
+<p class="en">The App is not specifically directed at children under 13 and does not knowingly collect personal information from children.</p>
+<p class="zh">本应用不专门面向 13 岁以下儿童，也不会故意收集儿童的个人信息。</p>
 </div>
 
 <div class="section">
-<h2>7. Changes to This Policy</h2>
-<p>We may update this Privacy Policy from time to time. The updated policy will be posted on this page with a revised "Last Updated" date.</p>
+<h2 class="en">7. Changes to This Policy</h2>
+<h2 class="zh">七、隐私政策更新</h2>
+<p class="en">We may update this Privacy Policy from time to time. The updated policy will be posted on this page with a revised "Last Updated" date.</p>
+<p class="zh">我们可能会不时更新本隐私政策。更新后的政策将在本页面发布，并更新"最后更新"日期。</p>
 </div>
 
 <div class="section">
-<h2>8. Contact</h2>
-<p>If you have any questions about this Privacy Policy, please contact us at:</p>
+<h2 class="en">8. Contact</h2>
+<h2 class="zh">八、联系方式</h2>
+<p class="en">If you have any questions about this Privacy Policy, please contact us at:</p>
+<p class="zh">如果您对本隐私政策有任何疑问，请通过以下方式联系我们：</p>
 <p>GitHub: <a href="https://github.com/cdcupt/daily-english/issues">github.com/cdcupt/daily-english/issues</a></p>
 </div>
 
 <div style="text-align: center; padding: 30px 0 20px; color: #78716C; font-size: 13px;">
-    <p>© 2026 cdcupt. All rights reserved.</p>
+    <p>&copy; 2026 cdcupt. All rights reserved.</p>
 </div>
+
+<script>
+let lang = 'en';
+function toggleLang() {
+    lang = lang === 'en' ? 'zh' : 'en';
+    document.querySelectorAll('.en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
+    document.querySelectorAll('.zh').forEach(el => el.style.display = lang === 'zh' ? '' : 'none');
+    document.querySelector('.lang-btn').textContent = lang === 'en' ? '中文' : 'English';
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+}
+</script>
 
 </body>
 </html>

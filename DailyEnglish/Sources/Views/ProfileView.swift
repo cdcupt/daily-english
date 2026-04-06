@@ -120,6 +120,32 @@ struct SettingsSheet: View {
                     .padding(.top, 8)
 
                     if let settings = manager.settings {
+                        // Demo Mode Section
+                        settingsCard(
+                            icon: "play.circle.fill",
+                            iconColor: Color.appGreen,
+                            title: "Demo Mode",
+                            mascot: "mascot_cat"
+                        ) {
+                            Toggle(isOn: Binding(
+                                get: { settings.demoMode },
+                                set: {
+                                    settings.demoMode = $0
+                                    manager.syncAISettings()
+                                }
+                            )) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Enable Demo Mode")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color.appCharcoal)
+                                    Text("Try all features without an API key. Uses sample content and system voice.")
+                                        .font(.caption)
+                                        .foregroundColor(Color.appWarmGray)
+                                }
+                            }
+                            .tint(Color.appGreen)
+                        }
+
                         // AI Provider Section
                         settingsCard(
                             icon: "brain",
