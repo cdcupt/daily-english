@@ -24,6 +24,8 @@ final class AppSettings {
     var bytedanceToken: String
     var bytedanceCluster: String
     var bytedanceVoice: String  // BytedanceVoice rawValue
+    // Demo Mode
+    var demoMode: Bool
 
     var provider: AIProvider {
         get { AIProvider(rawValue: aiProvider) ?? .gemini }
@@ -65,6 +67,7 @@ final class AppSettings {
         self.bytedanceToken = ""
         self.bytedanceCluster = "volcano_tts"
         self.bytedanceVoice = BytedanceVoice.dacey.rawValue
+        self.demoMode = false
     }
 }
 

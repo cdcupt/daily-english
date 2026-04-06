@@ -40,6 +40,7 @@ final class PracticeManager {
             aiService.provider = settings.provider
             aiService.apiKey = settings.apiKey
             aiService.model = settings.aiModel
+            aiService.demoMode = settings.demoMode
         }
 
         // Streak (singleton)
@@ -77,17 +78,24 @@ final class PracticeManager {
         aiService.provider = settings.provider
         aiService.apiKey = settings.apiKey
         aiService.model = settings.aiModel
+        aiService.demoMode = settings.demoMode
     }
 
     var isConfigured: Bool {
         guard let settings else { return false }
-        return !settings.apiKey.isEmpty
+        return settings.demoMode || !settings.apiKey.isEmpty
     }
 
     // MARK: - TTS Helper
 
     func playTTS(text: String) {
         guard let settings else {
+            Task { @MainActor in ttsService.speakWithSystem(text: text) }
+            return
+        }
+
+        // Demo mode always uses system voice (no API key needed)
+        if settings.demoMode {
             Task { @MainActor in ttsService.speakWithSystem(text: text) }
             return
         }

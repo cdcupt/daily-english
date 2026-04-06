@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily English - Support / 支持</title>
+    <title>Daily English - Support</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -22,54 +22,91 @@
         .section { background: white; padding: 20px; border-radius: 16px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         a { color: #0D9488; }
         .emoji { font-size: 40px; text-align: center; margin: 10px 0; }
+        .lang-btn { display: inline-block; color: #0D9488; font-weight: 600; padding: 6px 16px; border: 2px solid #0D9488; border-radius: 20px; cursor: pointer; font-size: 14px; background: none; }
+        .lang-btn:hover { background: #0D9488; color: white; }
+        .lang-switch { text-align: right; margin: 10px 0; }
+        .zh { display: none; }
     </style>
 </head>
 <body>
 
-<h1>🐱 Daily English</h1>
-<h2>支持与帮助 / Support</h2>
+<div class="lang-switch">
+    <button class="lang-btn" onclick="toggleLang()">中文</button>
+</div>
+
+<h1>Daily English</h1>
+<h2 class="en">Support</h2>
+<h2 class="zh">支持与帮助</h2>
 
 <div class="section">
 <p class="emoji">🦉📖✍️🐝🎧🐻</p>
-<h2>常见问题 / FAQ</h2>
+<h2 class="en">FAQ</h2>
+<h2 class="zh">常见问题</h2>
 
-<h3>如何开始使用？</h3>
-<p>打开应用后，点击右下角「Me」标签页，再点击右上角齿轮图标进入设置。选择一个 AI 服务商并输入 API 密钥即可开始。</p>
+<h3 class="en">How do I get started?</h3>
+<h3 class="zh">如何开始使用？</h3>
+<p class="en">Open the app, tap the "Me" tab in the bottom-right corner, then tap the gear icon in the top-right to open Settings. Choose an AI provider and enter your API key to begin.</p>
+<p class="zh">打开应用后，点击右下角「Me」标签页，再点击右上角齿轮图标进入设置。选择一个 AI 服务商并输入 API 密钥即可开始。</p>
 
-<h3>支持哪些 AI 服务商？</h3>
+<h3 class="en">Which AI providers are supported?</h3>
+<h3 class="zh">支持哪些 AI 服务商？</h3>
 <ul>
     <li>OpenAI (gpt-4o-mini)</li>
     <li>Claude / Anthropic (claude-sonnet-4-6)</li>
-    <li>Kimi / 月之暗面 (moonshot-v1-8k)</li>
+    <li>Kimi / Moonshot AI (moonshot-v1-8k)</li>
     <li>DeepSeek (deepseek-chat)</li>
     <li>Gemini / Google (gemini-2.5-flash)</li>
 </ul>
 
-<h3>语音合成支持哪些服务？</h3>
-<ul>
+<h3 class="en">Which text-to-speech services are supported?</h3>
+<h3 class="zh">语音合成支持哪些服务？</h3>
+<ul class="en">
+    <li>System Voice (no configuration required)</li>
+    <li>OpenAI TTS</li>
+    <li>ByteDance Volcengine TTS 2.0 — supports Dacey, Stokie, and Tim English voices</li>
+</ul>
+<ul class="zh">
     <li>系统语音（无需配置）</li>
     <li>OpenAI TTS</li>
-    <li>火山引擎 TTS 2.0（字节跳动） — 支持 Dacey、Stokie、Tim 三种英文语音</li>
+    <li>火山引擎 TTS 2.0（字节跳动）— 支持 Dacey、Stokie、Tim 三种英文语音</li>
 </ul>
 
-<h3>数据存储在哪里？</h3>
-<p>所有数据均存储在您的设备本地，不会上传到任何服务器。AI 请求直接发送至您选择的服务商。</p>
+<h3 class="en">Where is my data stored?</h3>
+<h3 class="zh">数据存储在哪里？</h3>
+<p class="en">All data is stored locally on your device and is never uploaded to any server. AI requests are sent directly to the provider you choose.</p>
+<p class="zh">所有数据均存储在您的设备本地，不会上传到任何服务器。AI 请求直接发送至您选择的服务商。</p>
 
-<h3>如何备份设置？</h3>
-<p>在设置页面底部，点击「Export Config」选择「Backup」模式即可导出包含所有配置的 .elc 文件。</p>
+<h3 class="en">How do I back up my settings?</h3>
+<h3 class="zh">如何备份设置？</h3>
+<p class="en">In Settings, scroll to the bottom and tap "Export Config". Select "Backup" mode to export an .elc file containing all your configuration.</p>
+<p class="zh">在设置页面底部，点击「Export Config」选择「Backup」模式即可导出包含所有配置的 .elc 文件。</p>
 </div>
 
 <div class="section">
-<h2>联系我们 / Contact</h2>
-<p>如有问题、建议或 Bug 反馈，请通过以下方式联系：</p>
+<h2 class="en">Contact Us</h2>
+<h2 class="zh">联系我们</h2>
+<p class="en">If you have questions, suggestions, or bug reports, please reach out via:</p>
+<p class="zh">如有问题、建议或 Bug 反馈，请通过以下方式联系：</p>
 <ul>
     <li>GitHub Issues: <a href="https://github.com/cdcupt/daily-english/issues">github.com/cdcupt/daily-english/issues</a></li>
 </ul>
 </div>
 
 <div style="text-align: center; padding: 30px 0 20px; color: #78716C; font-size: 13px;">
-    <p>© 2026 cdcupt. All rights reserved.</p>
+    <p>&copy; 2026 cdcupt. All rights reserved.</p>
 </div>
+
+<script>
+let lang = 'en';
+function toggleLang() {
+    lang = lang === 'en' ? 'zh' : 'en';
+    const other = lang === 'en' ? 'zh' : 'en';
+    document.querySelectorAll('.en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
+    document.querySelectorAll('.zh').forEach(el => el.style.display = lang === 'zh' ? '' : 'none');
+    document.querySelector('.lang-btn').textContent = lang === 'en' ? '中文' : 'English';
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+}
+</script>
 
 </body>
 </html>
