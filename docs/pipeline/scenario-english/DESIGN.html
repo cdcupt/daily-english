@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design Document — AI Scenario English Trainer</title>
+<style>
+  /* ============================================================
+     DESIGN TOKENS — "Warm editorial coaching"
+     Mirrors existing iOS palette (Extensions.swift) so web + iOS
+     read as ONE product. Teal = action, Coral = correction,
+     Violet = CEFR/progress.
+     ============================================================ */
+  :root{
+    /* surfaces */
+    --paper:#FAF8F5;          /* warm paper background */
+    --paper-2:#F4EFE8;        /* recessed warm surface */
+    --panel:#FFFFFF;          /* raised card */
+    --ink:#1C1917;            /* primary text */
+    --ink-2:#57534E;          /* secondary text */
+    --muted:#8B847C;          /* tertiary / captions */
+    --border:#E7E2DB;         /* hairline */
+    --border-2:#DAD3C8;
+
+    /* semantic accents */
+    --teal:#0D9488;           /* primary action / brand */
+    --teal-700:#0F766E;
+    --teal-soft:#CCFBF1;
+    --teal-tint:#E6FAF5;
+    --coral:#EA580C;          /* correction / attention / mistakes / retry */
+    --coral-soft:#FFE9DC;
+    --coral-tint:#FFF3EC;
+    --violet:#7C3AED;         /* CEFR / progress */
+    --violet-soft:#EDE4FF;
+    --violet-tint:#F4EFFF;
+
+    /* status */
+    --green:#16A34A; --green-soft:#DCFCE7;
+    --amber:#D97706; --amber-soft:#FEF0D9;
+    --red:#DC2626;   --red-soft:#FEE2E2;
+
+    /* type scale (editorial, big contrast) */
+    --t-display:clamp(2.6rem,1.6rem+4vw,4.4rem);
+    --t-h1:clamp(2rem,1.4rem+2.4vw,3rem);
+    --t-h2:clamp(1.4rem,1.1rem+1.2vw,1.9rem);
+    --t-h3:1.18rem;
+    --t-body:1.02rem;
+    --t-sm:0.9rem;
+    --t-xs:0.78rem;
+
+    /* rhythm */
+    --gap:clamp(1rem,0.6rem+1.4vw,1.6rem);
+    --section:clamp(3.4rem,2.4rem+4vw,6rem);
+    --radius:18px;
+    --radius-sm:12px;
+    --radius-lg:26px;
+
+    /* depth */
+    --shadow-sm:0 2px 8px rgba(28,25,23,.05);
+    --shadow:0 10px 30px rgba(28,25,23,.07);
+    --shadow-lg:0 24px 60px rgba(28,25,23,.12);
+
+    /* motion */
+    --dur:240ms;
+    --ease:cubic-bezier(.16,1,.3,1);
+
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",Inter,Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    margin:0;font-family:var(--sans);color:var(--ink);
+    background:
+      radial-gradient(1100px 480px at 88% -8%, var(--teal-tint), transparent 60%),
+      radial-gradient(900px 460px at -6% 4%, var(--violet-tint), transparent 55%),
+      var(--paper);
+    line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  ::selection{background:var(--teal-soft);color:var(--teal-700)}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3,h4{line-height:1.12;letter-spacing:-.02em;margin:0}
+  p{margin:0 0 .8em}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(18px,4vw,40px)}
+
+  /* skip link */
+  .skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:0 0 10px 0;z-index:200}
+  .skip:focus{left:0}
+
+  /* universal focus */
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+    outline:3px solid var(--violet);outline-offset:2px;border-radius:6px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;padding:clamp(3rem,2rem+5vw,6.5rem) 0 clamp(2rem,1rem+3vw,3.5rem)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-xs);
+    text-transform:uppercase;letter-spacing:.16em;font-weight:700;color:var(--teal-700);
+    background:var(--teal-tint);border:1px solid var(--teal-soft);padding:7px 14px;border-radius:999px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+  .hero h1{font-family:var(--serif);font-size:var(--t-display);font-weight:700;margin:.5em 0 .3em;max-width:16ch}
+  .hero h1 em{font-style:italic;color:var(--teal-700)}
+  .hero .lede{font-size:clamp(1.05rem,.95rem+.5vw,1.32rem);color:var(--ink-2);max-width:62ch}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.6rem}
+  .chip{font-size:var(--t-xs);font-weight:600;background:var(--panel);border:1px solid var(--border);
+    padding:8px 13px;border-radius:999px;box-shadow:var(--shadow-sm);color:var(--ink-2)}
+  .chip b{color:var(--ink)}
+
+  /* ---------- TOC ---------- */
+  nav.toc{position:sticky;top:0;z-index:90;background:rgba(250,248,245,.82);
+    backdrop-filter:saturate(150%) blur(12px);border-bottom:1px solid var(--border);
+    margin-top:1.4rem}
+  nav.toc .inner{display:flex;gap:4px;overflow-x:auto;padding:10px clamp(18px,4vw,40px);
+    max-width:1120px;margin:0 auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  nav.toc .inner::-webkit-scrollbar{display:none}
+  nav.toc a{white-space:nowrap;font-size:var(--t-sm);font-weight:600;color:var(--ink-2);
+    padding:7px 13px;border-radius:999px;transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+  nav.toc a:hover{background:var(--teal-tint);color:var(--teal-700);text-decoration:none}
+
+  /* ---------- SECTION ---------- */
+  section.block{padding:var(--section) 0 0}
+  .kicker{display:inline-block;font-size:var(--t-xs);font-weight:800;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--coral)}
+  .kicker .num{color:var(--violet)}
+  section.block h2{font-family:var(--serif);font-size:var(--t-h1);margin:.35em 0 .3em;max-width:22ch}
+  .section-lede{font-size:var(--t-body);color:var(--ink-2);max-width:66ch;margin-bottom:1.6rem}
+
+  /* cards / bento */
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:clamp(18px,2vw,26px);box-shadow:var(--shadow-sm);min-width:0}
+  .bento{display:grid;gap:var(--gap)}
+  .bento>*{min-width:0}
+  @media(min-width:760px){
+    .bento.cols-2{grid-template-columns:1fr 1fr}
+    .bento.cols-3{grid-template-columns:repeat(3,1fr)}
+    .bento.cols-4{grid-template-columns:repeat(4,1fr)}
+    .bento.feature{grid-template-columns:1.4fr 1fr}
+  }
+  .card h3{font-size:var(--t-h3);margin-bottom:.4em;display:flex;align-items:center;gap:10px}
+  .card p{font-size:var(--t-sm);color:var(--ink-2);margin:0}
+  .lead-card{background:linear-gradient(150deg,var(--teal-700),var(--teal));color:#fff;border:none}
+  .lead-card h3,.lead-card p{color:#fff}
+  .lead-card p{color:rgba(255,255,255,.9)}
+
+  /* swatches */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:1rem}
+  .sw{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:var(--panel);box-shadow:var(--shadow-sm)}
+  .sw .chipc{height:74px;display:flex;align-items:flex-end;padding:8px 10px}
+  .sw .chipc span{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .sw .meta{padding:9px 11px}
+  .sw .meta b{display:block;font-size:13px}
+  .sw .meta code{font-size:11px;color:var(--muted)}
+  .sw .meta em{font-size:11px;font-style:normal;color:var(--ink-2);display:block;margin-top:3px}
+
+  /* type specimen */
+  .specimen{display:grid;gap:14px;margin-top:1rem}
+  .spec-row{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;border-bottom:1px dashed var(--border);padding-bottom:12px}
+  .spec-row .tag{font-size:11px;font-weight:700;color:var(--muted);min-width:120px;text-transform:uppercase;letter-spacing:.08em}
+  .spec-serif{font-family:var(--serif)}
+
+  /* tables */
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);
+    border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);margin:1rem 0;min-width:0;max-width:100%}
+  table{width:100%;border-collapse:collapse;min-width:560px}
+  th,td{padding:12px 15px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-size:var(--t-sm)}
+  th{background:var(--paper-2);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);font-weight:700}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--ink)}
+
+  /* callouts */
+  .callout{border-left:4px solid var(--teal);background:var(--teal-tint);padding:14px 18px;border-radius:0 12px 12px 0;margin:1rem 0;font-size:var(--t-sm)}
+  .callout.coral{border-left-color:var(--coral);background:var(--coral-tint)}
+  .callout.violet{border-left-color:var(--violet);background:var(--violet-tint)}
+  .callout.amber{border-left-color:var(--amber);background:var(--amber-soft)}
+  .callout strong{color:var(--ink)}
+
+  /* pills / states */
+  .pill{display:inline-block;font-size:var(--t-xs);font-weight:700;padding:5px 11px;border-radius:999px;margin:0 6px 6px 0}
+  .pill.teal{background:var(--teal-soft);color:var(--teal-700)}
+  .pill.coral{background:var(--coral-soft);color:var(--coral)}
+  .pill.violet{background:var(--violet-soft);color:var(--violet)}
+  .pill.paper{background:var(--paper-2);color:var(--ink-2);border:1px solid var(--border)}
+  .state-pill{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-xs);font-weight:700;
+    padding:4px 10px;border-radius:7px;background:var(--paper-2);color:var(--ink-2);border:1px solid var(--border)}
+  .state-pill .d{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+  .state-pill.default .d{background:var(--ink-2)}
+  .state-pill.empty .d{background:var(--muted)}
+  .state-pill.loading .d{background:var(--teal)}
+  .state-pill.error .d{background:var(--red)}
+  .state-pill.asr .d{background:var(--coral)}
+  .state-pill.success .d{background:var(--green)}
+
+  /* feedback diff (signature) */
+  .diff{display:grid;gap:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);margin:1rem 0;max-width:560px}
+  .diff .tier{padding:14px 16px;position:relative}
+  .diff .tier .lbl{font-size:var(--t-xs);font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;display:flex;align-items:center;gap:7px}
+  .diff .tier .txt{font-size:1.02rem;line-height:1.5}
+  .diff .t1{background:var(--coral-tint)}
+  .diff .t1 .lbl{color:var(--coral)}
+  .diff .t1 .txt{text-decoration:line-through;text-decoration-color:var(--coral);text-decoration-thickness:2px;color:var(--ink-2)}
+  .diff .t2{background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .diff .t2 .lbl{color:var(--teal-700)}
+  .diff .t3{background:var(--violet-tint)}
+  .diff .t3 .lbl{color:var(--violet)}
+  .diff .connector{position:absolute;left:18px;top:-9px;width:2px;height:9px;background:var(--border-2)}
+
+  /* flow steps */
+  .flow{display:flex;gap:12px;flex-wrap:wrap;margin:1.2rem 0;counter-reset:step}
+  .flow .step{flex:1 1 150px;min-width:150px;background:var(--panel);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:15px;position:relative;box-shadow:var(--shadow-sm)}
+  .flow .step::before{counter-increment:step;content:counter(step);position:absolute;top:-12px;left:14px;
+    width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;box-shadow:var(--shadow-sm)}
+  .flow .step.coral::before{background:var(--coral)}
+  .flow .step.violet::before{background:var(--violet)}
+  .flow .step strong{display:block;font-size:var(--t-sm);margin:6px 0 3px}
+  .flow .step span{font-size:var(--t-xs);color:var(--muted)}
+
+  /* screen spec block */
+  .screen-spec{margin:1.4rem 0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);background:var(--panel)}
+  .screen-spec > summary{cursor:pointer;list-style:none;padding:16px 20px;display:flex;align-items:center;gap:12px;
+    background:var(--paper-2);font-weight:700;font-size:var(--t-h3);transition:background var(--dur) var(--ease)}
+  .screen-spec > summary:hover{background:var(--teal-tint)}
+  .screen-spec > summary::-webkit-details-marker{display:none}
+  .screen-spec > summary .caret{margin-left:auto;color:var(--muted);transition:transform var(--dur) var(--ease)}
+  .screen-spec[open] > summary .caret{transform:rotate(90deg)}
+  .screen-spec .body{padding:18px 20px 22px}
+  .screen-spec .surface-tag{font-size:var(--t-xs);font-weight:700;padding:3px 9px;border-radius:6px;background:var(--violet-soft);color:var(--violet)}
+  .spec-grid{display:grid;gap:16px}
+  @media(min-width:680px){.spec-grid{grid-template-columns:1fr 1fr}}
+  .spec-block h4{font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;color:var(--coral);margin-bottom:6px}
+  .spec-block ul{margin:0;padding-left:18px;font-size:var(--t-sm);color:var(--ink-2)}
+  .spec-block li{margin-bottom:4px}
+  .states-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+
+  pre{background:#1A1714;color:#EDE7DD;padding:16px;border-radius:var(--radius-sm);overflow-x:auto;font-size:var(--t-xs);line-height:1.55;border:1px solid #2A251F;min-width:0;max-width:100%}
+  code{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+
+  /* ============================================================
+     INTERACTIVE MOCKUP
+     ============================================================ */
+  .mockup-stage{margin:1.4rem 0 0}
+  .mockup-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+  .mockup-controls .group{display:flex;gap:6px;flex-wrap:wrap;background:var(--paper-2);padding:6px;border-radius:14px;border:1px solid var(--border)}
+  .seg{border:none;background:transparent;font-family:inherit;font-size:var(--t-sm);font-weight:700;color:var(--ink-2);
+    padding:8px 14px;border-radius:9px;cursor:pointer;transition:background var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur) var(--ease)}
+  .seg:hover{color:var(--ink)}
+  .seg:active{transform:scale(.96)}
+  .seg[aria-pressed="true"]{background:var(--panel);color:var(--teal-700);box-shadow:var(--shadow-sm)}
+  .seg.device[aria-pressed="true"]{background:var(--violet);color:#fff}
+
+  .device-frame{margin:0 auto;transition:max-width var(--dur) var(--ease)}
+  .device-frame.mobile{max-width:412px}
+  .device-frame.desktop{max-width:1040px}
+  .device{background:var(--ink);border-radius:38px;padding:12px;box-shadow:var(--shadow-lg);transition:border-radius var(--dur) var(--ease),padding var(--dur) var(--ease)}
+  .device.desktop{border-radius:16px;padding:10px}
+  .device .notch{height:26px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .device .notch .pill-notch{width:120px;height:7px;border-radius:99px;background:#3A332C}
+  .device.desktop .notch{justify-content:flex-start;padding-left:8px;height:20px}
+  .device.desktop .notch .pill-notch{display:none}
+  .device.desktop .traffic{display:flex;gap:7px}
+  .device.desktop .traffic i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .device .traffic{display:none}
+  .device.desktop .traffic i:nth-child(1){background:#FF5F57}
+  .device.desktop .traffic i:nth-child(2){background:#FEBC2E}
+  .device.desktop .traffic i:nth-child(3){background:#28C840}
+  .screen{background:var(--paper);border-radius:28px;overflow:hidden;position:relative;height:760px;display:flex;flex-direction:column}
+  .device.desktop .screen{border-radius:8px;height:660px}
+
+  .viewport{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+  .viewport::-webkit-scrollbar{width:8px}
+  .viewport::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:99px}
+
+  /* app screens */
+  .app-screen{display:none;animation:fade var(--dur) var(--ease)}
+  .app-screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+  }
+
+  /* app chrome */
+  .app-top{padding:18px 20px 10px;display:flex;align-items:center;justify-content:space-between}
+  .app-top .greet small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+  .app-top .greet b{font-size:20px;font-family:var(--serif)}
+  .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,var(--violet),var(--teal));display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px}
+  .app-pad{padding:8px 20px 30px}
+
+  .streak{display:flex;gap:10px;align-items:center;background:var(--coral-tint);border:1px solid var(--coral-soft);border-radius:14px;padding:11px 14px;margin:6px 20px 14px}
+  .streak .fire{font-size:22px}
+  .streak b{font-size:15px}
+  .streak small{display:block;color:var(--ink-2);font-size:12px}
+
+  .a-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px}
+  .a-card.hero-card{background:linear-gradient(145deg,var(--teal-700),var(--teal));color:#fff;border:none;position:relative;overflow:hidden}
+  .a-card.hero-card::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.1);right:-60px;bottom:-70px}
+  .a-card.hero-card .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.12em;opacity:.85;font-weight:700}
+  .a-card.hero-card h3{font-family:var(--serif);font-size:22px;margin:6px 0 4px;position:relative;z-index:2}
+  .a-card.hero-card p{font-size:13px;opacity:.92;margin:0 0 14px;position:relative;z-index:2}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+    font-family:inherit;font-weight:700;font-size:14px;padding:12px 18px;border-radius:13px;
+    transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),background var(--dur) var(--ease);position:relative;z-index:2}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 6px 16px rgba(13,148,136,.32)}
+  .btn-primary:hover{background:var(--teal-700);box-shadow:0 10px 22px rgba(13,148,136,.4)}
+  .btn-light{background:#fff;color:var(--teal-700)}
+  .btn-light:hover{box-shadow:0 8px 18px rgba(0,0,0,.14)}
+  .btn-coral{background:var(--coral);color:#fff;box-shadow:0 6px 16px rgba(234,88,12,.3)}
+  .btn-coral:hover{background:#c2410c}
+  .btn-ghost{background:var(--paper-2);color:var(--ink);border:1px solid var(--border)}
+  .btn-ghost:hover{background:var(--teal-tint);color:var(--teal-700)}
+  .btn-block{width:100%}
+
+  .section-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--ink-2);margin:18px 0 10px}
+  .section-label .more{float:right;color:var(--teal);font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer}
+
+  /* category tiles (asymmetric bento) */
+  .cat-bento{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .cat{border-radius:16px;padding:14px;cursor:pointer;border:1px solid var(--border);background:var(--panel);
+    transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+  .cat:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--teal-soft)}
+  .cat .ic{font-size:24px}
+  .cat b{display:block;font-size:14px;margin-top:8px}
+  .cat small{font-size:11px;color:var(--muted)}
+  .cat.wide{grid-column:1 / -1;display:flex;align-items:center;gap:14px;background:var(--violet-tint);border-color:var(--violet-soft)}
+  .cat.wide .ic{font-size:30px}
+  .cat.wide b{margin-top:0}
+
+  /* scenario list rows */
+  .filterbar{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+  .filterbar::-webkit-scrollbar{display:none}
+  .fchip{white-space:nowrap;font-size:12px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--ink-2);cursor:pointer;transition:all var(--dur) var(--ease)}
+  .fchip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .fchip:hover{border-color:var(--teal)}
+  .srow{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 15px;margin-bottom:10px;cursor:pointer;transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+  .srow:hover{transform:translateX(3px);box-shadow:var(--shadow-sm)}
+  .srow .em{width:44px;height:44px;border-radius:12px;background:var(--teal-tint);display:grid;place-items:center;font-size:22px;flex-shrink:0}
+  .srow .info{flex:1;min-width:0}
+  .srow .info b{font-size:14px;display:block}
+  .srow .info small{font-size:12px;color:var(--muted)}
+  .lvl{font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;background:var(--violet-soft);color:var(--violet)}
+
+  /* practice mode picker */
+  .mode-pick{display:grid;gap:11px}
+  .mode{display:flex;gap:13px;align-items:flex-start;padding:15px;border-radius:15px;border:1px solid var(--border);background:var(--panel);cursor:pointer;transition:all var(--dur) var(--ease)}
+  .mode:hover{border-color:var(--teal);box-shadow:var(--shadow-sm)}
+  .mode .mi{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+  .mode.translation .mi{background:var(--teal-tint)}
+  .mode.dialogue .mi{background:var(--coral-tint)}
+  .mode.description .mi{background:var(--violet-tint)}
+  .mode b{font-size:14px}
+  .mode small{font-size:12px;color:var(--ink-2);display:block;margin-top:2px}
+
+  /* practice — translation */
+  .prompt-cn{background:var(--paper-2);border:1px dashed var(--border-2);border-radius:14px;padding:14px 16px;font-size:16px;margin-bottom:14px}
+  .prompt-cn small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;font-weight:700}
+  .input-box{background:var(--panel);border:1.5px solid var(--teal);border-radius:14px;padding:14px;font-size:15px;min-height:70px;box-shadow:0 0 0 4px var(--teal-tint)}
+  .input-box .caret-line{color:var(--ink)}
+  .input-actions{display:flex;gap:9px;margin-top:12px}
+
+  /* dialogue bubbles */
+  .bubble{max-width:80%;padding:11px 14px;border-radius:16px;margin-bottom:11px;font-size:14px;line-height:1.45;position:relative}
+  .bubble.ai{background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:5px}
+  .bubble.me{background:var(--teal);color:#fff;margin-left:auto;border-bottom-right-radius:5px}
+  .bubble .role{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:3px}
+  .bubble.flagged{border-bottom:2px solid var(--coral)}
+  .flag-note{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:var(--coral);font-weight:700;margin-top:5px;background:var(--coral-tint);padding:4px 9px;border-radius:8px}
+  .voice-bar{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 16px;margin-top:8px}
+  .mic{width:52px;height:52px;border-radius:50%;background:var(--coral);color:#fff;display:grid;place-items:center;font-size:22px;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(234,88,12,.34);transition:transform var(--dur) var(--ease)}
+  .mic:active{transform:scale(.93)}
+  .wave{flex:1;display:flex;align-items:center;gap:3px;height:32px}
+  .wave i{flex:1;background:var(--teal);border-radius:99px;opacity:.5}
+
+  /* ASR low-confidence banner */
+  .asr-banner{display:flex;gap:11px;align-items:flex-start;background:var(--coral-tint);border:1px solid var(--coral-soft);border-left:4px solid var(--coral);border-radius:0 12px 12px 0;padding:12px 14px;margin-top:10px}
+  .asr-banner .bi{font-size:18px}
+  .asr-banner b{font-size:13px;color:var(--coral)}
+  .asr-banner small{font-size:12px;color:var(--ink-2);display:block}
+
+  /* report */
+  .score-hero{text-align:center;padding:18px 0 8px}
+  .score-ring{width:140px;height:140px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
+    background:conic-gradient(var(--teal) 0 78%, var(--paper-2) 78% 100%);position:relative}
+  .score-ring::before{content:"";position:absolute;inset:14px;background:var(--paper);border-radius:50%}
+  .score-ring .v{position:relative;z-index:2;font-family:var(--serif);font-size:40px;font-weight:700}
+  .score-ring .v small{font-size:14px;color:var(--muted);font-weight:600}
+  .cefr-badge{display:inline-flex;align-items:center;gap:8px;background:var(--violet-soft);color:var(--violet);font-weight:800;padding:8px 16px;border-radius:999px;margin-top:12px;font-size:15px}
+  .dim-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .dim-row .nm{width:96px;font-size:12px;font-weight:700;flex-shrink:0}
+  .dim-track{flex:1;height:9px;background:var(--paper-2);border-radius:99px;overflow:hidden}
+  .dim-fill{height:100%;border-radius:99px}
+  .dim-row .sc{width:30px;text-align:right;font-size:12px;font-weight:800;color:var(--ink-2)}
+  .disclaimer{font-size:11px;color:var(--muted);background:var(--paper-2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-top:14px;line-height:1.5}
+  .save-card{display:flex;align-items:center;gap:11px;background:var(--violet-tint);border:1px solid var(--violet-soft);border-radius:13px;padding:12px 14px;margin-bottom:9px}
+  .save-card .txt{flex:1;font-size:13px}
+  .save-card .txt b{display:block}
+  .save-btn{border:none;background:var(--violet);color:#fff;font-weight:800;font-size:18px;width:34px;height:34px;border-radius:10px;cursor:pointer;transition:transform var(--dur) var(--ease)}
+  .save-btn:active{transform:scale(.9)}
+  .save-btn.saved{background:var(--green)}
+
+  /* expressions tabs */
+  .expr-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;scrollbar-width:none}
+  .expr-tabs::-webkit-scrollbar{display:none}
+  .etab{white-space:nowrap;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;background:var(--panel);border:1px solid var(--border);color:var(--ink-2);cursor:pointer}
+  .etab[aria-pressed="true"]{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .expr-item{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px 15px;margin-bottom:10px}
+  .expr-item .en{font-size:15px;font-weight:700}
+  .expr-item .cn{font-size:13px;color:var(--muted)}
+  .mastery{height:6px;background:var(--paper-2);border-radius:99px;overflow:hidden;margin-top:9px}
+  .mastery i{display:block;height:100%;background:var(--violet);border-radius:99px}
+  .review-banner{background:linear-gradient(140deg,var(--violet),#9d5cff);color:#fff;border-radius:18px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
+  .review-banner h3{font-family:var(--serif);font-size:20px;margin-bottom:4px}
+  .review-banner p{font-size:13px;opacity:.92;margin-bottom:12px}
+
+  /* profile */
+  .cefr-hero{background:linear-gradient(150deg,var(--violet),#6d28d9);color:#fff;border-radius:20px;padding:22px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px}
+  .cefr-hero .big{font-family:var(--serif);font-size:52px;font-weight:700;line-height:1}
+  .cefr-hero .rng{font-size:13px;opacity:.9;margin-top:6px}
+  .trend{display:flex;align-items:flex-end;gap:6px;height:90px;padding:10px 0}
+  .trend i{flex:1;background:var(--teal);border-radius:6px 6px 0 0;opacity:.85;transition:height var(--dur) var(--ease)}
+  .trend i:last-child{background:var(--violet)}
+
+  /* onboarding */
+  .onb{padding:30px 24px;text-align:center}
+  .onb .mascot{font-size:64px;margin-bottom:10px}
+  .onb h2{font-family:var(--serif);font-size:26px;margin-bottom:8px}
+  .onb p{font-size:14px;color:var(--ink-2);max-width:34ch;margin:0 auto 22px}
+  .magic-input{display:flex;gap:8px;margin-top:14px}
+  .magic-input input{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;background:var(--panel)}
+  .magic-input input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 4px var(--teal-tint)}
+
+  /* admin (desktop) */
+  .admin{display:grid;grid-template-columns:200px 1fr;height:100%}
+  .admin-side{background:var(--ink);color:#fff;padding:20px 14px}
+  .admin-side .brand{font-family:var(--serif);font-size:18px;margin-bottom:20px}
+  .admin-side a{display:block;color:rgba(255,255,255,.7);font-size:13px;font-weight:600;padding:9px 12px;border-radius:9px;margin-bottom:4px}
+  .admin-side a.on,.admin-side a:hover{background:rgba(255,255,255,.12);color:#fff;text-decoration:none}
+  .admin-main{padding:22px 26px;overflow-y:auto;background:var(--paper)}
+  .admin-main h2{font-family:var(--serif);font-size:22px;margin-bottom:4px}
+  .admin-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:13px}
+  .kpi .v{font-size:24px;font-weight:800;font-family:var(--serif)}
+  .kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .kpi .v.coral{color:var(--coral)}
+  .kpi .v.teal{color:var(--teal-700)}
+  .admin-table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+  .admin-table th,.admin-table td{padding:11px 13px;text-align:left;font-size:12.5px;border-bottom:1px solid var(--border)}
+  .admin-table th{background:var(--paper-2);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+  .lc{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.04em}
+  .lc.draft{background:var(--paper-2);color:var(--ink-2)}
+  .lc.review{background:var(--amber-soft);color:var(--amber)}
+  .lc.published{background:var(--green-soft);color:var(--green)}
+  .lc.archived{background:var(--red-soft);color:var(--red)}
+  .mini-btn{border:1px solid var(--border);background:var(--panel);font-family:inherit;font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;cursor:pointer;margin-right:5px;transition:all var(--dur) var(--ease)}
+  .mini-btn.approve{border-color:var(--green);color:var(--green)}
+  .mini-btn.approve:hover{background:var(--green);color:#fff}
+  .mini-btn.archive{border-color:var(--red);color:var(--red)}
+  .mini-btn.archive:hover{background:var(--red);color:#fff}
+
+  /* bottom tab bar (mobile app) */
+  .tabbar{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);padding:8px 6px 10px}
+  .device.desktop .tabbar{display:none}
+  .tabbar button{flex:1;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:inherit;font-size:10px;font-weight:700;padding:4px 0;transition:color var(--dur) var(--ease)}
+  .tabbar button .ti{font-size:21px;line-height:1}
+  .tabbar button[aria-pressed="true"]{color:var(--teal-700)}
+  .tabbar button[aria-pressed="true"] .ti{transform:translateY(-1px)}
+
+  /* desktop web nav (top) */
+  .web-nav{display:none}
+  .device.desktop .web-nav{display:flex;align-items:center;gap:8px;padding:14px 26px;border-bottom:1px solid var(--border);background:var(--panel)}
+  .web-nav .brand{font-family:var(--serif);font-weight:700;font-size:17px;margin-right:14px}
+  .web-nav .brand .dot{color:var(--coral)}
+  .web-nav button{border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-2);padding:8px 12px;border-radius:9px;cursor:pointer;transition:all var(--dur) var(--ease)}
+  .web-nav button[aria-pressed="true"]{background:var(--teal-tint);color:var(--teal-700)}
+  .web-nav button:hover{color:var(--ink)}
+  .web-nav .spacer{flex:1}
+
+  /* desktop spreads content wider */
+  .device.desktop .app-pad{max-width:880px;margin:0 auto;padding:24px 26px 40px}
+  .device.desktop .streak{max-width:880px;margin:14px auto 0}
+  .device.desktop .app-top{display:none}
+  .device.desktop .cat-bento{grid-template-columns:repeat(4,1fr)}
+  .device.desktop .desktop-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
+
+  .hint{font-size:var(--t-xs);color:var(--muted);text-align:center;margin-top:10px}
+
+  footer.doc-foot{margin-top:var(--section);padding:30px 0 60px;border-top:1px solid var(--border);color:var(--muted);font-size:var(--t-sm);text-align:center}
+
+  @media(max-width:560px){
+    .hero h1{max-width:none}
+    .device-frame.desktop{max-width:100%}
+  }
+</style>
+</head>
+<body>
+<a href="#mockup" class="skip">Skip to interactive mockup</a>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> Design Document · Gate 1 Artifact</span>
+    <h1>Practice English that <em>sounds like you</em> mean it.</h1>
+    <p class="lede">The design system, information architecture, screen specs, and a clickable prototype for the AI Scenario English Trainer — one warm, editorial identity carried across a responsive web client, a native iOS client, and an operator admin.</p>
+    <div class="hero-meta">
+      <span class="chip"><b>Direction</b> · Warm editorial coaching</span>
+      <span class="chip"><b>Surfaces</b> · Web · iOS · Admin</span>
+      <span class="chip"><b>Scope</b> · All P0 + P1</span>
+      <span class="chip"><b>Signature</b> · 3-tier feedback diff</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Document sections">
+  <div class="inner">
+    <a href="#rationale">1 · Rationale</a>
+    <a href="#ia">2 · Information Architecture</a>
+    <a href="#categories">8 Categories</a>
+    <a href="#screens">3 · Screen Specs</a>
+    <a href="#flows">4 · Signature Flows</a>
+    <a href="#mockup">5 · Interactive Mockup</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<!-- ====================================================== -->
+<!-- 1. DESIGN RATIONALE -->
+<!-- ====================================================== -->
+<section class="block" id="rationale">
+  <span class="kicker"><span class="num">01</span> · Design Rationale</span>
+  <h2>Warm editorial coaching, not another gamified tutor</h2>
+  <p class="section-lede">The product is corrective and adaptive — it should feel like a sharp, encouraging editor sitting beside you, not a cartoon classroom. The visual language is warm paper, confident serif headlines against rounded sans body, and color used as <em>meaning</em>: teal acts, coral corrects, violet measures growth. The existing iOS warm palette is the anchor so web and iOS are visibly the same product.</p>
+
+  <div class="bento cols-3">
+    <div class="card lead-card">
+      <h3>The point of view</h3>
+      <p>Real situations over abstract lessons. Focused correction over error dumps. Retained expression over forgotten vocab. The whole UI is built around one loop — practice, correct, save, review — and every screen earns its place in that loop.</p>
+    </div>
+    <div class="card">
+      <h3>📰 Editorial, not template</h3>
+      <p>Serif display headlines, asymmetric rhythm, a feature-sized "today" card next to smaller tiles. We deliberately avoid the uniform card grid and the centered-hero-with-gradient-blob default.</p>
+    </div>
+    <div class="card">
+      <h3>🧭 Mascots with a job</h3>
+      <p>The existing mascots become scenario-category guides and empty/celebration moments — character, not childishness. They never carry primary navigation.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Final palette</h3>
+  <p class="section-lede">Drawn from <code>Extensions.swift</code> and tuned for WCAG AA on warm paper. Teal/coral/violet are <strong>semantic</strong> — they never appear decoratively where they would imply the wrong meaning.</p>
+  <div class="swatches">
+    <div class="sw"><div class="chipc" style="background:#FAF8F5"><span style="color:#1C1917;text-shadow:none">Paper</span></div><div class="meta"><b>Warm Paper</b><code>#FAF8F5</code><em>App background</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#1C1917"><span>Ink</span></div><div class="meta"><b>Ink</b><code>#1C1917</code><em>Primary text · 14.8:1</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#0D9488"><span>Teal</span></div><div class="meta"><b>Teal — Action</b><code>#0D9488</code><em>Primary CTA · brand</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#EA580C"><span>Coral</span></div><div class="meta"><b>Coral — Correction</b><code>#EA580C</code><em>Mistakes · retry · attention</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#7C3AED"><span>Violet</span></div><div class="meta"><b>Violet — Progress</b><code>#7C3AED</code><em>CEFR · mastery · trends</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#16A34A"><span>Green</span></div><div class="meta"><b>Green — Success</b><code>#16A34A</code><em>Saved · completed</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#57534E"><span>Ink-2</span></div><div class="meta"><b>Secondary text</b><code>#57534E</code><em>Body 2 · 7.4:1</em></div></div>
+    <div class="sw"><div class="chipc" style="background:#E7E2DB"><span style="color:#1C1917;text-shadow:none">Border</span></div><div class="meta"><b>Hairline</b><code>#E7E2DB</code><em>Dividers · card edge</em></div></div>
+  </div>
+  <div class="callout"><strong>Contrast note:</strong> iOS <code>appTeal</code> is the brighter <code>#14B8A6</code> (fine on white fills); web/text teal is the deeper <code>#0D9488</code> to clear AA on warm paper. Both ship as the same token name in each platform's token layer, so components stay portable.</div>
+
+  <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Type scale &amp; pairing</h3>
+  <p class="section-lede">A two-family strategy: a humanist <strong>serif</strong> for display/headlines (editorial voice, the "coaching" warmth) paired with the platform <strong>rounded sans</strong> (SF Pro Rounded on Apple, system-ui elsewhere) for UI and body — matching the existing app's SF Rounded. Hierarchy comes from real scale contrast, not weight alone.</p>
+  <div class="card specimen">
+    <div class="spec-row"><span class="tag">Display / serif</span><span class="spec-serif" style="font-size:var(--t-display);font-weight:700;line-height:1">Sound natural.</span></div>
+    <div class="spec-row"><span class="tag">H1 / serif</span><span class="spec-serif" style="font-size:var(--t-h1)">Ordering at a coffee shop</span></div>
+    <div class="spec-row"><span class="tag">H2 / serif</span><span class="spec-serif" style="font-size:var(--t-h2)">Your session report</span></div>
+    <div class="spec-row"><span class="tag">H3 / sans 600</span><span style="font-size:var(--t-h3);font-weight:600">Save these expressions</span></div>
+    <div class="spec-row"><span class="tag">Body / sans</span><span style="font-size:var(--t-body)">I'd like an iced Americano with no sugar. Could you make it with less ice?</span></div>
+    <div class="spec-row"><span class="tag">Caption / sans 700</span><span style="font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--muted)">EST. CEFR · B1−</span></div>
+  </div>
+
+  <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Core components</h3>
+  <div class="bento cols-2">
+    <div class="card">
+      <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Signature — 3-tier feedback diff</h4>
+      <p style="margin-bottom:12px">Never a flat error list. Correction is always a vertical stack: your original (struck, coral) → corrected (neutral, teal label) → natural version (violet). One glance shows the climb from "understood" to "native".</p>
+      <div class="diff">
+        <div class="tier t1"><div class="lbl">● Your version</div><div class="txt">I want check in early.</div></div>
+        <div class="tier t2"><span class="connector"></span><div class="lbl">✓ Corrected</div><div class="txt">I'd like to check in early.</div></div>
+        <div class="tier t3"><span class="connector"></span><div class="lbl">✦ More natural</div><div class="txt">Would it be possible to check in early?</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Component inventory</h4>
+      <p style="margin-bottom:10px">Shared across web + iOS via the token layer:</p>
+      <span class="pill teal">Scenario card</span><span class="pill teal">Mode picker</span>
+      <span class="pill coral">Feedback diff</span><span class="pill coral">ASR retry banner</span>
+      <span class="pill violet">Score ring</span><span class="pill violet">Dimension bars</span>
+      <span class="pill violet">CEFR badge</span><span class="pill paper">Expression chip</span>
+      <span class="pill paper">Filter chip</span><span class="pill paper">Tab bar</span>
+      <span class="pill paper">Save toggle</span><span class="pill paper">Lifecycle pill</span>
+      <p style="margin-top:12px;font-size:var(--t-xs);color:var(--muted)">Surfaces use <code>CardStyle</code> (20px radius, soft shadow) as the base raised surface; recessed surfaces use warm <code>--paper-2</code>.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Motion &amp; interaction principles</h3>
+  <div class="bento cols-4">
+    <div class="card"><h3 style="font-size:var(--t-sm)">Clarify, don't decorate</h3><p>Motion shows flow: the diff tiers cascade in, the score ring fills. No motion-for-motion's-sake.</p></div>
+    <div class="card"><h3 style="font-size:var(--t-sm)">Compositor-only</h3><p>Animate <code>transform</code> &amp; <code>opacity</code> exclusively. 240ms, <code>cubic-bezier(.16,1,.3,1)</code>.</p></div>
+    <div class="card"><h3 style="font-size:var(--t-sm)">Tactile states</h3><p>Hover lifts/translates; active scales to .97. Every interactive element has a designed press.</p></div>
+    <div class="card"><h3 style="font-size:var(--t-sm)">Honest loading</h3><p>Skeletons mirror final layout so AI latency never shifts the page (CLS &lt; 0.1).</p></div>
+  </div>
+
+  <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Accessibility stance (WCAG 2.2 AA)</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Concern</th><th>Commitment</th></tr></thead>
+      <tbody>
+        <tr><td><b>Contrast</b></td><td>All text ≥ 4.5:1 (≥ 3:1 large). Color is never the <em>only</em> signal — the diff uses labels + strikethrough + icons, not just hue, so it reads for color-blind users.</td></tr>
+        <tr><td><b>Focus states</b></td><td>Visible 3px violet focus ring on every interactive element (web). iOS uses system focus + VoiceOver. No focus is ever suppressed.</td></tr>
+        <tr><td><b>Reduced motion</b></td><td><code>prefers-reduced-motion</code> drops all transitions/animations to ~0ms; the ring and diff appear instantly. (Honored live in this very document's mockup.)</td></tr>
+        <tr><td><b>Keyboard nav</b></td><td>Full tab order; mode picker, filters, tabs, and save toggles are real buttons with <code>aria-pressed</code>. Skip-link to main content + to the mockup.</td></tr>
+        <tr><td><b>Non-blocking ASR retry</b></td><td>Low-confidence audio shows an inline, dismissible coral banner with a Retry action — it never modal-traps the user or discards their turn. The user can accept the draft transcript, retry, or switch to typing.</td></tr>
+        <tr><td><b>Voice alternatives</b></td><td>Every voice task has a text fallback. Speaking is never the only path to completing a session (intelligibility scoring is simply skipped).</td></tr>
+        <tr><td><b>Targets &amp; copy</b></td><td>≥ 44×44px touch targets. CEFR is labeled an estimate everywhere it appears (compliance copy verbatim on the report).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ====================================================== -->
+<!-- 2. INFORMATION ARCHITECTURE -->
+<!-- ====================================================== -->
+<section class="block" id="ia">
+  <span class="kicker"><span class="num">02</span> · Information Architecture</span>
+  <h2>One product, three navigation models</h2>
+  <p class="section-lede">The existing iOS 6-tab shell (Home · Reading · Writing · Vocabulary · Listening · Me) is <strong>retabbed to 5</strong> around the new loop: <strong>Home · Scenarios · Practice · Expressions · Profile</strong>. Web mirrors the same five as a top nav; the operator Admin is a separate web-only surface behind role auth.</p>
+
+  <div class="bento feature">
+    <div class="card">
+      <h3>🎓 Learner — shared 5-tab model (web + iOS)</h3>
+      <pre><code>Home          today's pick · continue · weak expressions · quick start
+Scenarios     8 categories → list (level/mode filters) → detail
+Practice      mode picker → [Translation | Dialogue | Description]
+              → live session → AI feedback → Report
+Expressions   Vocabulary · Patterns · Mistakes · Saved · Phrases
+              → daily Review flow
+Profile       long-term CEFR · 6-dimension trends · settings · account</code></pre>
+      <p style="margin-top:10px">Practice is reachable from Home (quick start), Scenarios (detail → start), and its own tab — the loop never dead-ends. <strong>Report</strong> is a result of Practice, not a tab; <strong>Review</strong> lives inside Expressions.</p>
+    </div>
+    <div class="card" style="background:var(--paper-2)">
+      <h3>🛠️ Operator — Admin (web only)</h3>
+      <pre><code>Dashboard    bank health · queue size · complaint spikes
+Question Bank table: items × lifecycle × quality metrics
+             filters: category · level · status · source
+             row → detail drawer → approve / archive / re-level
+Scenarios    category & scenario coverage map
+Sources      content sources + license metadata</code></pre>
+      <p style="margin-top:10px">Distinct chrome (dark sidebar, dense data tables) signals "back office". Never exposed to learners. Role-gated route segment.</p>
+    </div>
+  </div>
+
+  <div class="callout violet"><strong>Navigation parity:</strong> identical tab labels and order on web + iOS keeps muscle memory portable. The only platform difference is placement — bottom tab bar on iOS/mobile-web, top nav on desktop-web. Filters and the active scenario/tab live in the <strong>URL</strong> on web (shareable, back-button-correct).</p></div>
+
+  <h3 id="categories" style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">The 8 scenario categories (finalized)</h3>
+  <p class="section-lede">The PRD names four (Daily Life, Travel, Social, Work). We finalize the remaining four below, chosen for <strong>high real-world frequency</strong>, <strong>clear goal/role/phrase structure</strong>, and <strong>coverage of the four user types</strong> without overlapping the first four. Topic Description is treated as a <em>practice mode available within categories</em> plus a dedicated "Express Yourself" pack — not its own category — so categories stay situational.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>#</th><th>Category</th><th>Guide mascot</th><th>Sample scenarios</th><th>Why it earns a slot</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><b>Daily Life</b> <span class="pill teal">PRD</span></td><td>🐱 Cleo</td><td>Restaurant · Coffee shop · Directions · Renting · Neighbors</td><td>Highest-frequency everyday output for general learners.</td></tr>
+        <tr><td>2</td><td><b>Travel</b> <span class="pill teal">PRD</span></td><td>🦉 Ollie</td><td>Airport · Hotel · Customs · Transport · Emergency</td><td>Time-boxed, high-stakes phrases travelers need fast.</td></tr>
+        <tr><td>3</td><td><b>Social</b> <span class="pill teal">PRD</span></td><td>🦊 Fenn</td><td>Small talk · Self-intro · Invitations · Thanks · Polite refusal</td><td>The "understandable → natural" gap lives here.</td></tr>
+        <tr><td>4</td><td><b>Work</b> <span class="pill teal">PRD</span></td><td>🐻 Benny</td><td>Meetings · Interviews · Requirements · Support · Emails</td><td>Core need of working professionals.</td></tr>
+        <tr><td>5</td><td><b>Shopping &amp; Money</b> <span class="pill coral">NEW</span></td><td>🐝 Buzz</td><td>Retail · Returns &amp; refunds · Bank · Bargaining · Online orders</td><td>Distinct transactional language (numbers, complaints, negotiation) not covered by "ordering". Universal, high-frequency.</td></tr>
+        <tr><td>6</td><td><b>Health &amp; Services</b> <span class="pill coral">NEW</span></td><td>🐱 Cleo</td><td>Doctor / pharmacy · Dentist · Repairs · Hairdresser · Calling support</td><td>High-anxiety, high-value situations where precise, polite phrasing matters most; service-call patterns are reusable.</td></tr>
+        <tr><td>7</td><td><b>Education &amp; Growth</b> <span class="pill coral">NEW</span></td><td>🦉 Ollie</td><td>Classroom · Office hours · Group project · Library · Asking to clarify</td><td>Serves students &amp; intermediate learners; teaches clarification/confirmation language that transfers everywhere.</td></tr>
+        <tr><td>8</td><td><b>Express Yourself</b> <span class="pill coral">NEW</span></td><td>🦊 Fenn</td><td>Describe a photo · Tell a story · Give an opinion · Explain a process · Compare options</td><td>Home for Topic Description &amp; long-form coherence — the only category built around monologue rather than a counterpart. Drives the Coherence dimension.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout coral"><strong>Rationale for not making "Topic Description" a category by itself:</strong> it is a <em>mode</em> (record + post-session review) that applies inside any category, but learners also want a place to just practice speaking at length. "Express Yourself" satisfies both — it surfaces description-style prompts while keeping the other seven categories cleanly situational/dialogic.</div>
+</section>
+
+<!-- ====================================================== -->
+<!-- 3. SCREEN-BY-SCREEN SPECS -->
+<!-- ====================================================== -->
+<section class="block" id="screens">
+  <span class="kicker"><span class="num">03</span> · Screen-by-Screen Specs</span>
+  <h2>Every screen, every state</h2>
+  <p class="section-lede">Each screen lists purpose, layout, key components, and <strong>all states</strong> — default, empty, loading, error, low-ASR-confidence (where voice applies), and success/celebration. Expand any screen. The live prototype in §5 renders the default state of the starred screens.</p>
+
+  <!-- Onboarding -->
+  <details class="screen-spec" open>
+    <summary>🚪 Onboarding &amp; Auth <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>Zero-friction entry: anonymous device account created on first launch — straight into the loop.</li><li>Optional magic-link upgrade later to sync across devices (merges the anonymous record).</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Single warm panel, mascot greeting, one serif promise line, one primary CTA "Start practicing".</li><li>"Sync my progress" is a secondary, deferrable action (email field → magic link).</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Mascot hero · primary CTA · magic-link input · "Maybe later" ghost.</li><li>3-dot first-run value carousel (skippable).</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Default (anon CTA)</span>
+            <span class="state-pill loading"><span class="d"></span>Sending magic link</span>
+            <span class="state-pill success"><span class="d"></span>Link sent / merged</span>
+            <span class="state-pill error"><span class="d"></span>Invalid email / link expired</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Home -->
+  <details class="screen-spec">
+    <summary>🏠 Home ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>One-tap re-entry to the loop and a visible reason to come back today.</li></ul></div>
+        <div class="spec-block"><h4>Layout (editorial bento)</h4><ul><li>Greeting + streak strip.</li><li>Large feature card: "Today's scenario" (continue-or-start).</li><li>Quick-start mode row (3 modes).</li><li>"Weak expressions to review" horizontal rail.</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Streak chip · hero scenario card · mode quick-start · expression rail · review nudge.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Returning user</span>
+            <span class="state-pill empty"><span class="d"></span>New (no history → "pick your first scenario")</span>
+            <span class="state-pill loading"><span class="d"></span>Skeleton cards</span>
+            <span class="state-pill error"><span class="d"></span>Offline (cached pick + retry)</span>
+            <span class="state-pill success"><span class="d"></span>Streak milestone toast</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Scenarios -->
+  <details class="screen-spec">
+    <summary>🗂️ Scenarios — list · filters · detail ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>Browse 8 categories → drill to a scenario → start a mode.</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Category bento (asymmetric: feature tile + grid).</li><li>List view: sticky filter bar (level A1–C1, mode, completed) + scenario rows.</li><li>Detail: goal · your role / AI role · key phrases · common mistakes · "Choose a mode".</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Category tile · filter chips (URL-bound) · scenario row · detail header · mode picker.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Browsing</span>
+            <span class="state-pill empty"><span class="d"></span>No match for filters (clear-filters)</span>
+            <span class="state-pill loading"><span class="d"></span>Row skeletons</span>
+            <span class="state-pill error"><span class="d"></span>Fetch failed (retry)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Practice: Translation -->
+  <details class="screen-spec">
+    <summary>✍️ Practice — Scenario Translation ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Feedback model:</b> instant correction — each sentence is corrected right after submission, surfaced as the 3-tier diff.</p>
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Layout</h4><ul><li>Scenario context strip (collapsible).</li><li>Chinese prompt card.</li><li>Text input (voice optional) → Submit.</li><li>Instant 3-tier diff + 1–3 issue notes + save-candidate chips.</li><li>"Next prompt" / "Finish &amp; score".</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Prompt card · input box · feedback diff · issue chips · save chips.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Awaiting input</span>
+            <span class="state-pill loading"><span class="d"></span>AI grading (inline spinner on diff)</span>
+            <span class="state-pill error"><span class="d"></span>AI error → repair retry / try again</span>
+            <span class="state-pill success"><span class="d"></span>Correct first try (green badge)</span>
+            <span class="state-pill asr"><span class="d"></span>Low-ASR (voice input) → retry banner</span>
+          </div>
+        </div>
+        <div class="spec-block"><h4>Empty</h4><ul><li>If scenario has no prompts (admin gap) → friendly "more coming" + suggest another.</li></ul></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Practice: Dialogue -->
+  <details class="screen-spec">
+    <summary>💬 Practice — Scenario Dialogue ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Feedback model:</b> light correction — flag only key issues without breaking flow; full analysis deferred to the report. Voice-first with text fallback.</p>
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Layout</h4><ul><li>Role banner ("You: Customer · AI: Barista · Goal: …").</li><li>Chat transcript: AI turns + your turns.</li><li>Flagged turns get a subtle coral underline + tap-to-expand mini-diff.</li><li>Voice bar (mic + live waveform) with text-input toggle.</li><li>"End &amp; get report".</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Role banner · chat bubbles · inline flag note · voice bar / mic · text toggle.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>AI's turn / your turn</span>
+            <span class="state-pill loading"><span class="d"></span>AI thinking (typing dots)</span>
+            <span class="state-pill asr"><span class="d"></span>Low ASR confidence → non-blocking retry</span>
+            <span class="state-pill error"><span class="d"></span>Network drop mid-turn (turn preserved)</span>
+            <span class="state-pill empty"><span class="d"></span>First turn (AI opens the scene)</span>
+            <span class="state-pill success"><span class="d"></span>Goal met (gentle "objective complete")</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Practice: Description -->
+  <details class="screen-spec">
+    <summary>🎙️ Practice — Topic Description ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Feedback model:</b> post-session review — record 30s–2min, then whole-performance analysis at the end.</p>
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Layout</h4><ul><li>Topic prompt + optional bullet scaffold.</li><li>Big record button + timer + live waveform; pause/resume.</li><li>Post-record: draft transcript (editable) → "Get my review".</li><li>Review = full report (see Score Report).</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Topic card · record control · timer · waveform · editable transcript · ASR banner.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Ready to record</span>
+            <span class="state-pill default"><span class="d"></span>Recording (timer + wave)</span>
+            <span class="state-pill loading"><span class="d"></span>Uploading + transcribing + scoring</span>
+            <span class="state-pill asr"><span class="d"></span>Low confidence → "re-record this part?" (non-blocking; excluded from long-term)</span>
+            <span class="state-pill error"><span class="d"></span>Mic permission denied → text-describe fallback</span>
+            <span class="state-pill success"><span class="d"></span>Review ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Report -->
+  <details class="screen-spec">
+    <summary>📊 Score Report ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>Explainable result: total + 6 dimensions + CEFR estimate + what to save + what's next.</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Score ring (total /100) + CEFR badge.</li><li>6 dimension bars (Vocabulary, Grammar, Fluency, Coherence, Interaction, Pronunciation) — N/A greyed for text-only sessions.</li><li>Weak-point notes + recommended review.</li><li>Save-candidate list (one-tap save) → feeds Expressions.</li><li><strong>Compliance disclaimer (verbatim).</strong></li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Score ring · CEFR badge · dimension bars · save cards · disclaimer · "Practice again" / "Review now".</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill loading"><span class="d"></span>Aggregating (ring spins up)</span>
+            <span class="state-pill success"><span class="d"></span>High score celebration (mascot + confetti, reduced-motion safe)</span>
+            <span class="state-pill default"><span class="d"></span>Standard report</span>
+            <span class="state-pill asr"><span class="d"></span>Partial: speech dims excluded (low ASR), flagged "not counted toward your level"</span>
+            <span class="state-pill error"><span class="d"></span>Scoring failed → keep transcript, offer re-score</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout amber" style="margin-top:14px"><strong>Verbatim compliance copy (always shown on the report &amp; profile):</strong><br>"Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification."</div>
+    </div>
+  </details>
+
+  <!-- Expressions -->
+  <details class="screen-spec">
+    <summary>📚 Expressions bank + Review ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>The retention engine: a personal asset built from real practice + a daily spaced-review flow.</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Daily Review banner up top (N tasks due).</li><li>Sub-tabs: Vocabulary · Patterns · Mistakes · Saved · Scenario phrases.</li><li>Each item shows content, meaning, source scenario, mastery bar.</li><li>Review flow: card-by-card task (recall/produce) → mark known/again → mastery updates.</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Review banner · sub-tab chips · expression item · mastery bar · review card.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill empty"><span class="d"></span>Empty bank ("save expressions from practice")</span>
+            <span class="state-pill default"><span class="d"></span>Populated, nothing due</span>
+            <span class="state-pill default"><span class="d"></span>Review due (banner active)</span>
+            <span class="state-pill loading"><span class="d"></span>Loading items</span>
+            <span class="state-pill success"><span class="d"></span>Review complete (streak + mastery gains)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Profile -->
+  <details class="screen-spec">
+    <summary>👤 Profile — long-term CEFR &amp; trends ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>Make progress visible: stable CEFR, per-dimension trends, what to improve next.</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>CEFR hero (overall + stable range).</li><li>6-dimension trend (30-day) chart.</li><li>Weaknesses list ("article usage", "polite requests").</li><li>Account (anon vs synced) + settings.</li><li>Disclaimer repeated.</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>CEFR hero · dimension trend chart · weakness chips · account card · settings rows.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill empty"><span class="d"></span>Too few sessions ("practice 3 more to unlock your level")</span>
+            <span class="state-pill default"><span class="d"></span>Established profile</span>
+            <span class="state-pill loading"><span class="d"></span>Chart skeleton</span>
+            <span class="state-pill success"><span class="d"></span>Level-up moment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Admin -->
+  <details class="screen-spec">
+    <summary>🛠️ Operator Admin — question-bank lifecycle ★ <span class="surface-tag">web only</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Purpose</h4><ul><li>Run the content lifecycle: draft → generated → auto-checked → review-pending → published → monitored → improved/archived. Spot bad items via quality metrics; approve/archive.</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Dark sidebar nav.</li><li>KPI strip (queue size, complaint rate, avg score, published count).</li><li>Item table: category · level · status (lifecycle pill) · completion · save rate · complaint · row actions.</li><li>Row → detail drawer: full item, source/license, metric history, approve / archive / re-level / send-to-review.</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Sidebar · KPI cards · filterable table · lifecycle pill · metric cells · action buttons · detail drawer.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Queue populated</span>
+            <span class="state-pill empty"><span class="d"></span>Empty queue ("all clear")</span>
+            <span class="state-pill loading"><span class="d"></span>Table loading</span>
+            <span class="state-pill error"><span class="d"></span>Action failed (optimistic rollback + toast)</span>
+            <span class="state-pill success"><span class="d"></span>Published / archived confirmation</span>
+            <span class="state-pill asr"><span class="d"></span>Complaint spike alert (coral KPI)</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout"><strong>Lifecycle pills:</strong> <span class="lc draft">Draft</span> <span class="lc review">Review</span> <span class="lc published">Published</span> <span class="lc archived">Archived</span> — color-coded, with the intermediate generated/auto-checked/monitored states shown in the row detail timeline.</div>
+    </div>
+  </details>
+</section>
+
+<!-- ====================================================== -->
+<!-- 4. SIGNATURE FLOWS -->
+<!-- ====================================================== -->
+<section class="block" id="flows">
+  <span class="kicker"><span class="num">04</span> · Signature Flows</span>
+  <h2>Two flows the whole product hangs on</h2>
+
+  <h3 style="font-family:var(--serif);font-size:var(--t-h2);margin-bottom:4px">A · Practice → Report → Save (the core loop)</h3>
+  <p class="section-lede">The user goes from a scenario to a saved expression in one unbroken motion. The 3-tier diff appears at the moment of correction; save-candidates carry straight into the bank.</p>
+  <div class="flow">
+    <div class="step"><strong>Pick scenario</strong><span>Home quick-start or Scenarios → detail → choose mode.</span></div>
+    <div class="step"><strong>Produce</strong><span>Translate / speak a turn / record a description.</span></div>
+    <div class="step coral"><strong>Correct (diff)</strong><span>Original → Corrected → Natural, + 1–3 focused issues.</span></div>
+    <div class="step violet"><strong>Score</strong><span>Total + 6 dimensions + CEFR estimate + disclaimer.</span></div>
+    <div class="step violet"><strong>Save</strong><span>One-tap save-candidates → Expressions bank.</span></div>
+    <div class="step"><strong>Loop</strong><span>"Practice again" or "Review now".</span></div>
+  </div>
+
+  <h3 style="font-family:var(--serif);font-size:var(--t-h2);margin:2rem 0 4px">B · Mistake → Review-task generation</h3>
+  <p class="section-lede">A correction isn't just shown — it becomes scheduled, personalized practice. This is the engine behind the P1 review system and the long-term ability profile.</p>
+  <div class="flow">
+    <div class="step coral"><strong>Mistake captured</strong><span>"I want check in early." flagged in a session.</span></div>
+    <div class="step"><strong>Stored as pair</strong><span>original → corrected → natural, tagged to scenario + weakness.</span></div>
+    <div class="step violet"><strong>Tasks generated</strong><span>Use "I'd like to…"; ask politely with "Would it be possible to…"; re-enter scenario.</span></div>
+    <div class="step violet"><strong>Scheduled</strong><span>Spaced repetition sets next-review-at + mastery.</span></div>
+    <div class="step"><strong>Surfaced</strong><span>Home rail + Expressions daily Review banner.</span></div>
+    <div class="step"><strong>Mastery updates</strong><span>Known/again adjusts mastery → feeds Profile trends.</span></div>
+  </div>
+  <div class="callout coral"><strong>Why coral leads both flows:</strong> the moment of correction is the product's reason to exist. Coral marks it consistently — the struck original, the flagged turn, the retry, the weak-point — so the eye always knows "this is the thing to fix."</div>
+</section>
+
+<!-- ====================================================== -->
+<!-- 5. INTERACTIVE MOCKUP -->
+<!-- ====================================================== -->
+<section class="block" id="mockup">
+  <span class="kicker"><span class="num">05</span> · Interactive Mockup</span>
+  <h2>Click through the real thing</h2>
+  <p class="section-lede">A working prototype with the actual palette, type, and components. Use the screen switcher to walk the learner loop, toggle <strong>Mobile (390px / iOS)</strong> vs <strong>Desktop (web)</strong>, and open the Admin screen. Buttons inside the frame also navigate. Honors <code>prefers-reduced-motion</code>.</p>
+
+  <div class="mockup-stage">
+    <div class="mockup-controls" role="group" aria-label="Mockup controls">
+      <div class="group" role="group" aria-label="Screen">
+        <button class="seg" data-screen="onboarding" aria-pressed="false">Onboarding</button>
+        <button class="seg" data-screen="home" aria-pressed="true">Home</button>
+        <button class="seg" data-screen="scenarios" aria-pressed="false">Scenarios</button>
+        <button class="seg" data-screen="practice" aria-pressed="false">Practice</button>
+        <button class="seg" data-screen="report" aria-pressed="false">Report</button>
+        <button class="seg" data-screen="expressions" aria-pressed="false">Expressions</button>
+        <button class="seg" data-screen="profile" aria-pressed="false">Profile</button>
+        <button class="seg" data-screen="admin" aria-pressed="false">Admin</button>
+      </div>
+      <div class="group" role="group" aria-label="Device">
+        <button class="seg device" data-device="mobile" aria-pressed="true">📱 Mobile</button>
+        <button class="seg device" data-device="desktop" aria-pressed="false">🖥️ Desktop</button>
+      </div>
+    </div>
+
+    <div class="device-frame mobile" id="deviceFrame">
+      <div class="device" id="device">
+        <div class="notch"><div class="traffic"><i></i><i></i><i></i></div><div class="pill-notch"></div></div>
+        <div class="screen">
+
+          <!-- DESKTOP WEB TOP NAV -->
+          <div class="web-nav" id="webNav">
+            <span class="brand">Scenario English<span class="dot">.</span></span>
+            <button data-screen="home" aria-pressed="true">Home</button>
+            <button data-screen="scenarios" aria-pressed="false">Scenarios</button>
+            <button data-screen="practice" aria-pressed="false">Practice</button>
+            <button data-screen="expressions" aria-pressed="false">Expressions</button>
+            <button data-screen="profile" aria-pressed="false">Profile</button>
+            <span class="spacer"></span>
+            <span class="avatar" style="width:34px;height:34px;font-size:13px">EK</span>
+          </div>
+
+          <div class="viewport" id="viewport">
+
+            <!-- ===== ONBOARDING ===== -->
+            <div class="app-screen" data-pane="onboarding">
+              <div class="onb">
+                <div class="mascot">🦊</div>
+                <h2>Say it like you mean it.</h2>
+                <p>Practice real situations, get focused corrections, and keep the expressions that work. No account needed to start.</p>
+                <button class="btn btn-primary btn-block" data-goto="home">Start practicing</button>
+                <div style="margin-top:22px;text-align:left">
+                  <div class="section-label">Sync across devices (optional)</div>
+                  <div class="magic-input">
+                    <input type="email" placeholder="you@email.com" aria-label="Email for magic link" />
+                    <button class="btn btn-ghost">Send link</button>
+                  </div>
+                  <p class="hint" style="text-align:left;margin-top:8px">We'll email a one-tap link. Your current progress merges in automatically.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== HOME ===== -->
+            <div class="app-screen active" data-pane="home">
+              <div class="app-top">
+                <div class="greet"><small>Tuesday · Day 6 streak</small><b>Morning, Erik 👋</b></div>
+                <span class="avatar">EK</span>
+              </div>
+              <div class="streak"><span class="fire">🔥</span><div><b>6-day streak</b><small>Practice today to keep it alive</small></div></div>
+              <div class="app-pad">
+                <div class="desktop-grid">
+                  <div>
+                    <div class="a-card hero-card">
+                      <span class="lbl">Today's scenario · Daily Life</span>
+                      <h3>Ordering at a coffee shop</h3>
+                      <p>A2–B1 · You're the customer. Order a drink and customize it politely.</p>
+                      <button class="btn btn-light" data-goto="scenarios">Continue →</button>
+                    </div>
+                    <div class="section-label">Quick start</div>
+                    <div class="mode-pick">
+                      <div class="mode translation" data-goto="practice" tabindex="0" role="button"><div class="mi">✍️</div><div><b>Translation</b><small>Instant correction, sentence by sentence</small></div></div>
+                      <div class="mode dialogue" data-goto="practice" tabindex="0" role="button"><div class="mi">💬</div><div><b>Dialogue</b><small>Role-play with voice, light correction</small></div></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="section-label">Weak expressions <span class="more" data-goto="expressions">Review all</span></div>
+                    <div class="expr-item"><div class="en">Would it be possible to…?</div><div class="cn">是否可以……？ · polite request</div><div class="mastery"><i style="width:42%"></i></div></div>
+                    <div class="expr-item"><div class="en">I'd like to…</div><div class="cn">我想要…… · ordering / requests</div><div class="mastery"><i style="width:65%"></i></div></div>
+                    <div class="a-card" style="background:var(--violet-tint);border-color:var(--violet-soft);display:flex;align-items:center;gap:12px;margin-top:6px"><span style="font-size:26px">🦉</span><div style="flex:1"><b style="font-size:14px">3 review tasks due</b><div style="font-size:12px;color:var(--ink-2)">From this week's mistakes</div></div><button class="btn btn-primary" style="padding:9px 14px" data-goto="expressions">Start</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== SCENARIOS ===== -->
+            <div class="app-screen" data-pane="scenarios">
+              <div class="app-top"><div class="greet"><small>Browse</small><b>Scenarios</b></div><span class="avatar">EK</span></div>
+              <div class="app-pad">
+                <div class="section-label">8 categories</div>
+                <div class="cat-bento">
+                  <div class="cat wide" data-goto="practice" tabindex="0" role="button"><span class="ic">☕</span><div><b>Daily Life</b><small>12 scenarios · Restaurant, Coffee, Directions…</small></div></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">✈️</span><b>Travel</b><small>10 scenarios</small></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🤝</span><b>Social</b><small>9 scenarios</small></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">💼</span><b>Work</b><small>11 scenarios</small></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🛍️</span><b>Shopping &amp; Money</b><small>8 scenarios</small></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🩺</span><b>Health &amp; Services</b><small>8 scenarios</small></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🎓</span><b>Education</b><small>8 scenarios</small></div>
+                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🗣️</span><b>Express Yourself</b><small>10 prompts</small></div>
+                </div>
+                <div class="section-label" style="margin-top:18px">Daily Life</div>
+                <div class="filterbar">
+                  <button class="fchip" aria-pressed="true">All</button>
+                  <button class="fchip" aria-pressed="false">A1–A2</button>
+                  <button class="fchip" aria-pressed="false">B1–B2</button>
+                  <button class="fchip" aria-pressed="false">Translation</button>
+                  <button class="fchip" aria-pressed="false">Dialogue</button>
+                </div>
+                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">☕</div><div class="info"><b>Ordering at a coffee shop</b><small>Customer · Barista · polite ordering</small></div><span class="lvl">A2</span></div>
+                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">🍽️</div><div class="info"><b>Booking a restaurant table</b><small>Caller · Host · reservations</small></div><span class="lvl">A2</span></div>
+                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">🧭</div><div class="info"><b>Asking for directions</b><small>Tourist · Local · navigation</small></div><span class="lvl">A2</span></div>
+                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">🏠</div><div class="info"><b>Reporting a problem to a landlord</b><small>Tenant · Landlord · complaints</small></div><span class="lvl">B1</span></div>
+              </div>
+            </div>
+
+            <!-- ===== PRACTICE (Translation) ===== -->
+            <div class="app-screen" data-pane="practice">
+              <div class="app-top"><div class="greet"><small>Daily Life · Translation</small><b>Coffee shop</b></div><span class="avatar">EK</span></div>
+              <div class="app-pad">
+                <div class="prompt-cn"><small>Translate to natural English</small>我想要一杯冰美式，不加糖，可以少放点冰吗？</div>
+                <div class="input-box"><div class="caret-line">I want an iced Americano, no sugar, can less ice?</div></div>
+                <div class="input-actions">
+                  <button class="btn btn-ghost" aria-label="Voice input">🎙️</button>
+                  <button class="btn btn-primary" style="flex:1" data-feedback="show">Check my answer</button>
+                </div>
+
+                <div id="feedbackBlock" style="display:none;margin-top:18px">
+                  <div class="section-label">Feedback</div>
+                  <div class="diff">
+                    <div class="tier t1"><div class="lbl">● Your version</div><div class="txt">I want an iced Americano, no sugar, can less ice?</div></div>
+                    <div class="tier t2"><span class="connector"></span><div class="lbl">✓ Corrected</div><div class="txt">I'd like an iced Americano with no sugar. Could you make it with less ice?</div></div>
+                    <div class="tier t3"><span class="connector"></span><div class="lbl">✦ More natural</div><div class="txt">Can I get an iced Americano, no sugar — and easy on the ice?</div></div>
+                  </div>
+                  <div style="margin-top:6px">
+                    <span class="flag-note">⚑ "I want" → "I'd like" is more polite when ordering</span>
+                  </div>
+                  <div class="section-label" style="margin-top:14px">Save these</div>
+                  <span class="pill teal">I'd like…</span><span class="pill teal">with no sugar</span><span class="pill teal">Could you make it with…?</span>
+                  <button class="btn btn-primary btn-block" style="margin-top:14px" data-goto="report">Finish &amp; see score →</button>
+                </div>
+
+                <!-- ASR low-confidence example (shown in dialogue note) -->
+                <div class="asr-banner" style="margin-top:18px">
+                  <span class="bi">🎤</span>
+                  <div><b>Hard to hear that</b><small>Low audio confidence. Tap retry, type instead, or keep the draft — your turn is saved either way.</small>
+                    <div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-coral" style="padding:7px 13px">Retry</button><button class="btn btn-ghost" style="padding:7px 13px">Type instead</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== REPORT ===== -->
+            <div class="app-screen" data-pane="report">
+              <div class="app-top"><div class="greet"><small>Session complete</small><b>Your report</b></div><span class="avatar">EK</span></div>
+              <div class="app-pad">
+                <div class="score-hero">
+                  <div class="score-ring"><div class="v">78<small>/100</small></div></div>
+                  <div class="cefr-badge">✦ Est. CEFR · B1−</div>
+                </div>
+                <div class="section-label" style="margin-top:8px">Six dimensions</div>
+                <div class="a-card">
+                  <div class="dim-row"><span class="nm">Vocabulary</span><div class="dim-track"><div class="dim-fill" style="width:74%;background:var(--teal)"></div></div><span class="sc">74</span></div>
+                  <div class="dim-row"><span class="nm">Grammar</span><div class="dim-track"><div class="dim-fill" style="width:68%;background:var(--teal)"></div></div><span class="sc">68</span></div>
+                  <div class="dim-row"><span class="nm">Fluency</span><div class="dim-track"><div class="dim-fill" style="width:81%;background:var(--violet)"></div></div><span class="sc">81</span></div>
+                  <div class="dim-row"><span class="nm">Coherence</span><div class="dim-track"><div class="dim-fill" style="width:62%;background:var(--coral)"></div></div><span class="sc">62</span></div>
+                  <div class="dim-row"><span class="nm">Interaction</span><div class="dim-track"><div class="dim-fill" style="width:79%;background:var(--violet)"></div></div><span class="sc">79</span></div>
+                  <div class="dim-row"><span class="nm">Pronunciation</span><div class="dim-track"><div class="dim-fill" style="width:77%;background:var(--violet)"></div></div><span class="sc">77</span></div>
+                </div>
+                <div class="section-label">Save to your bank</div>
+                <div class="save-card"><div class="txt"><b>Could you make it with…?</b>polite request pattern</div><button class="save-btn" aria-label="Save expression">+</button></div>
+                <div class="save-card"><div class="txt"><b>with no sugar</b>natural collocation</div><button class="save-btn saved" aria-label="Saved">✓</button></div>
+                <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
+                <div style="display:flex;gap:10px;margin-top:14px">
+                  <button class="btn btn-ghost" style="flex:1" data-goto="practice">Practice again</button>
+                  <button class="btn btn-primary" style="flex:1" data-goto="expressions">Review now</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== EXPRESSIONS ===== -->
+            <div class="app-screen" data-pane="expressions">
+              <div class="app-top"><div class="greet"><small>Your bank</small><b>Expressions</b></div><span class="avatar">EK</span></div>
+              <div class="app-pad">
+                <div class="review-banner">
+                  <h3>3 review tasks due today</h3>
+                  <p>Spaced repetition from your recent mistakes &amp; saves.</p>
+                  <button class="btn btn-light">Start review →</button>
+                </div>
+                <div class="expr-tabs">
+                  <button class="etab" aria-pressed="true">Patterns</button>
+                  <button class="etab" aria-pressed="false">Vocabulary</button>
+                  <button class="etab" aria-pressed="false">Mistakes</button>
+                  <button class="etab" aria-pressed="false">Saved</button>
+                  <button class="etab" aria-pressed="false">Phrases</button>
+                </div>
+                <div class="expr-item"><div class="en">Would it be possible to…?</div><div class="cn">是否可以……？ · from Hotel check-in</div><div class="mastery"><i style="width:42%"></i></div></div>
+                <div class="expr-item"><div class="en">Could you make it with…?</div><div class="cn">可以做成……吗？ · from Coffee shop</div><div class="mastery"><i style="width:55%"></i></div></div>
+                <div class="expr-item"><div class="en">I'd rather not, but thanks.</div><div class="cn">我还是不要了，谢谢 · from Polite refusal</div><div class="mastery"><i style="width:30%"></i></div></div>
+                <div class="expr-item"><div class="en">Do you mind if I…?</div><div class="cn">你介意我……吗？ · from Small talk</div><div class="mastery"><i style="width:70%"></i></div></div>
+              </div>
+            </div>
+
+            <!-- ===== PROFILE ===== -->
+            <div class="app-screen" data-pane="profile">
+              <div class="app-top"><div class="greet"><small>Your progress</small><b>Profile</b></div><span class="avatar">EK</span></div>
+              <div class="app-pad">
+                <div class="cefr-hero">
+                  <div class="big">A2+</div>
+                  <div class="rng">Stable range A2–B1 · AI estimate</div>
+                </div>
+                <div class="section-label">30-day trend</div>
+                <div class="a-card">
+                  <div class="trend">
+                    <i style="height:40%"></i><i style="height:46%"></i><i style="height:43%"></i><i style="height:52%"></i><i style="height:58%"></i><i style="height:55%"></i><i style="height:64%"></i><i style="height:70%"></i><i style="height:68%"></i><i style="height:78%"></i>
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);text-align:center">Overall ability climbing — strongest in Fluency, weakest in Coherence</div>
+                </div>
+                <div class="section-label">Focus next</div>
+                <div><span class="pill coral">article usage</span><span class="pill coral">sentence connection</span><span class="pill coral">polite requests</span></div>
+                <div class="a-card" style="margin-top:14px;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🐱</span><div style="flex:1"><b style="font-size:14px">Anonymous account</b><div style="font-size:12px;color:var(--ink-2)">Sync to keep your progress safe</div></div><button class="btn btn-ghost" style="padding:9px 13px" data-goto="onboarding">Sync</button></div>
+                <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
+              </div>
+            </div>
+
+            <!-- ===== ADMIN ===== -->
+            <div class="app-screen" data-pane="admin">
+              <div class="admin">
+                <div class="admin-side">
+                  <div class="brand">Bank Ops</div>
+                  <a class="on">Question Bank</a>
+                  <a>Dashboard</a>
+                  <a>Scenarios</a>
+                  <a>Sources</a>
+                  <a>Quality</a>
+                </div>
+                <div class="admin-main">
+                  <h2>Question Bank</h2>
+                  <div style="font-size:13px;color:var(--muted)">Lifecycle &amp; quality across 64 scenarios</div>
+                  <div class="admin-kpis">
+                    <div class="kpi"><div class="v teal">7</div><div class="l">Review queue</div></div>
+                    <div class="kpi"><div class="v">412</div><div class="l">Published</div></div>
+                    <div class="kpi"><div class="v">72</div><div class="l">Avg score</div></div>
+                    <div class="kpi"><div class="v coral">1.4%</div><div class="l">Complaint rate</div></div>
+                  </div>
+                  <div class="tablewrap" style="margin:0;box-shadow:none;border:none">
+                  <table class="admin-table">
+                    <thead><tr><th>Item</th><th>Cat</th><th>Lvl</th><th>Status</th><th>Compl.</th><th>Save</th><th>Cmplnt</th><th>Actions</th></tr></thead>
+                    <tbody>
+                      <tr><td>coffee_shop_order_a2_001</td><td>Daily</td><td>A2</td><td><span class="lc published">Published</span></td><td>78%</td><td>64%</td><td>1%</td><td><button class="mini-btn archive">Archive</button></td></tr>
+                      <tr><td>hotel_checkin_b1_003</td><td>Travel</td><td>B1</td><td><span class="lc review">Review</span></td><td>—</td><td>—</td><td>—</td><td><button class="mini-btn approve">Approve</button><button class="mini-btn archive">Reject</button></td></tr>
+                      <tr><td>interview_intro_b2_002</td><td>Work</td><td>B2</td><td><span class="lc review">Review</span></td><td>—</td><td>—</td><td>—</td><td><button class="mini-btn approve">Approve</button><button class="mini-btn archive">Reject</button></td></tr>
+                      <tr><td>return_refund_a2_004</td><td>Shop</td><td>A2</td><td><span class="lc published">Published</span></td><td>41%</td><td>22%</td><td>6%</td><td><button class="mini-btn archive">Archive</button></td></tr>
+                      <tr><td>small_talk_weather_a1_001</td><td>Social</td><td>A1</td><td><span class="lc draft">Draft</span></td><td>—</td><td>—</td><td>—</td><td><button class="mini-btn">Edit</button></td></tr>
+                      <tr><td>old_directions_a2_009</td><td>Daily</td><td>A2</td><td><span class="lc archived">Archived</span></td><td>33%</td><td>12%</td><td>9%</td><td><button class="mini-btn">Restore</button></td></tr>
+                    </tbody>
+                  </table>
+                  </div>
+                  <div class="callout coral" style="margin-top:16px"><strong>Flagged:</strong> <code>return_refund_a2_004</code> — 41% completion + 6% complaints. Auto-suggested: send to review &amp; re-level.</div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /viewport -->
+
+          <!-- MOBILE BOTTOM TAB BAR -->
+          <nav class="tabbar" id="tabbar" aria-label="App tabs">
+            <button data-screen="home" aria-pressed="true"><span class="ti">🏠</span>Home</button>
+            <button data-screen="scenarios" aria-pressed="false"><span class="ti">🗂️</span>Scenarios</button>
+            <button data-screen="practice" aria-pressed="false"><span class="ti">🎯</span>Practice</button>
+            <button data-screen="expressions" aria-pressed="false"><span class="ti">📚</span>Expressions</button>
+            <button data-screen="profile" aria-pressed="false"><span class="ti">👤</span>Profile</button>
+          </nav>
+
+        </div><!-- /screen -->
+      </div><!-- /device -->
+    </div><!-- /device-frame -->
+    <p class="hint">Tip: the switcher above, the in-app tab bar / top nav, and most cards &amp; buttons inside the frame all navigate. "Check my answer" reveals the live feedback diff.</p>
+  </div>
+</section>
+
+<footer class="doc-foot">
+  Design Document · AI Scenario English Trainer · Gate 1 artifact · "Warm editorial coaching" · CEFR shown is an AI estimate, not an official certification.
+</footer>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var panes = Array.prototype.slice.call(document.querySelectorAll('.app-screen'));
+  var topSegs = Array.prototype.slice.call(document.querySelectorAll('.seg[data-screen]'));
+  var deviceSegs = Array.prototype.slice.call(document.querySelectorAll('.seg.device'));
+  var tabbarBtns = Array.prototype.slice.call(document.querySelectorAll('#tabbar button'));
+  var webnavBtns = Array.prototype.slice.call(document.querySelectorAll('#webNav button'));
+  var frame = document.getElementById('deviceFrame');
+  var device = document.getElementById('device');
+  var viewport = document.getElementById('viewport');
+  var feedbackBlock = document.getElementById('feedbackBlock');
+
+  function setScreen(name){
+    panes.forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-pane') === name); });
+    topSegs.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === name)); });
+    tabbarBtns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === name)); });
+    webnavBtns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === name)); });
+    if (viewport) viewport.scrollTop = 0;
+    // reset feedback reveal when leaving practice
+    if (name !== 'practice' && feedbackBlock) feedbackBlock.style.display = 'none';
+  }
+
+  function setDevice(kind){
+    var isMobile = kind === 'mobile';
+    frame.className = 'device-frame ' + (isMobile ? 'mobile' : 'desktop');
+    device.className = 'device' + (isMobile ? '' : ' desktop');
+    deviceSegs.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-device') === kind)); });
+  }
+
+  // top switcher
+  topSegs.forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-screen')); }); });
+  deviceSegs.forEach(function(b){ b.addEventListener('click', function(){ setDevice(b.getAttribute('data-device')); }); });
+  tabbarBtns.forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-screen')); }); });
+  webnavBtns.forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-screen')); }); });
+
+  // in-frame nav (data-goto) on buttons + role=button divs
+  document.querySelectorAll('[data-goto]').forEach(function(el){
+    el.addEventListener('click', function(){ setScreen(el.getAttribute('data-goto')); });
+    if (el.getAttribute('role') === 'button') {
+      el.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setScreen(el.getAttribute('data-goto')); }
+      });
+    }
+  });
+
+  // feedback reveal
+  document.querySelectorAll('[data-feedback="show"]').forEach(function(el){
+    el.addEventListener('click', function(){ if (feedbackBlock){ feedbackBlock.style.display = 'block'; feedbackBlock.scrollIntoView({block:'nearest'}); } });
+  });
+
+  // toggle aria-pressed for pure toggle chips (filters, expr tabs) without screen change
+  document.querySelectorAll('.filterbar, .expr-tabs').forEach(function(bar){
+    bar.addEventListener('click', function(e){
+      var btn = e.target.closest('button'); if (!btn) return;
+      Array.prototype.forEach.call(bar.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed','false'); });
+      btn.setAttribute('aria-pressed','true');
+    });
+  });
+
+  // save toggle demo
+  document.querySelectorAll('.save-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var on = b.classList.toggle('saved');
+      b.textContent = on ? '✓' : '+';
+      b.setAttribute('aria-label', on ? 'Saved' : 'Save expression');
+    });
+  });
+
+  setDevice('mobile');
+  setScreen('home');
+})();
+</script>
+</body>
+</html>
