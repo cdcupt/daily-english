@@ -538,9 +538,17 @@
   .tabbar{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);padding:8px 6px 10px}
   .device.desktop .tabbar{display:none}
   .tabbar button{flex:1;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:inherit;font-size:11px;font-weight:700;padding:6px 0;transition:color var(--dur) var(--ease)}
-  .tabbar button .ti{font-size:22px;line-height:1}
+  .tabbar button .ti{font-size:22px;line-height:1;display:grid;place-items:center;height:26px}
+  /* inline-SVG tab glyphs: one coherent set, 1.7px stroke, optical size 24 */
+  .tabbar button .ti svg{width:25px;height:25px;display:block;stroke:var(--muted);
+    stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;fill:none;
+    transition:stroke var(--dur) var(--ease),transform var(--dur) var(--ease)}
+  .tabbar button .ti svg .glyph-fill{fill:none;stroke:var(--muted);transition:fill var(--dur) var(--ease),stroke var(--dur) var(--ease)}
+  .tabbar button .ti svg .spark{fill:var(--muted);stroke:none;transition:fill var(--dur) var(--ease)}
   .tabbar button[aria-pressed="true"]{color:var(--teal-700)}
-  .tabbar button[aria-pressed="true"] .ti{transform:translateY(-1px)}
+  .tabbar button[aria-pressed="true"] .ti svg{stroke:var(--teal-700);transform:translateY(-1px)}
+  .tabbar button[aria-pressed="true"] .ti svg .glyph-fill{fill:var(--teal-soft);stroke:var(--teal-700)}
+  .tabbar button[aria-pressed="true"] .ti svg .spark{fill:var(--coral)}
 
   /* desktop web nav (top) — three surfaces */
   .web-nav{display:none}
@@ -715,7 +723,7 @@
 
   <div class="bento feature">
     <div class="card">
-      <h3>🎯 Learner — three surfaces (web + iOS)</h3>
+      <h3>Learner — three surfaces (web + iOS)</h3>
       <pre><code>STUDY  (the app, really)
    One adaptive session feed. On open, the coach hands the
    user the NEXT BEST item. The whole loop happens inline:
@@ -750,6 +758,25 @@ Dashboard      bank health · queue size · complaint spikes
 Scenarios      category &amp; scenario coverage map
 Sources        content sources + license metadata</code></pre>
       <p style="margin-top:10px">Distinct chrome (dark sidebar, dense data tables, "Operator tool" banner) signals "back office". It is <strong>not a learner surface</strong> — it lives behind role auth on a separate route segment and never appears in the learner tab bar.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.4rem">
+    <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Tab-bar icon set — one coherent line family</h4>
+    <p style="font-size:var(--t-sm);color:var(--ink-2);margin-bottom:12px">Three inline-SVG glyphs drawn in <strong>one</strong> style: 24px optical box, 1.7px rounded stroke, soft-fill-on-active. Active tab is teal (fill = <code>--teal-soft</code>, stroke = <code>--teal-700</code>); the Study spark turns coral on active. <strong>Study</strong> = a speech bubble with an AI spark (conversation + adaptive AI) — it replaces the old target/pencil glyph, which read as a quiz, not an adaptive chat-driven feed. <strong>You</strong> = a person bust with a rising growth arc + spark climbing off the shoulder (identity tied to the CEFR climb &amp; progress) — it replaces the generic head-and-shoulders glyph, which said "account", not "your progress". <strong>Settings</strong> = sliders.</p>
+    <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap">
+      <span style="display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--teal-700)">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#0F766E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h11a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3v-5a3 3 0 0 1 2-2.83" fill="#CCFBF1"/><path d="M17.5 2.2l.62 1.58a.6.6 0 0 0 .35.35L20 4.75l-1.53.62a.6.6 0 0 0-.35.35l-.62 1.58-.62-1.58a.6.6 0 0 0-.35-.35L15 4.75l1.53-.62a.6.6 0 0 0 .35-.35z" fill="#EA580C" stroke="none"/></svg>
+        Study
+      </span>
+      <span style="display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted)">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#8B847C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8.6" r="3.3"/><path d="M3.7 19.2a6.4 6.4 0 0 1 12.6 0"/><path d="M15 13.4l2.6-3.2 2.4 2 1.3-3.3"/><path d="M21.3 8.9l.5 2.4-2.4-.2"/></svg>
+        You
+      </span>
+      <span style="display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted)">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#8B847C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h9"/><circle cx="16.5" cy="7" r="2.4"/><path d="M19 17h-9"/><circle cx="7.5" cy="17" r="2.4"/></svg>
+        Settings
+      </span>
     </div>
   </div>
 
@@ -1360,9 +1387,15 @@ Sources        content sources + license metadata</code></pre>
 
           <!-- MOBILE BOTTOM TAB BAR — THREE surfaces -->
           <nav class="tabbar" id="tabbar" aria-label="App surfaces">
-            <button data-screen="study" aria-pressed="true"><span class="ti">🎯</span>Study</button>
-            <button data-screen="you" aria-pressed="false"><span class="ti">🪞</span>You</button>
-            <button data-screen="settings" aria-pressed="false"><span class="ti">⚙️</span>Settings</button>
+            <button data-screen="study" aria-pressed="true"><span class="ti">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path class="glyph-fill" d="M5 4.5h11a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3v-5a3 3 0 0 1 2-2.83"/><path class="spark" d="M17.5 2.2l.62 1.58a.6.6 0 0 0 .35.35L20 4.75l-1.53.62a.6.6 0 0 0-.35.35l-.62 1.58-.62-1.58a.6.6 0 0 0-.35-.35L15 4.75l1.53-.62a.6.6 0 0 0 .35-.35z"/></svg>
+            </span>Study</button>
+            <button data-screen="you" aria-pressed="false"><span class="ti">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><circle class="glyph-fill" cx="10" cy="8.6" r="3.3"/><path d="M3.7 19.2a6.4 6.4 0 0 1 12.6 0"/><path d="M15 13.4l2.6-3.2 2.4 2 1.3-3.3"/><path d="M21.3 8.9l.5 2.4-2.4-.2"/></svg>
+            </span>You</button>
+            <button data-screen="settings" aria-pressed="false"><span class="ti">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M5 7h9"/><path d="M19 7h0"/><circle class="glyph-fill" cx="16.5" cy="7" r="2.4"/><path d="M19 17h-9"/><path d="M5 17h0"/><circle class="glyph-fill" cx="7.5" cy="17" r="2.4"/></svg>
+            </span>Settings</button>
           </nav>
 
         </div><!-- /screen -->

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily English — App Icon Master Preview · "The Climb"</title>
+<!--
+  Legibility sanity-check sheet for the production master (concept 3 "The Climb").
+  Renders brand/app-icon.svg inline at 1024 / 180 / 120 / 80 / 40px on a neutral
+  and a dark backdrop so the icon can be judged where it actually lives.
+
+  BUILD-TIME NOTE (not done here): the full PNG export set — iOS asset catalog
+  (20–1024pt @1x/2x/3x) plus web favicons (16/32/48), apple-touch-icon (180),
+  and PWA maskable icons (192/512) — is generated at build time by rasterizing
+  brand/app-icon.svg. This page only verifies the vector master reads small.
+-->
+<style>
+  :root{
+    --paper:#FAF8F5; --panel:#FFFFFF; --ink:#1C1917; --ink-2:#57534E; --muted:#8B847C;
+    --border:#E7E2DB; --teal:#0D9488; --teal-700:#0F766E; --teal-tint:#E6FAF5;
+    --dark:#161312; --dark-panel:#211D1B; --dark-border:#3A332E;
+    --radius:18px; --shadow:0 10px 30px rgba(28,25,23,.10);
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",Inter,Roboto,system-ui,sans-serif;
+    --serif:"Iowan Old Style",Palatino,Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--paper);
+    line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,4vw,40px)}
+  h1{font-family:var(--serif);font-size:clamp(1.6rem,1.2rem+2vw,2.6rem);letter-spacing:-.02em;margin:0 0 .2em}
+  h1 em{font-style:italic;color:var(--teal-700)}
+  .sub{color:var(--ink-2);max-width:70ch;margin:0 0 1.4rem;font-size:clamp(.95rem,.9rem+.3vw,1.1rem)}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:.74rem;font-weight:800;letter-spacing:.08em;
+    text-transform:uppercase;color:#fff;background:linear-gradient(140deg,var(--teal),var(--teal-700));
+    padding:6px 13px;border-radius:999px;margin-bottom:1rem}
+
+  .board{border-radius:var(--radius);padding:clamp(20px,3vw,38px);margin:0 0 clamp(18px,2.5vw,28px);
+    box-shadow:var(--shadow);border:1px solid var(--border)}
+  .board.neutral{background:var(--panel)}
+  .board.dark{background:var(--dark);border-color:var(--dark-border);color:#F5F1EC}
+  .board .label{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 1.2rem}
+  .board.dark .label{color:#9A8F86}
+
+  /* size row: wraps cleanly on narrow screens, never overflows */
+  .row{display:flex;flex-wrap:wrap;gap:clamp(18px,3vw,40px);align-items:flex-end}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0;max-width:100%}
+  .cell .sz{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .board.dark .cell .sz{color:#9A8F86}
+
+  /* each icon = the master inlined via <img>, sized + iOS drop-shadow */
+  .ico{display:block;height:auto;max-width:100%;filter:drop-shadow(0 8px 18px rgba(0,0,0,.20))}
+  .s1024{width:min(1024px,100%)} .s180{width:180px} .s120{width:120px} .s80{width:80px} .s40{width:40px}
+
+  /* hero row keeps the 1024 from blowing past the board on small screens */
+  .hero{display:flex;justify-content:center}
+  .hero .ico{width:min(420px,80vw)}
+
+  .note{font-size:.85rem;color:var(--ink-2);background:var(--panel);border:1px solid var(--border);
+    border-radius:12px;padding:13px 16px;margin-top:1.4rem}
+  .note b{color:var(--ink)}
+  footer{color:var(--muted);font-size:.85rem;text-align:center;margin-top:2rem;padding-top:1.2rem;border-top:1px solid var(--border)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">✓ Production master</span>
+  <h1>App icon — <em>"The Climb"</em></h1>
+  <p class="sub">Legibility check for <code>brand/app-icon.svg</code> across home-screen sizes. The icon must stay recognizable — bold steps, a clear coral arc, a distinct summit — all the way down to 40px. Judge the small renders first.</p>
+
+  <!-- HERO -->
+  <section class="board neutral">
+    <p class="label">Master · 1024px (scaled to fit)</p>
+    <div class="hero"><img class="ico s1024" src="app-icon.svg" alt="The Climb app icon at full size" /></div>
+  </section>
+
+  <!-- NEUTRAL SIZE ROW -->
+  <section class="board neutral">
+    <p class="label">Neutral backdrop · home-screen sizes</p>
+    <div class="row">
+      <div class="cell"><img class="ico s180" src="app-icon.svg" alt="Icon at 180px" /><span class="sz">180px · touch</span></div>
+      <div class="cell"><img class="ico s120" src="app-icon.svg" alt="Icon at 120px" /><span class="sz">120px · home</span></div>
+      <div class="cell"><img class="ico s80"  src="app-icon.svg" alt="Icon at 80px" /><span class="sz">80px · spotlight</span></div>
+      <div class="cell"><img class="ico s40"  src="app-icon.svg" alt="Icon at 40px" /><span class="sz">40px · settings</span></div>
+    </div>
+  </section>
+
+  <!-- DARK SIZE ROW -->
+  <section class="board dark">
+    <p class="label">Dark backdrop · home-screen sizes</p>
+    <div class="row">
+      <div class="cell"><img class="ico s180" src="app-icon.svg" alt="Icon at 180px on dark" /><span class="sz">180px · touch</span></div>
+      <div class="cell"><img class="ico s120" src="app-icon.svg" alt="Icon at 120px on dark" /><span class="sz">120px · home</span></div>
+      <div class="cell"><img class="ico s80"  src="app-icon.svg" alt="Icon at 80px on dark" /><span class="sz">80px · spotlight</span></div>
+      <div class="cell"><img class="ico s40"  src="app-icon.svg" alt="Icon at 40px on dark" /><span class="sz">40px · settings</span></div>
+    </div>
+  </section>
+
+  <p class="note"><b>Export note:</b> the full PNG set (iOS asset catalog 20–1024pt, web favicons, apple-touch-icon, PWA maskable 192/512) is a build-time step — rasterize <code>brand/app-icon.svg</code>. Not generated here.</p>
+
+  <footer>Daily English · Production app-icon master · Inline SVG, system fonts, no external assets</footer>
+</div>
+</body>
+</html>

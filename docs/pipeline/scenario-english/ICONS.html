@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>App Icon Concepts — AI Scenario English Trainer</title>
+<style>
+  /* ============================================================
+     ICON CONCEPT SHEET — "Warm editorial coaching"
+     Tokens mirror DESIGN.html / Extensions.swift so the whole
+     product reads as ONE brand. Teal = action, Coral = correction,
+     Violet = CEFR/progress.
+     ============================================================ */
+  :root{
+    --paper:#FAF8F5;
+    --paper-2:#F4EFE8;
+    --panel:#FFFFFF;
+    --ink:#1C1917;
+    --ink-2:#57534E;
+    --muted:#8B847C;
+    --border:#E7E2DB;
+    --border-2:#DAD3C8;
+
+    --teal:#0D9488;   --teal-700:#0F766E; --teal-soft:#CCFBF1; --teal-tint:#E6FAF5;
+    --coral:#EA580C;  --coral-soft:#FFE9DC; --coral-tint:#FFF3EC;
+    --violet:#7C3AED; --violet-soft:#EDE4FF; --violet-tint:#F4EFFF;
+    --green:#16A34A;
+
+    --t-display:clamp(2.2rem,1.5rem+3vw,3.4rem);
+    --t-h2:clamp(1.3rem,1.05rem+1vw,1.7rem);
+    --t-body:1.02rem;
+    --t-sm:0.9rem;
+    --t-xs:0.78rem;
+
+    --radius:18px;
+    --radius-sm:12px;
+    --shadow-sm:0 2px 8px rgba(28,25,23,.05);
+    --shadow:0 10px 30px rgba(28,25,23,.07);
+    --shadow-lg:0 24px 60px rgba(28,25,23,.12);
+
+    --dur:240ms;
+    --ease:cubic-bezier(.16,1,.3,1);
+
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",Inter,Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;font-family:var(--sans);color:var(--ink);
+    background:
+      radial-gradient(1100px 480px at 88% -8%, var(--teal-tint), transparent 60%),
+      radial-gradient(900px 460px at -6% 4%, var(--violet-tint), transparent 55%),
+      var(--paper);
+    line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  ::selection{background:var(--teal-soft);color:var(--teal-700)}
+  h1,h2,h3,h4{line-height:1.12;letter-spacing:-.02em;margin:0}
+  p{margin:0 0 .6em}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+
+  a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--violet);outline-offset:2px;border-radius:6px}
+
+  /* ---------- HEADER ---------- */
+  header.hero{padding:clamp(2.4rem,1.6rem+4vw,4.5rem) 0 clamp(1.4rem,1rem+2vw,2.4rem)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-xs);
+    text-transform:uppercase;letter-spacing:.16em;font-weight:700;color:var(--teal-700);
+    background:var(--teal-tint);border:1px solid var(--teal-soft);padding:7px 14px;border-radius:999px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+  header.hero h1{font-family:var(--serif);font-size:var(--t-display);font-weight:700;margin:.5em 0 .3em;max-width:18ch}
+  header.hero h1 em{font-style:italic;color:var(--teal-700)}
+  header.hero .lede{font-size:clamp(1rem,.92rem+.4vw,1.2rem);color:var(--ink-2);max-width:64ch}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:9px;margin-top:1.3rem}
+  .chip{font-size:var(--t-xs);font-weight:600;background:var(--panel);border:1px solid var(--border);
+    padding:8px 13px;border-radius:999px;box-shadow:var(--shadow-sm);color:var(--ink-2)}
+  .chip b{color:var(--ink)}
+
+  .howto{display:flex;gap:14px;align-items:flex-start;background:var(--violet-tint);border:1px solid var(--violet-soft);
+    border-left:4px solid var(--violet);border-radius:0 14px 14px 0;padding:14px 18px;margin-top:1.4rem;max-width:80ch}
+  .howto b{color:var(--violet)}
+  .howto p{font-size:var(--t-sm);color:var(--ink-2);margin:3px 0 0}
+
+  /* ---------- GRID OF CONCEPTS ---------- */
+  .concepts{display:grid;gap:clamp(18px,2.4vw,28px);margin:2rem 0 1rem}
+  @media(min-width:880px){.concepts{grid-template-columns:1fr 1fr}}
+
+  .concept{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;min-width:0;display:flex;flex-direction:column;position:relative}
+
+  /* ---------- SELECTION TREATMENT ---------- */
+  /* PM picked concept 3 "The Climb": highlight it, dim the rest as the record. */
+  .concept.selected{border:2px solid var(--teal);box-shadow:0 0 0 5px var(--teal-tint),var(--shadow-lg)}
+  .concept.dimmed{opacity:.5;filter:grayscale(.28)}
+  .concept.dimmed:hover{opacity:.82;filter:grayscale(0);transition:opacity var(--dur) var(--ease),filter var(--dur) var(--ease)}
+  .selected-badge{position:absolute;top:12px;right:12px;z-index:2;display:inline-flex;align-items:center;gap:6px;
+    font-size:var(--t-xs);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#fff;
+    background:linear-gradient(140deg,var(--teal),var(--teal-700));border:1px solid rgba(255,255,255,.35);
+    padding:7px 13px;border-radius:999px;box-shadow:var(--shadow)}
+  .selected-badge .ck{font-size:13px;line-height:1}
+  .picked-note{display:flex;gap:12px;align-items:center;background:var(--teal-tint);border:1px solid var(--teal-soft);
+    border-left:4px solid var(--teal);border-radius:0 14px 14px 0;padding:13px 18px;margin-top:1.4rem;max-width:80ch}
+  .picked-note .pin{font-size:20px;line-height:1}
+  .picked-note p{font-size:var(--t-sm);color:var(--ink-2);margin:0}
+  .picked-note b{color:var(--teal-700)}
+  .concept-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);
+    background:var(--paper-2)}
+  .concept-head .no{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;
+    font-family:var(--serif);font-weight:700;font-size:18px;color:#fff;background:var(--ink)}
+  .concept.c1 .no{background:linear-gradient(140deg,var(--teal-700),var(--teal))}
+  .concept.c2 .no{background:linear-gradient(140deg,#3a322c,var(--ink))}
+  .concept.c3 .no{background:linear-gradient(140deg,var(--violet),#6d28d9)}
+  .concept.c4 .no{background:linear-gradient(140deg,var(--coral),#c2410c)}
+  .concept-head .nm{min-width:0}
+  .concept-head .nm b{font-family:var(--serif);font-size:1.16rem;display:block;line-height:1.15}
+  .concept-head .nm small{font-size:var(--t-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+
+  .concept-body{padding:20px;flex:1;display:flex;flex-direction:column;gap:16px}
+
+  /* showcase: hero + home-screen size side by side */
+  .showcase{display:flex;gap:clamp(16px,3vw,30px);align-items:flex-end;flex-wrap:wrap;justify-content:center}
+  .icon-col{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+  .icon-col .sz{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+
+  /* the squircle wrapper carries the iOS shadow + masks the SVG */
+  .squircle{position:relative;filter:drop-shadow(0 10px 22px rgba(28,25,23,.18));}
+  .squircle svg{display:block;width:100%;height:auto}
+  .icon-hero{width:clamp(150px,40vw,212px)}
+  .icon-mini{width:60px}
+  @media(min-width:520px){.icon-mini{width:64px}}
+
+  .rationale{font-size:var(--t-sm);color:var(--ink-2);margin:0}
+  .rationale b{color:var(--ink)}
+
+  .palette{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:2px}
+  .pchip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-2);
+    background:var(--paper-2);border:1px solid var(--border);border-radius:999px;padding:4px 10px 4px 5px}
+  .pchip .sw{width:15px;height:15px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
+  .pchip .sw{display:inline-block}
+
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    padding:4px 9px;border-radius:7px}
+  .tag.teal{background:var(--teal-soft);color:var(--teal-700)}
+  .tag.coral{background:var(--coral-soft);color:var(--coral)}
+  .tag.violet{background:var(--violet-soft);color:var(--violet)}
+  .tag.paper{background:var(--paper-2);color:var(--ink-2);border:1px solid var(--border)}
+
+  /* mini-row context: 3 home-screen icons on a faux springboard */
+  .footer-note{font-size:var(--t-xs);color:var(--muted);background:var(--paper-2);border:1px solid var(--border);
+    border-radius:11px;padding:13px 15px;margin:1.6rem 0 0;line-height:1.5}
+  footer.foot{margin-top:2.6rem;padding:26px 0 56px;border-top:1px solid var(--border);
+    color:var(--muted);font-size:var(--t-sm);text-align:center}
+
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> App Icon Concepts · for PM selection</span>
+    <h1>Pick the face of <em>the coach.</em></h1>
+    <p class="lede">Four distinct, shippable iOS app-icon directions for the AI scenario English trainer — friendly but serious, conversation-driven, growth-minded. Each is rendered as inline SVG on the iOS rounded-squircle, shown at <strong>1024px</strong> (hero) and <strong>~120px</strong> (home-screen) to prove it reads at a glance. All share the warm editorial palette so they sit beside the existing brand.</p>
+    <div class="hero-meta">
+      <span class="chip"><b>Shape</b> · iOS superellipse squircle</span>
+      <span class="chip"><b>Palette</b> · Warm paper · teal · coral · violet</span>
+      <span class="chip"><b>Rule</b> · No words inside the icon</span>
+      <span class="chip"><b>Pick</b> · One of 1–4</span>
+    </div>
+    <div class="picked-note">
+      <span class="pin">📌</span>
+      <p><b>Decision locked:</b> the PM selected <b>Concept 3 — "The Climb."</b> It is now the production app icon (master at <code>brand/app-icon.svg</code>). Concepts 1, 2 &amp; 4 are kept below, dimmed, for the record.</p>
+    </div>
+    <div class="howto">
+      <span style="font-size:22px;line-height:1">👇</span>
+      <div>
+        <b>How to choose</b>
+        <p>Each concept is numbered 1–4 with a name, one-line rationale, and the exact palette used. Judge it at the small size first — that's where icons live. Tell the Coordinator the number you want and we'll lock it as the production icon.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="concepts" aria-label="Four app icon concepts">
+
+    <!-- ============================================================
+         CONCEPT 1 — Speech bubble + spark (conversation + AI)
+         ============================================================ -->
+    <article class="concept c1 dimmed">
+      <div class="concept-head">
+        <span class="no">1</span>
+        <span class="nm"><b>Say &amp; Spark</b><small>Conversation + AI</small></span>
+      </div>
+      <div class="concept-body">
+        <div class="showcase">
+          <div class="icon-col">
+            <span class="sz">1024px · hero</span>
+            <div class="squircle icon-hero">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 1: a speech bubble with an AI spark on warm teal">
+                <defs>
+                  <clipPath id="sq1"><path d="M512 0C197 0 119 0 59.5 59.5 0 119 0 197 0 512s0 393 59.5 452.5C119 1024 197 1024 512 1024s393 0 452.5-59.5C1024 905 1024 827 1024 512s0-393-59.5-452.5C905 0 827 0 512 0Z"/></clipPath>
+                  <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/>
+                  </linearGradient>
+                  <linearGradient id="bub1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#FAF8F5"/>
+                  </linearGradient>
+                </defs>
+                <g clip-path="url(#sq1)">
+                  <rect width="1024" height="1024" fill="url(#bg1)"/>
+                  <circle cx="800" cy="170" r="430" fill="#FFFFFF" opacity="0.08"/>
+                  <circle cx="180" cy="900" r="320" fill="#0B5C56" opacity="0.30"/>
+                  <!-- speech bubble -->
+                  <path d="M300 250h424a118 118 0 0 1 118 118v210a118 118 0 0 1-118 118H470L320 836V694h-20a118 118 0 0 1-118-118V368a118 118 0 0 1 118-118Z" fill="url(#bub1)"/>
+                  <!-- three conversation dots -->
+                  <circle cx="400" cy="473" r="34" fill="#0F766E"/>
+                  <circle cx="512" cy="473" r="34" fill="#14B8A6"/>
+                  <circle cx="624" cy="473" r="34" fill="#0F766E"/>
+                  <!-- AI spark / four-point star -->
+                  <path d="M773 150c22 70 30 78 100 100-70 22-78 30-100 100-22-70-30-78-100-100 70-22 78-30 100-100Z" fill="#EA580C"/>
+                  <path d="M880 300c11 35 15 39 50 50-35 11-39 15-50 50-11-35-15-39-50-50 35-11 39-15 50-50Z" fill="#FDBA74"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="icon-col">
+            <span class="sz">120px · home</span>
+            <div class="squircle icon-mini">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 1 at home-screen size">
+                <g clip-path="url(#sq1)">
+                  <rect width="1024" height="1024" fill="url(#bg1)"/>
+                  <circle cx="800" cy="170" r="430" fill="#FFFFFF" opacity="0.08"/>
+                  <path d="M300 250h424a118 118 0 0 1 118 118v210a118 118 0 0 1-118 118H470L320 836V694h-20a118 118 0 0 1-118-118V368a118 118 0 0 1 118-118Z" fill="url(#bub1)"/>
+                  <circle cx="400" cy="473" r="34" fill="#0F766E"/>
+                  <circle cx="512" cy="473" r="34" fill="#14B8A6"/>
+                  <circle cx="624" cy="473" r="34" fill="#0F766E"/>
+                  <path d="M773 150c22 70 30 78 100 100-70 22-78 30-100 100-22-70-30-78-100-100 70-22 78-30 100-100Z" fill="#EA580C"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="rationale"><b>Says exactly what the app is:</b> a conversation that an AI sparks and sharpens. Mirrors the in-app Study tab glyph one-for-one, so icon and navigation rhyme. The coral spark is the brand's "correction" accent, doing double duty as "AI".</p>
+        <div class="palette">
+          <span class="pchip"><span class="sw" style="background:#0F766E"></span>Teal bg</span>
+          <span class="pchip"><span class="sw" style="background:#FAF8F5"></span>Paper bubble</span>
+          <span class="pchip"><span class="sw" style="background:#EA580C"></span>Coral spark</span>
+        </div>
+        <div class="tags"><span class="tag teal">On-brand</span><span class="tag coral">Literal</span><span class="tag paper">Tab-icon rhyme</span></div>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         CONCEPT 2 — Refined serif monogram (editorial identity)
+         ============================================================ -->
+    <article class="concept c2 dimmed">
+      <div class="concept-head">
+        <span class="no">2</span>
+        <span class="nm"><b>The Editor's Mark</b><small>Refined serif monogram</small></span>
+      </div>
+      <div class="concept-body">
+        <div class="showcase">
+          <div class="icon-col">
+            <span class="sz">1024px · hero</span>
+            <div class="squircle icon-hero">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 2: a serif letterform with an editor's proof caret on warm paper">
+                <defs>
+                  <clipPath id="sq2"><path d="M512 0C197 0 119 0 59.5 59.5 0 119 0 197 0 512s0 393 59.5 452.5C119 1024 197 1024 512 1024s393 0 452.5-59.5C1024 905 1024 827 1024 512s0-393-59.5-452.5C905 0 827 0 512 0Z"/></clipPath>
+                  <linearGradient id="bg2" x1="0" y1="0" x2="0.3" y2="1">
+                    <stop offset="0" stop-color="#FBF9F6"/><stop offset="1" stop-color="#F0EAE1"/>
+                  </linearGradient>
+                </defs>
+                <g clip-path="url(#sq2)">
+                  <rect width="1024" height="1024" fill="url(#bg2)"/>
+                  <!-- subtle baseline rule (editorial) -->
+                  <rect x="0" y="720" width="1024" height="6" fill="#E7E2DB"/>
+                  <!-- serif "S" letterform built as a path, ink -->
+                  <text x="512" y="690" text-anchor="middle" font-family="Iowan Old Style, Palatino, Georgia, serif" font-size="640" font-weight="700" fill="#1C1917" font-style="italic">S</text>
+                  <!-- editor's proof caret (insertion mark) in coral -->
+                  <path d="M628 742l64-92 64 92" fill="none" stroke="#EA580C" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+                  <line x1="692" y1="650" x2="692" y2="560" stroke="#EA580C" stroke-width="34" stroke-linecap="round"/>
+                  <!-- small teal accent serif dot top-left -->
+                  <circle cx="300" cy="250" r="26" fill="#0D9488"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="icon-col">
+            <span class="sz">120px · home</span>
+            <div class="squircle icon-mini">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 2 at home-screen size">
+                <g clip-path="url(#sq2)">
+                  <rect width="1024" height="1024" fill="url(#bg2)"/>
+                  <text x="512" y="700" text-anchor="middle" font-family="Iowan Old Style, Palatino, Georgia, serif" font-size="660" font-weight="700" fill="#1C1917" font-style="italic">S</text>
+                  <path d="M628 752l64-92 64 92" fill="none" stroke="#EA580C" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+                  <line x1="692" y1="660" x2="692" y2="566" stroke="#EA580C" stroke-width="40" stroke-linecap="round"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="rationale"><b>Most "editorial" of the four.</b> An italic serif <em>S</em> (Scenario / Say) on warm paper with a coral <em>proofreader's caret</em> — the universal "insert / correct here" mark. It frames the product as a sharp editor, not a classroom. A deliberate, refined monogram rather than a banned bare letter.</p>
+        <div class="palette">
+          <span class="pchip"><span class="sw" style="background:#F0EAE1"></span>Warm paper</span>
+          <span class="pchip"><span class="sw" style="background:#1C1917"></span>Ink serif</span>
+          <span class="pchip"><span class="sw" style="background:#EA580C"></span>Coral caret</span>
+        </div>
+        <div class="tags"><span class="tag paper">Editorial</span><span class="tag coral">Distinctive</span><span class="tag teal">Light-mode</span></div>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         CONCEPT 3 — Abstract growth/progress arc (CEFR climb)
+         ============================================================ -->
+    <article class="concept c3 selected">
+      <span class="selected-badge"><span class="ck">✓</span> Selected</span>
+      <div class="concept-head">
+        <span class="no">3</span>
+        <span class="nm"><b>The Climb</b><small>Abstract CEFR growth</small></span>
+      </div>
+      <div class="concept-body">
+        <div class="showcase">
+          <div class="icon-col">
+            <span class="sz">1024px · hero</span>
+            <div class="squircle icon-hero">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 3: ascending rounded steps rising into an arc, teal to violet">
+                <defs>
+                  <clipPath id="sq3"><path d="M512 0C197 0 119 0 59.5 59.5 0 119 0 197 0 512s0 393 59.5 452.5C119 1024 197 1024 512 1024s393 0 452.5-59.5C1024 905 1024 827 1024 512s0-393-59.5-452.5C905 0 827 0 512 0Z"/></clipPath>
+                  <linearGradient id="bg3" x1="0" y1="1" x2="1" y2="0">
+                    <stop offset="0" stop-color="#0F766E"/><stop offset="0.55" stop-color="#0D9488"/><stop offset="1" stop-color="#6D28D9"/>
+                  </linearGradient>
+                </defs>
+                <g clip-path="url(#sq3)">
+                  <rect width="1024" height="1024" fill="url(#bg3)"/>
+                  <circle cx="820" cy="200" r="360" fill="#FFFFFF" opacity="0.10"/>
+                  <!-- ascending steps (A1 -> C2) -->
+                  <g fill="#FAF8F5">
+                    <rect x="208" y="640" width="130" height="160" rx="34"/>
+                    <rect x="372" y="540" width="130" height="260" rx="34" opacity="0.92"/>
+                    <rect x="536" y="430" width="130" height="370" rx="34" opacity="0.84"/>
+                    <rect x="700" y="300" width="130" height="500" rx="34" opacity="0.76"/>
+                  </g>
+                  <!-- the climb arc: a rising rounded stroke that lifts off the last step -->
+                  <path d="M250 690 Q470 660 540 470 T800 250" fill="none" stroke="#EA580C" stroke-width="40" stroke-linecap="round"/>
+                  <!-- summit dot -->
+                  <circle cx="800" cy="250" r="46" fill="#FDBA74"/>
+                  <circle cx="800" cy="250" r="22" fill="#EA580C"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="icon-col">
+            <span class="sz">120px · home</span>
+            <div class="squircle icon-mini">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 3 at home-screen size">
+                <g clip-path="url(#sq3)">
+                  <rect width="1024" height="1024" fill="url(#bg3)"/>
+                  <g fill="#FAF8F5">
+                    <rect x="208" y="640" width="130" height="160" rx="34"/>
+                    <rect x="372" y="540" width="130" height="260" rx="34" opacity="0.92"/>
+                    <rect x="536" y="430" width="130" height="370" rx="34" opacity="0.84"/>
+                    <rect x="700" y="300" width="130" height="500" rx="34" opacity="0.76"/>
+                  </g>
+                  <path d="M250 690 Q470 660 540 470 T800 250" fill="none" stroke="#EA580C" stroke-width="48" stroke-linecap="round"/>
+                  <circle cx="800" cy="250" r="50" fill="#FDBA74"/>
+                  <circle cx="800" cy="250" r="24" fill="#EA580C"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="rationale"><b>Most "serious / data-forward".</b> Four rising rounded steps (A1→C2) with a coral progress arc lifting to a summit — the CEFR climb made into a mark. Teal→violet gradient is the exact "action → progress" semantic from the design system. Reads as ambition and measurable growth.</p>
+        <div class="palette">
+          <span class="pchip"><span class="sw" style="background:#0D9488"></span>Teal</span>
+          <span class="pchip"><span class="sw" style="background:#6D28D9"></span>Violet</span>
+          <span class="pchip"><span class="sw" style="background:#EA580C"></span>Coral arc</span>
+        </div>
+        <div class="tags"><span class="tag teal">Progress</span><span class="tag violet">CEFR</span><span class="tag coral">Abstract</span></div>
+      </div>
+    </article>
+
+    <!-- ============================================================
+         CONCEPT 4 — Modernized cat mascot (brand continuity)
+         ============================================================ -->
+    <article class="concept c4 dimmed">
+      <div class="concept-head">
+        <span class="no">4</span>
+        <span class="nm"><b>Cleo, Refined</b><small>Geometric mascot refresh</small></span>
+      </div>
+      <div class="concept-body">
+        <div class="showcase">
+          <div class="icon-col">
+            <span class="sz">1024px · hero</span>
+            <div class="squircle icon-hero">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 4: a clean flat geometric cat face with a small AI spark on warm paper">
+                <defs>
+                  <clipPath id="sq4"><path d="M512 0C197 0 119 0 59.5 59.5 0 119 0 197 0 512s0 393 59.5 452.5C119 1024 197 1024 512 1024s393 0 452.5-59.5C1024 905 1024 827 1024 512s0-393-59.5-452.5C905 0 827 0 512 0Z"/></clipPath>
+                  <linearGradient id="bg4" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#FBF9F6"/><stop offset="1" stop-color="#F1ECE3"/>
+                  </linearGradient>
+                  <linearGradient id="cat4" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/>
+                  </linearGradient>
+                </defs>
+                <g clip-path="url(#sq4)">
+                  <rect width="1024" height="1024" fill="url(#bg4)"/>
+                  <!-- cat head: one clean flat teal mass with two triangular ears -->
+                  <path d="M338 360 L300 246 L430 332 Q512 312 594 332 L724 246 L686 360
+                           a228 228 0 1 1 -348 0 Z" fill="url(#cat4)"/>
+                  <!-- inner ears -->
+                  <path d="M341 352 L320 290 L398 340 Z" fill="#0B5C56"/>
+                  <path d="M683 352 L704 290 L626 340 Z" fill="#0B5C56"/>
+                  <!-- eyes: simple confident ovals -->
+                  <ellipse cx="430" cy="540" rx="40" ry="46" fill="#FAF8F5"/>
+                  <ellipse cx="594" cy="540" rx="40" ry="46" fill="#FAF8F5"/>
+                  <circle cx="440" cy="548" r="20" fill="#1C1917"/>
+                  <circle cx="604" cy="548" r="20" fill="#1C1917"/>
+                  <!-- coral nose -->
+                  <path d="M512 612 l28 24 -28 28 -28 -28 Z" fill="#EA580C"/>
+                  <!-- small smile -->
+                  <path d="M470 668 Q512 700 554 668" fill="none" stroke="#0B5C56" stroke-width="14" stroke-linecap="round"/>
+                  <!-- small AI spark, top-right, ties mascot to "AI" -->
+                  <path d="M792 232c16 52 24 60 76 76-52 16-60 24-76 76-16-52-24-60-76-76 52-16 60-24 76-76Z" fill="#7C3AED"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="icon-col">
+            <span class="sz">120px · home</span>
+            <div class="squircle icon-mini">
+              <svg viewBox="0 0 1024 1024" role="img" aria-label="Concept 4 at home-screen size">
+                <g clip-path="url(#sq4)">
+                  <rect width="1024" height="1024" fill="url(#bg4)"/>
+                  <path d="M338 360 L300 246 L430 332 Q512 312 594 332 L724 246 L686 360
+                           a228 228 0 1 1 -348 0 Z" fill="url(#cat4)"/>
+                  <path d="M341 352 L320 290 L398 340 Z" fill="#0B5C56"/>
+                  <path d="M683 352 L704 290 L626 340 Z" fill="#0B5C56"/>
+                  <ellipse cx="430" cy="540" rx="42" ry="48" fill="#FAF8F5"/>
+                  <ellipse cx="594" cy="540" rx="42" ry="48" fill="#FAF8F5"/>
+                  <circle cx="440" cy="548" r="22" fill="#1C1917"/>
+                  <circle cx="604" cy="548" r="22" fill="#1C1917"/>
+                  <path d="M512 612 l30 26 -30 30 -30 -30 Z" fill="#EA580C"/>
+                  <path d="M792 232c16 52 24 60 76 76-52 16-60 24-76 76-16-52-24-60-76-76 52-16 60-24 76-76Z" fill="#7C3AED"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="rationale"><b>Brand continuity.</b> The existing cat mascot (Cleo) redrawn as a flat, geometric, grown-up mark — no gradient-blob cuteness, no book. A violet AI spark signals the new AI-native engine. Keeps the affection of the current icon while looking like a real, modern product.</p>
+        <div class="palette">
+          <span class="pchip"><span class="sw" style="background:#F1ECE3"></span>Warm paper</span>
+          <span class="pchip"><span class="sw" style="background:#0F766E"></span>Teal cat</span>
+          <span class="pchip"><span class="sw" style="background:#EA580C"></span>Coral nose</span>
+          <span class="pchip"><span class="sw" style="background:#7C3AED"></span>Violet spark</span>
+        </div>
+        <div class="tags"><span class="tag teal">Continuity</span><span class="tag violet">AI refresh</span><span class="tag paper">Friendly</span></div>
+      </div>
+    </article>
+
+  </section>
+
+  <p class="footer-note"><strong>Notes for the PM.</strong> 1 &amp; 4 are friendly and instantly readable; 2 &amp; 3 skew premium/serious. 1 reuses the in-app Study glyph (tightest system cohesion). 2 is the boldest editorial statement and the only light-on-paper face. 3 is the most "growth/data" and abstract (also the safest against looking like a chat app clone). 4 preserves brand recognition from the current cat icon. None contain words. All masked to the iOS superellipse and verified legible at 120px.</p>
+</main>
+
+<footer class="foot">
+  <div class="wrap">App Icon Concept Sheet · AI Scenario English Trainer · Warm editorial coaching · Inline SVG, system fonts, no external assets</div>
+</footer>
+
+</body>
+</html>
