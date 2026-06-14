@@ -39,7 +39,7 @@
 <tr><td>Web client</td><td>Next.js App Router + TS + Tailwind token layer (mirrors design tokens) + TanStack Query; URL state for filters/tabs</td><td>App-like + SSR for learner surfaces + admin route segment.</td></tr>
 <tr><td>iOS client</td><td>Reuse TTS, Speech, design tokens, mascots, tab shell; replace SwiftData models + 4-skill views; API-backed via generated Swift client</td><td>Keep the assets, drop the local-first model.</td></tr>
 <tr><td>Shared contract</td><td>OpenAPI 3.1 = source of truth → <code>openapi-typescript</code> (web) + <code>swift-openapi-generator</code> (iOS), generated in CI</td><td>Byte-identical AI JSON contracts; build fails on drift.</td></tr>
-<tr><td>Deployment</td><td>Self-contained Docker stack (BWH VPS a candidate host); Caddy vhost <code>api.&lt;domain&gt;</code>; Postgres named volume; nightly <code>pg_dump</code> off-box; resource-limited</td><td>Portable single-stack ops; coexists cleanly with any other host tenants.</td></tr>
+<tr><td>Deployment</td><td>Self-contained Docker stack (BWH VPS a candidate host); Caddy vhosts <code>english.daichenlab.com</code> (web) + <code>api.english.daichenlab.com</code> (API); Postgres named volume; nightly <code>pg_dump</code> off-box; resource-limited</td><td>Portable single-stack ops; coexists cleanly with any other host tenants.</td></tr>
 <tr><td>Design direction</td><td>"Warm editorial coaching": warm paper bg, teal=action, coral=correction/attention, violet=CEFR/progress; mascots as scenario guides; 3-tier feedback diff (original→corrected→natural)</td><td>Carries one identity across web + iOS; reuses existing warm palette.</td></tr>
 </tbody>
 </table></div>

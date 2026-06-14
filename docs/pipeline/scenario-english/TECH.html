@@ -344,7 +344,7 @@
 
 <section id="tech-bk-api">
   <h2><span class="n">B3</span>API Contract (OpenAPI 3.1 — single source of truth)</h2>
-  <p class="lead">REST/JSON, <code>Bearer</code> JWT, base <code>https://api.&lt;domain&gt;/v1</code>. Every response uses the envelope <code>{ data, error, meta }</code>. All bodies validated by Zod; the published OpenAPI is generated from those schemas.</p>
+  <p class="lead">REST/JSON, <code>Bearer</code> JWT, base <code>https://api.english.daichenlab.com/v1</code>. Every response uses the envelope <code>{ data, error, meta }</code>. All bodies validated by Zod; the published OpenAPI is generated from those schemas.</p>
   <h3>Endpoint list</h3>
   <div class="tablewrap">
   <table>
@@ -730,7 +730,7 @@ next_review_at = now + interval → spawn review_task at due_at</code></pre>
   <span class="cap">BWH host: Caddy → self-contained app containers {api, db, whisper} (cpu/mem-limited); AI/ASR call the official provider API off-host over HTTPS; nightly pg_dump ships off-box.</span>
 
   <div class="grid2">
-    <div class="card"><h3>Services</h3><p><code>api</code> (Fastify), <code>db</code> (postgres:16, named volume), optional <code>whisper</code> (faster-whisper). Caddy vhost <code>api.&lt;domain&gt;</code> → <code>api:3000</code>, auto-TLS + B10 headers.</p></div>
+    <div class="card"><h3>Services</h3><p><code>api</code> (Fastify), <code>db</code> (postgres:16, named volume), optional <code>whisper</code> (faster-whisper). Caddy vhosts: <code>english.daichenlab.com</code> (web, admin at <code>/admin</code>) + <code>api.english.daichenlab.com</code> → <code>api:3000</code>, auto-TLS + B10 headers.</p></div>
     <div class="card"><h3>Resource limits</h3><p>Per-service cpu/memory limits + Postgres <code>shared_buffers</code> cap as general good practice, so the app coexists cleanly with any other tenants. Concurrency cap on AI/ASR to bound spend + CPU.</p></div>
     <div class="card"><h3>Backups</h3><p>Nightly <code>pg_dump</code> → gzip → off-box; 14-day retention; documented restore. Audio blobs on a separate volume, weekly snapshot.</p></div>
     <div class="card"><h3>Secrets / env</h3><p>Host <code>.env</code> (not in repo): DB URL, JWT secrets, provider API key(s) (<code>OPENAI_API_KEY</code>, optional <code>GEMINI_API_KEY</code>), optional self-hosted Whisper URL, Resend key. Boot-time presence check.</p></div>
@@ -755,7 +755,7 @@ CI: install → typecheck → lint
       <tr><td>Input validation</td><td>Zod at every boundary. Audio: enforced MIME + max size + duration before transcode. AI output re-validated (B4).</td></tr>
       <tr><td>PII / privacy</td><td>Email is the only PII. <code>GET /account/export</code> + <code>DELETE /account</code> (cascade sessions, turns, audio, expressions). Configurable transcript/audio purge.</td></tr>
       <tr><td>Secrets</td><td>No secrets in any client — all AI/ASR keys server-side only (hence no user API-key field). Host <code>.env</code>, boot-time check.</td></tr>
-      <tr><td>Transport / headers</td><td>HTTPS + HSTS, nosniff, X-Frame-Options DENY, Referrer-Policy strict-origin-when-cross-origin. CORS = web origin only.</td></tr>
+      <tr><td>Transport / headers</td><td>HTTPS + HSTS, nosniff, X-Frame-Options DENY, Referrer-Policy strict-origin-when-cross-origin. CORS allow-list = <code>https://english.daichenlab.com</code> only.</td></tr>
     </tbody>
   </table>
   </div>
