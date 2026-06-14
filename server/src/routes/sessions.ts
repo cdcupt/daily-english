@@ -8,7 +8,9 @@ import { generateInstantFeedback } from '../ai/feedback.js';
 import { scoreSession, type ScoreEntry } from '../scoring/session.js';
 import { updateEma } from '../scoring/engine.js';
 import { scoreToCEFR } from '../scoring/cefr.js';
-import { userAbilityProfiles } from '../db/schema.js';
+import { userAbilityProfiles, expressionBankItems } from '../db/schema.js';
+import { mistakePairFromFeedback } from '../expressions/service.js';
+import { and } from 'drizzle-orm';
 
 /**
  * Practice session + turn engine (TECH §B3). Slice 2 covers text turns →
@@ -70,11 +72,35 @@ export async function sessionRoutes(app: FastifyInstance): Promise<void> {
       repaired: fb.repaired,
     });
 
+    // Auto-save the mistake as an expression (idempotent by user+type+content).
+    let savedExpressionId: string | null = null;
+    const pair = mistakePairFromFeedback(fb.payload, { sourceSessionId: id, sourceScenarioId: item.scenarioId });
+    if (pair) {
+      const dupe = await db.select().from(expressionBankItems).where(and(
+        eq(expressionBankItems.userId, req.user!.sub),
+        eq(expressionBankItems.type, 'mistake_pair'),
+        eq(expressionBankItems.content, pair.content),
+      ));
+      if (dupe.length > 0) {
+        savedExpressionId = dupe[0]!.id;
+      } else {
+        const [exp] = await db.insert(expressionBankItems).values({
+          userId: req.user!.sub, type: pair.type, content: pair.content,
+          userOriginal: pair.userOriginal, naturalExpression: pair.naturalExpression,
+          sourceSessionId: pair.sourceSessionId, sourceScenarioId: pair.sourceScenarioId,
+          reviewStatus: pair.reviewStatus,
+        }).returning();
+        savedExpressionId = exp!.id;
+      }
+    }
+
     return reply.send(ok({
       turnId: turn!.id,
       turnIndex,
       lowConfidence: false,
       feedback: fb.payload,
+      savedExpressionId,
+      saveCandidates: fb.payload.save_candidates,
     }));
   });
 

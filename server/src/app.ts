@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import { env } from './env.js';
 import { authRoutes } from './auth/plugin.js';
 import { sessionRoutes } from './routes/sessions.js';
+import { expressionRoutes } from './routes/expressions.js';
 
 /**
  * Builds the Fastify app with the standard response envelope, security headers,
@@ -45,6 +46,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(authRoutes);
   await app.register(sessionRoutes);
+  await app.register(expressionRoutes);
 
   return app;
 }
