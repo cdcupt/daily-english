@@ -34,6 +34,39 @@ export const ScoreReportSchema = z.object({
 });
 export type ScoreReport = z.infer<typeof ScoreReportSchema>;
 
+// ---------- Rubric scoring (LLM language judgement, 0–100 per dimension) ----------
+export const RubricScoreSchema = z.object({
+  vocabulary: z.number().min(0).max(100),
+  grammar: z.number().min(0).max(100),
+  coherence: z.number().min(0).max(100),
+  interaction: z.number().min(0).max(100),
+  fluency: z.number().min(0).max(100),
+  pronunciation: z.number().min(0).max(100),
+  summary: z.string(),
+  weak_points: z.array(z.string()).max(4),
+});
+export type RubricScore = z.infer<typeof RubricScoreSchema>;
+
+export const RUBRIC_JSON_SCHEMA = {
+  name: 'rubric_score',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      vocabulary: { type: 'number' },
+      grammar: { type: 'number' },
+      coherence: { type: 'number' },
+      interaction: { type: 'number' },
+      fluency: { type: 'number' },
+      pronunciation: { type: 'number' },
+      summary: { type: 'string' },
+      weak_points: { type: 'array', items: { type: 'string' } },
+    },
+    required: ['vocabulary', 'grammar', 'coherence', 'interaction', 'fluency', 'pronunciation', 'summary', 'weak_points'],
+  },
+} as const;
+
 /** JSON Schema for OpenAI response_format (strict). Kept in sync with the Zod above. */
 export const FEEDBACK_JSON_SCHEMA = {
   name: 'feedback_payload',
