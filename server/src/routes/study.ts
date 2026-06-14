@@ -1,11 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { getDb } from '../db/client.js';
-import { scenarios, questionItems, practiceSessions, userAbilityProfiles } from '../db/schema.js';
+import { scenarios, questionItems, practiceSessions, userAbilityProfiles, expressionBankItems } from '../db/schema.js';
 import { requireAuth } from '../auth/plugin.js';
 import { ok, fail } from '../schemas.js';
 import { selectNextItem, profileScoreFromDimensions } from '../adaptive/select.js';
 import { CEFR_DISCLAIMER } from '../scoring/cefr.js';
+import { isDue } from '../review/sm2.js';
+import { reviewPromptFor } from '../review/prompt.js';
 
 const PRACTICE_MODE: Record<string, string> = {
   scenario_translation: 'translation', scenario_dialogue: 'dialogue', topic_description: 'description',
@@ -24,18 +26,34 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
     const profiles = await db.select().from(userAbilityProfiles).where(eq(userAbilityProfiles.userId, userId));
     const profileScore = profileScoreFromDimensions((profiles[0]?.dimensions as Record<string, { score: number }>) ?? {});
 
-    const published = await db.select().from(questionItems).where(eq(questionItems.status, 'published'));
-    const chosen = selectNextItem(published.map((i) => ({ id: i.id, difficultyScore: i.difficultyScore })), profileScore);
-    if (!chosen) return reply.send(ok(null, { reason: 'empty_bank' }));
-    const item = published.find((i) => i.id === chosen.id)!;
-    const scen = (await db.select().from(scenarios).where(eq(scenarios.id, item.scenarioId)))[0];
-
     // Reuse the latest active session or open a new one.
     const active = await db.select().from(practiceSessions)
       .where(eq(practiceSessions.userId, userId)).orderBy(desc(practiceSessions.startedAt)).limit(1);
     let sessionId: string;
     if (active[0] && active[0].state === 'active') sessionId = active[0].id;
     else sessionId = (await db.insert(practiceSessions).values({ userId, mode: 'mixed' }).returning())[0]!.id;
+
+    // Resurface a due review item if one is waiting (spaced repetition).
+    const exprs = await db.select().from(expressionBankItems).where(eq(expressionBankItems.userId, userId));
+    const due = exprs.filter((e) => isDue(e.reviewStatus, new Date()));
+    if (due.length > 0) {
+      const e = due[0]!;
+      const { prompt, kind } = reviewPromptFor(e);
+      return reply.send(ok({
+        kind: 'review', reason: 'due_review', sessionId,
+        review: {
+          expressionId: e.id, type: e.type, content: e.content,
+          userOriginal: e.userOriginal, naturalExpression: e.naturalExpression,
+          prompt, reviewKind: kind,
+        },
+      }));
+    }
+
+    const published = await db.select().from(questionItems).where(eq(questionItems.status, 'published'));
+    const chosen = selectNextItem(published.map((i) => ({ id: i.id, difficultyScore: i.difficultyScore })), profileScore);
+    if (!chosen) return reply.send(ok(null, { reason: 'empty_bank' }));
+    const item = published.find((i) => i.id === chosen.id)!;
+    const scen = (await db.select().from(scenarios).where(eq(scenarios.id, item.scenarioId)))[0];
 
     return reply.send(ok({
       kind: 'practice',

@@ -44,7 +44,7 @@ export type ScoreReport = {
   summary: string; weak_points: string[]; recommended_review: string[];
   next_task: string | null; excluded_turns: string[]; disclaimer: string;
 };
-export type ReviewStatus = { next_review_at: string; mastery: number; ease: number; reps: number };
+export type ReviewStatus = { next_review_at: string; mastery: number; ease: number; reps: number; intervalDays?: number };
 export type SpeechFeatures = { rate_wpm?: number; pause_ratio?: number; repetition_rate?: number };
 
 // ---------- Tables ----------
