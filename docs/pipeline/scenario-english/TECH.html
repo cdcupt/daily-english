@@ -132,7 +132,7 @@
 
   <h3>System architecture</h3>
   <div class="tablewrap">
-  <svg class="diagram" viewBox="0 0 920 430" role="img" aria-label="System architecture: web and iOS clients build against a shared OpenAPI contract and call the Fastify API, which talks to PostgreSQL, 9relay (AI), Whisper (ASR) and Resend (email) on the BWH host behind Caddy.">
+  <svg class="diagram" viewBox="0 0 920 430" role="img" aria-label="System architecture: web and iOS clients build against a shared OpenAPI contract and call the Fastify API, which talks to PostgreSQL, the AI provider (OpenAI/Gemini), Whisper (ASR) and Resend (email) on the BWH host behind Caddy.">
     <defs>
       <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#78716C"/></marker>
       <marker id="ahT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0D9488"/></marker>
@@ -167,7 +167,8 @@
     <rect x="630" y="78" width="240" height="44" rx="11" fill="#fff" stroke="#7C3AED" stroke-width="1.5"/>
     <text x="750" y="105" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5B21B6">PostgreSQL 16  (jsonb)</text>
     <rect x="630" y="134" width="240" height="44" rx="11" fill="#fff" stroke="#7C3AED" stroke-width="1.5"/>
-    <text x="750" y="161" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5B21B6">9relay — AI</text>
+    <text x="750" y="153" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5B21B6">AI provider</text>
+    <text x="750" y="169" text-anchor="middle" font-size="9.5" fill="#7C3AED">OpenAI / Gemini · official API</text>
     <rect x="630" y="190" width="240" height="44" rx="11" fill="#fff" stroke="#7C3AED" stroke-width="1.5"/>
     <text x="750" y="217" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5B21B6">Whisper — ASR</text>
     <rect x="630" y="246" width="240" height="44" rx="11" fill="#fff" stroke="#0D9488" stroke-width="1.5"/>
@@ -196,7 +197,7 @@
     <rect x="640" y="370" width="13" height="13" rx="3" fill="#fff" stroke="#0D9488"/><text x="660" y="381" font-size="11" fill="#57534E">teal arrow = transport / email</text>
   </svg>
   </div>
-  <span class="cap">Both clients build against one OpenAPI 3.1 contract → call the Fastify API behind Caddy → API fans out to Postgres, 9relay, Whisper, Resend on the BWH host.</span>
+  <span class="cap">Both clients build against one OpenAPI 3.1 contract → call the Fastify API behind Caddy → API fans out to Postgres, the AI provider (OpenAI/Gemini), Whisper, Resend on the BWH host.</span>
 
   <div class="tablewrap">
   <table>
@@ -225,7 +226,7 @@
 │   │   ├── routes/            # auth, study, turns, feedback, sessions, expressions,
 │   │   │                      #   review, profile, scenarios, admin
 │   │   ├── db/                # drizzle schema.ts + repositories (Repository pattern)
-│   │   ├── ai/                # 9relay client, prompt templates, structured-output runner
+│   │   ├── ai/                # AI provider client, prompt templates, structured-output runner
 │   │   ├── scoring/           # speech features + rubric merge + CEFR mapping
 │   │   ├── asr/               # Whisper client + confidence computation
 │   │   ├── adaptive/          # next-item selector + SM-2 scheduler
@@ -411,11 +412,11 @@ RES  { "data": { "turnId":"uuid","transcript":"I want check in early",
 
 <section id="tech-bk-ai">
   <h2><span class="n">B4</span>AI Orchestration</h2>
-  <p class="lead">All AI runs server-side through <strong>9relay</strong> (OpenAI-compatible <code>/chat/completions</code>) — same wire shape <code>AIService.swift</code> already speaks. Structured output is enforced, re-validated, and persisted raw for audit/replay.</p>
+  <p class="lead">All AI runs server-side, calling the <strong>official provider API directly</strong> via an OpenAI-compatible <code>/chat/completions</code> client (default <strong>OpenAI</strong>; provider-configurable — Gemini, etc.) — same wire shape <code>AIService.swift</code> already speaks. Structured output is enforced, re-validated, and persisted raw for audit/replay.</p>
 
   <h3>Voice turn → feedback (sequence)</h3>
   <div class="tablewrap">
-  <svg class="diagram" viewBox="0 0 940 470" role="img" aria-label="Sequence diagram for a voice turn across Client, API, Whisper ASR, 9relay AI and the database.">
+  <svg class="diagram" viewBox="0 0 940 470" role="img" aria-label="Sequence diagram for a voice turn across Client, API, Whisper ASR, the AI provider and the database.">
     <defs>
       <marker id="sq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0D9488"/></marker>
       <marker id="sqv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7C3AED"/></marker>
@@ -426,7 +427,7 @@ RES  { "data": { "turnId":"uuid","transcript":"I want check in early",
       <rect x="20"  y="20" width="140" height="34" rx="9" fill="#CCFBF1" stroke="#0D9488"/><text x="90"  y="42" fill="#0F766E">Client</text>
       <rect x="210" y="20" width="140" height="34" rx="9" fill="#CCFBF1" stroke="#0D9488"/><text x="280" y="42" fill="#0F766E">API (Fastify)</text>
       <rect x="400" y="20" width="140" height="34" rx="9" fill="#F5F3FF" stroke="#7C3AED"/><text x="470" y="42" fill="#5B21B6">ASR (Whisper)</text>
-      <rect x="590" y="20" width="140" height="34" rx="9" fill="#F5F3FF" stroke="#7C3AED"/><text x="660" y="42" fill="#5B21B6">AI (9relay)</text>
+      <rect x="590" y="20" width="140" height="34" rx="9" fill="#F5F3FF" stroke="#7C3AED"/><text x="660" y="42" fill="#5B21B6">AI provider</text>
       <rect x="780" y="20" width="140" height="34" rx="9" fill="#F5F3FF" stroke="#7C3AED"/><text x="850" y="42" fill="#5B21B6">DB</text>
     </g>
     <!-- lifelines -->
@@ -496,7 +497,7 @@ RES  { "data": { "turnId":"uuid","transcript":"I want check in early",
 3. on ZodError → ONE repair retry (append validation errors, demand valid JSON)
 4. on 2nd failure → throw AIContractError → 502 to client, raw logged
 5. persist { raw_model_output, model, prompt_version, repaired } in ai_feedback_items
-Routing: 9relay primary; on 5xx/timeout → direct-provider fallback (same schema).
+Calls the official provider API directly (OpenAI-compatible); provider configurable; on 5xx/timeout retry/backoff (same schema).
 Tag each request x-task + x-prompt-version for usage attribution + golden-set replay.</code></pre>
   <div class="callout ok"><strong>Auditability:</strong> raw output + model + prompt_version stored on every AI row → prompt changes are regression-tested against a golden set; any feedback can be replayed.</div>
 </section>
@@ -579,7 +580,7 @@ stable_range = [scoreToCEFR(ema-σ), scoreToCEFR(ema+σ)]</code></pre>
   <table>
     <thead><tr><th>Option</th><th>Cost / latency</th><th>Recommendation</th></tr></thead>
     <tbody>
-      <tr><td>9relay-routed Whisper</td><td>Per-minute API cost; zero ops</td><td>Start here (one key surface).</td></tr>
+      <tr><td>OpenAI transcription API (official: <code>gpt-4o-transcribe</code> / <code>whisper-1</code>)</td><td>Per-minute API cost; zero ops</td><td>Start here (default; one key surface).</td></tr>
       <tr><td>Self-hosted <strong>faster-whisper</strong></td><td>Fixed VPS cost; word timestamps + logprobs</td><td><strong>Recommended target</strong> — needed for per-word confidence + timestamps; removes per-minute cost; switch once volume justifies.</td></tr>
     </tbody>
   </table>
@@ -694,11 +695,11 @@ next_review_at = now + interval → spawn review_task at due_at</code></pre>
 
 <section id="tech-bk-ops">
   <h2><span class="n">B9</span>Deployment &amp; Ops (BWH VPS)</h2>
-  <p class="lead">Docker Compose alongside the existing 9relay stack, behind the existing Caddy, resource-limited so the app can never starve prod 9relay.</p>
+  <p class="lead">A self-contained Docker Compose stack behind Caddy, resource-limited as general good practice so it coexists cleanly with any other tenants on the host. BWH is a candidate host; the app has no dependency on anything else running there.</p>
 
   <h3>Deployment topology</h3>
   <div class="tablewrap">
-  <svg class="diagram" viewBox="0 0 900 360" role="img" aria-label="Deployment topology on the BWH host: Caddy fronts the app Docker containers (api, db, whisper) which coexist with the existing 9relay stack, with a nightly pg_dump backed up off-box. Resource limits isolate the app from 9relay.">
+  <svg class="diagram" viewBox="0 0 900 360" role="img" aria-label="Deployment topology on the BWH host: Caddy fronts the self-contained app Docker containers (api, db, whisper), with a nightly pg_dump backed up off-box. Per-service resource limits keep the app well-behaved alongside any other tenants on the host.">
     <defs><marker id="dp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#78716C"/></marker>
       <marker id="dpt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0D9488"/></marker></defs>
     <rect x="20" y="20" width="700" height="320" rx="16" fill="#FBFAF8" stroke="#E7E2DB" stroke-width="1.5"/>
@@ -712,28 +713,27 @@ next_review_at = now + interval → spawn review_task at due_at</code></pre>
     <rect x="210" y="166" width="130" height="48" rx="10" fill="#F5F3FF" stroke="#7C3AED"/><text x="275" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#5B21B6">db</text><text x="275" y="204" text-anchor="middle" font-size="9.5" fill="#7C3AED">postgres:16 vol</text>
     <rect x="60" y="232" width="130" height="48" rx="10" fill="#F5F3FF" stroke="#7C3AED"/><text x="125" y="254" text-anchor="middle" font-size="12" font-weight="700" fill="#5B21B6">whisper</text><text x="125" y="270" text-anchor="middle" font-size="9.5" fill="#7C3AED">faster-whisper</text>
     <rect x="210" y="232" width="130" height="48" rx="10" fill="#fff" stroke="#0D9488"/><text x="275" y="254" text-anchor="middle" font-size="11" font-weight="700" fill="#0F766E">audio volume</text><text x="275" y="270" text-anchor="middle" font-size="9.5" fill="#57534E">weekly snapshot</text>
-    <!-- 9relay stack -->
+    <!-- other tenants note -->
     <rect x="400" y="130" width="300" height="120" rx="12" fill="#fff" stroke="#78716C" stroke-width="1.5" stroke-dasharray="5 4"/>
-    <text x="416" y="152" font-size="11.5" font-weight="700" fill="#78716C">existing 9relay stack (isolated)</text>
-    <rect x="420" y="166" width="120" height="64" rx="10" fill="#FBFAF8" stroke="#7C3AED"/><text x="480" y="194" text-anchor="middle" font-size="12" font-weight="700" fill="#5B21B6">9relay</text><text x="480" y="210" text-anchor="middle" font-size="9.5" fill="#7C3AED">prod — untouched</text>
-    <rect x="555" y="166" width="120" height="64" rx="10" fill="#FBFAF8" stroke="#78716C"/><text x="615" y="194" text-anchor="middle" font-size="10.5" font-weight="700" fill="#44403C">caps prevent</text><text x="615" y="210" text-anchor="middle" font-size="9.5" fill="#57534E">app starving 9relay</text>
+    <text x="416" y="152" font-size="11.5" font-weight="700" fill="#78716C">other tenants on host (resource-isolated)</text>
+    <rect x="420" y="166" width="255" height="64" rx="10" fill="#FBFAF8" stroke="#78716C"/><text x="547" y="190" text-anchor="middle" font-size="10.5" font-weight="700" fill="#44403C">per-service cpu/mem caps</text><text x="547" y="208" text-anchor="middle" font-size="9.5" fill="#57534E">app stays well-behaved; no coupling</text>
     <!-- arrows internal -->
     <line x1="105" y1="106" x2="120" y2="166" stroke="#0D9488" stroke-width="1.5" marker-end="url(#dpt)"/>
     <line x1="190" y1="190" x2="210" y2="190" stroke="#78716C" stroke-width="1.5" marker-end="url(#dp)"/>
     <line x1="125" y1="214" x2="125" y2="232" stroke="#78716C" stroke-width="1.5" marker-end="url(#dp)"/>
-    <path d="M190 190 C 380 170, 400 180, 420 192" fill="none" stroke="#7C3AED" stroke-width="1.5" marker-end="url(#dp)"/><text x="370" y="168" font-size="9.5" fill="#7C3AED">chat</text>
+    <path d="M340 176 C 380 140, 400 118, 430 112" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#dp)"/><text x="362" y="128" font-size="9.5" fill="#7C3AED">AI/ASR → official provider API (HTTPS, off-host)</text>
     <!-- off-box backup -->
     <rect x="760" y="150" width="120" height="60" rx="11" fill="#ECFDF3" stroke="#16A34A" stroke-width="1.5"/><text x="820" y="176" text-anchor="middle" font-size="11.5" font-weight="700" fill="#15803D">off-box backup</text><text x="820" y="193" text-anchor="middle" font-size="9.5" fill="#15803D">14-day retention</text>
     <path d="M340 190 C 720 90, 740 120, 778 152" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#dp)"/><text x="600" y="100" font-size="10" fill="#15803D">nightly pg_dump → gzip</text>
   </svg>
   </div>
-  <span class="cap">BWH host: Caddy → app containers {api, db, whisper} (cpu/mem-limited) beside the isolated 9relay stack; nightly pg_dump ships off-box.</span>
+  <span class="cap">BWH host: Caddy → self-contained app containers {api, db, whisper} (cpu/mem-limited); AI/ASR call the official provider API off-host over HTTPS; nightly pg_dump ships off-box.</span>
 
   <div class="grid2">
     <div class="card"><h3>Services</h3><p><code>api</code> (Fastify), <code>db</code> (postgres:16, named volume), optional <code>whisper</code> (faster-whisper). Caddy vhost <code>api.&lt;domain&gt;</code> → <code>api:3000</code>, auto-TLS + B10 headers.</p></div>
-    <div class="card"><h3>Resource limits</h3><p>Per-service cpu/memory limits + Postgres <code>shared_buffers</code> cap; 9relay untouched. Concurrency cap on AI/ASR to bound spend + CPU.</p></div>
+    <div class="card"><h3>Resource limits</h3><p>Per-service cpu/memory limits + Postgres <code>shared_buffers</code> cap as general good practice, so the app coexists cleanly with any other tenants. Concurrency cap on AI/ASR to bound spend + CPU.</p></div>
     <div class="card"><h3>Backups</h3><p>Nightly <code>pg_dump</code> → gzip → off-box; 14-day retention; documented restore. Audio blobs on a separate volume, weekly snapshot.</p></div>
-    <div class="card"><h3>Secrets / env</h3><p>Host <code>.env</code> (not in repo): DB URL, JWT secrets, 9relay base+key, fallback key, Whisper URL, Resend key. Boot-time presence check.</p></div>
+    <div class="card"><h3>Secrets / env</h3><p>Host <code>.env</code> (not in repo): DB URL, JWT secrets, provider API key(s) (<code>OPENAI_API_KEY</code>, optional <code>GEMINI_API_KEY</code>), optional self-hosted Whisper URL, Resend key. Boot-time presence check.</p></div>
   </div>
   <h3>Migrations + CI</h3>
   <pre><code>deploy: git pull → docker compose build api
@@ -1011,11 +1011,11 @@ git diff --exit-code web/src/api/schema.d.ts ios/Generated   # fail on drift</co
 
 <section id="qa">
   <h2><span class="n">Q</span>Test Plan &amp; Acceptance</h2>
-  <p class="lead">Concrete, contract-anchored verification for this system. The OpenAPI 3.1 spec is the single source of truth, so the highest-value gates are <strong>contract drift</strong>, the <strong>scoring golden-set</strong> (B5 stability), and the <strong>full study loop E2E</strong> on web + iOS. Tests follow a pyramid (many fast unit, fewer integration, a thin E2E layer) and run in CI on every PR against an ephemeral Postgres with 9relay and Whisper mocked.</p>
+  <p class="lead">Concrete, contract-anchored verification for this system. The OpenAPI 3.1 spec is the single source of truth, so the highest-value gates are <strong>contract drift</strong>, the <strong>scoring golden-set</strong> (B5 stability), and the <strong>full study loop E2E</strong> on web + iOS. Tests follow a pyramid (many fast unit, fewer integration, a thin E2E layer) and run in CI on every PR against an ephemeral Postgres with the AI provider and ASR mocked.</p>
 
   <h3>Q1. Strategy, pyramid &amp; tooling</h3>
   <div class="grid3">
-    <div class="card"><h3>Server (Fastify)</h3><p><strong>Vitest + Supertest</strong> against a real ephemeral <code>postgres:16</code> (Testcontainers / CI service). <strong>9relay + Whisper mocked</strong> (recorded fixtures + a deterministic fake) so AI/ASR is never hit. Drizzle migrations run before each suite; per-test transaction rollback for isolation.</p></div>
+    <div class="card"><h3>Server (Fastify)</h3><p><strong>Vitest + Supertest</strong> against a real ephemeral <code>postgres:16</code> (Testcontainers / CI service). <strong>AI provider + ASR mocked</strong> (recorded fixtures + a deterministic fake) so AI/ASR is never hit. Drizzle migrations run before each suite; per-test transaction rollback for isolation.</p></div>
     <div class="card"><h3>Web (Next.js)</h3><p><strong>Vitest + React Testing Library</strong> for components/hooks (behaviour over markup); <strong>Playwright</strong> for E2E + a11y (axe-core) + screenshots. MSW mocks the API for component tests; E2E hits the real server with seeded fixtures.</p></div>
     <div class="card"><h3>iOS (SwiftUI)</h3><p><strong>XCTest</strong> (coordinator, cache, write-queue, token store) + <strong>XCUITest</strong> critical-path on the <em>iPhone 17 Pro</em> simulator. The Mac can build + run iOS, so XCUITest runs in CI/local.</p></div>
     <div class="card"><h3>Contract</h3><p><strong>OpenAPI drift check</strong>: regenerate spec from Zod + regenerate web/iOS clients; <code>git diff --exit-code</code> fails the PR (mirrors B9/F4 CI).</p></div>
@@ -1045,7 +1045,7 @@ git diff --exit-code web/src/api/schema.d.ts ios/Generated   # fail on drift</co
   </div>
 
   <h3>Q3. Integration tests (API — every B3 endpoint, envelope-checked)</h3>
-  <p>Each test asserts the <code>{ data, error, meta }</code> envelope and that <code>session_id</code>/<code>turn_id</code>/<code>item_id</code> are stamped where the contract requires. 9relay/Whisper are mocked with deterministic fixtures.</p>
+  <p>Each test asserts the <code>{ data, error, meta }</code> envelope and that <code>session_id</code>/<code>turn_id</code>/<code>item_id</code> are stamped where the contract requires. The AI provider and ASR are mocked with deterministic fixtures.</p>
   <div class="tablewrap">
   <table>
     <thead><tr><th>Flow</th><th>Endpoints</th><th>Asserts</th></tr></thead>
@@ -1132,7 +1132,7 @@ for (const f of fixtures) {
       <tr><td>Admin gate</td><td>Non-operator JWT → any <code>/admin/*</code> and web <code>/admin</code></td><td><strong>404</strong> (not 403) — existence hidden.</td></tr>
       <tr><td>Rate limiting</td><td>Burst on auth / magic-link / AI / ASR past bucket</td><td><code>429</code> with the envelope; tighter limits on auth endpoints.</td></tr>
       <tr><td>Audio validation</td><td>Wrong MIME, oversized, over-duration upload</td><td>Rejected before transcode with typed error.</td></tr>
-      <tr><td>Secret hygiene</td><td>Grep built web bundle + iOS app for keys/base URLs of 9relay/Whisper/Resend/JWT</td><td>No secrets in any client bundle (all server-side).</td></tr>
+      <tr><td>Secret hygiene</td><td>Grep built web bundle + iOS app for keys/base URLs of provider API/ASR/Resend/JWT</td><td>No secrets in any client bundle (all server-side).</td></tr>
       <tr><td>Low-conf privacy/scoring</td><td>Low-confidence turn after a session</td><td>In <code>ScoreReport.excluded_turns</code> + absent from long-term EMA.</td></tr>
     </tbody>
   </table>

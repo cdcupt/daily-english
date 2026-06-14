@@ -457,8 +457,8 @@ Generated review tasks:
   SETTINGS  (configure)
     Account + magic-link upgrade / sign out; voice & TTS preference; native
     language (for translation prompts); review reminders; appearance; data &
-    privacy; about + the CEFR compliance copy. (AI runs server-side via 9relay,
-    so no user API key here.)
+    privacy; about + the CEFR compliance copy. (AI runs server-side via the
+    official provider API, so no user API key here.)
 
   (Onboarding is a transient flow — anonymous start + optional magic-link upgrade —
    not a standing page.)
@@ -471,7 +471,7 @@ Operator (web only, OUTSIDE the learner app):
   <h2><span class="n">14</span>Platform &amp; Architecture (intent — detailed in TECH doc)</h2>
   <p>This is the PRD-level intent. The exact stack, schema, and APIs are decided in the Infrastructure Design / Tech Document (Step 4) by the Backend &amp; Frontend workers and reviewed by the Coordinator.</p>
   <div class="grid3">
-    <div class="card"><h3>Backend service</h3><p>Owns data + business logic + AI orchestration. Exposes a REST/JSON API consumed identically by web and iOS. Server-side AI calls (can route via existing 9relay/LiteLLM gateway).</p></div>
+    <div class="card"><h3>Backend service</h3><p>Owns data + business logic + AI orchestration. Exposes a REST/JSON API consumed identically by web and iOS. Server-side AI calls go to official provider APIs directly (OpenAI default, provider-configurable).</p></div>
     <div class="card"><h3>Web client</h3><p>Responsive learner app + operator admin. Voice capture in-browser; thin, talks only to the API.</p></div>
     <div class="card"><h3>iOS client</h3><p>Native SwiftUI app refactored from the existing repo. Reuses TTS/Speech plumbing; switches from local-only SwiftData to API-backed data (with sensible offline caching).</p></div>
   </div>
@@ -590,7 +590,6 @@ user_ability_profiles · content_sources · question_quality_metrics</code></pre
   <h2><span class="n">19</span>Open Questions (to resolve in design/tech, not blockers)</h2>
   <ul>
     <li><strong>Auth &amp; accounts:</strong> the data model implies <code>users</code>. Do we need real sign-in (email/OAuth) in this version, or anonymous device accounts? — proposed default: lightweight account (email magic-link) with anonymous fallback.</li>
-    <li><strong>AI routing:</strong> route server-side AI through the existing 9relay/LiteLLM gateway vs. direct provider keys? — proposed default: route via 9relay for one key surface + usage tracking.</li>
     <li><strong>Hosting:</strong> reuse the BWH VPS (Docker + Caddy) or a managed host? — proposed default: BWH to match existing ops.</li>
     <li><strong>The other 4 scenario categories</strong> (PRD shows 4 of 8) — finalized in Design.</li>
     <li><strong>iOS distribution:</strong> TestFlight/App Store needs signing credentials — out of automated scope until provided.</li>
