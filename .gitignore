@@ -33,3 +33,6 @@ Pods/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata/
+
+# rejected AI-icon options (kept locally, not versioned)
+brand/generated/
