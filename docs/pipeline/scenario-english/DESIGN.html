@@ -570,6 +570,20 @@
 
   footer.doc-foot{margin-top:var(--section);padding:30px 0 60px;border-top:1px solid var(--border);color:var(--muted);font-size:var(--t-sm);text-align:center}
 
+  /* ---------- CLEO mascot placements (owned vector, not emoji) ---------- */
+  .cleo{display:block}
+  /* onboarding hero + session-summary hero */
+  .onb .mascot .cleo,.summary-hero .mascot .cleo{width:1em;height:1em}
+  /* coach-strip avatar: fill the 38px rounded tile, white backing reads on violet */
+  .coach-strip .av{background:#fff;overflow:hidden}
+  .coach-strip .av .cleo{width:34px;height:34px}
+  /* settings account avatar: white disc so the teal cat reads on the violet card */
+  .acct-card .acct-av{background:rgba(255,255,255,.92)}
+  .acct-card .acct-av .cleo{width:40px;height:40px}
+  /* category-table "single coach" cell */
+  .coach-cell{display:inline-flex;align-items:center;gap:7px;font-weight:700}
+  .coach-cell .cleo{width:22px;height:22px;flex-shrink:0}
+
   @media(max-width:560px){
     .hero h1{max-width:none}
     .device-frame.desktop{max-width:100%}
@@ -578,6 +592,58 @@
 </head>
 <body>
 <a href="#mockup" class="skip">Skip to interactive mockup</a>
+
+<!-- ============================================================
+     CLEO — owned vector mascot sprite (custom SVG, NOT emoji).
+     Single AI coach. Defined once; placed with <use> + CSS sizing.
+     #cleo-coach = neutral/friendly · #cleo-celebrate = happy/cheering.
+     Style seed: app-icon Concept 4 "Cleo, Refined" (ICONS.html).
+     Master at brand/mascot-cleo.svg.
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="cleoBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+    <symbol id="cleo-coach" viewBox="0 0 512 512">
+      <path d="M150 178 L120 78 L236 150 Z" fill="url(#cleoBody)"/>
+      <path d="M362 178 L392 78 L276 150 Z" fill="url(#cleoBody)"/>
+      <path d="M154 168 L138 110 L210 156 Z" fill="#0B5C56"/>
+      <path d="M358 168 L374 110 L302 156 Z" fill="#0B5C56"/>
+      <path d="M256 116 C150 116 96 196 96 286 C96 372 168 432 256 432 C344 432 416 372 416 286 C416 196 362 116 256 116 Z" fill="url(#cleoBody)"/>
+      <ellipse cx="206" cy="276" rx="34" ry="40" fill="#FAF8F5"/>
+      <ellipse cx="306" cy="276" rx="34" ry="40" fill="#FAF8F5"/>
+      <circle cx="214" cy="284" r="18" fill="#1C1917"/>
+      <circle cx="314" cy="284" r="18" fill="#1C1917"/>
+      <circle cx="221" cy="277" r="6" fill="#FFFFFF"/>
+      <circle cx="321" cy="277" r="6" fill="#FFFFFF"/>
+      <path d="M256 336 l24 20 -24 24 -24 -24 Z" fill="#EA580C"/>
+      <path d="M232 374 Q256 396 280 374" fill="none" stroke="#0B5C56" stroke-width="11" stroke-linecap="round"/>
+      <path d="M120 300 L168 308 M118 332 L168 332" fill="none" stroke="#0B5C56" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+      <path d="M392 300 L344 308 M394 332 L344 332" fill="none" stroke="#0B5C56" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+      <path d="M404 96 c12 40 18 46 58 58 -40 12 -46 18 -58 58 -12 -40 -18 -46 -58 -58 40 -12 46 -18 58 -58 Z" fill="#7C3AED"/>
+    </symbol>
+    <symbol id="cleo-celebrate" viewBox="0 0 512 512">
+      <circle cx="74" cy="120" r="11" fill="#EA580C"/>
+      <rect x="430" y="150" width="22" height="22" rx="5" fill="#7C3AED" transform="rotate(20 441 161)"/>
+      <circle cx="120" cy="60" r="8" fill="#14B8A6"/>
+      <path d="M452 86 l8 8 -8 8 -8 -8 Z" fill="#FDBA74"/>
+      <circle cx="92" cy="210" r="40" fill="url(#cleoBody)"/>
+      <circle cx="420" cy="210" r="40" fill="url(#cleoBody)"/>
+      <path d="M150 178 L120 78 L236 150 Z" fill="url(#cleoBody)"/>
+      <path d="M362 178 L392 78 L276 150 Z" fill="url(#cleoBody)"/>
+      <path d="M154 168 L138 110 L210 156 Z" fill="#0B5C56"/>
+      <path d="M358 168 L374 110 L302 156 Z" fill="#0B5C56"/>
+      <path d="M256 116 C150 116 96 196 96 286 C96 372 168 432 256 432 C344 432 416 372 416 286 C416 196 362 116 256 116 Z" fill="url(#cleoBody)"/>
+      <path d="M178 282 Q206 250 234 282" fill="none" stroke="#FAF8F5" stroke-width="16" stroke-linecap="round"/>
+      <path d="M278 282 Q306 250 334 282" fill="none" stroke="#FAF8F5" stroke-width="16" stroke-linecap="round"/>
+      <path d="M256 332 l24 20 -24 24 -24 -24 Z" fill="#EA580C"/>
+      <path d="M214 366 Q256 426 298 366 Q256 392 214 366 Z" fill="#0B5C56"/>
+      <ellipse cx="170" cy="338" rx="18" ry="11" fill="#FDBA74" opacity="0.6"/>
+      <ellipse cx="342" cy="338" rx="18" ry="11" fill="#FDBA74" opacity="0.6"/>
+    </symbol>
+  </defs>
+</svg>
 
 <header class="hero">
   <div class="wrap">
@@ -634,8 +700,8 @@
       <p>Serif display headlines, asymmetric rhythm, a feed of distinct item cards each carrying its own badge and treatment. We deliberately avoid the uniform card grid and the centered-hero-with-gradient-blob default.</p>
     </div>
     <div class="card">
-      <h3>🧭 Mascots with a job</h3>
-      <p>The existing mascots become the Study coach voice and empty/celebration moments — character, not childishness. They never carry navigation, because there is barely any navigation left to carry.</p>
+      <h3>Cleo, one coach with a job</h3>
+      <p>A single AI coach — <strong>Cleo</strong>, our own custom vector cat (not an emoji) — is the Study coach voice and the celebration moment. Character, not childishness. She never carries navigation, because there is barely any navigation left to carry; the earlier multi-mascot family is deferred in favor of one consistent coach.</p>
     </div>
   </div>
 
@@ -764,6 +830,7 @@ Sources        content sources + license metadata</code></pre>
   <div class="card" style="margin-top:1.4rem">
     <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Tab-bar icon set — one coherent line family</h4>
     <p style="font-size:var(--t-sm);color:var(--ink-2);margin-bottom:12px">Three inline-SVG glyphs drawn in <strong>one</strong> style: 24px optical box, 1.7px rounded stroke, soft-fill-on-active. Active tab is teal (fill = <code>--teal-soft</code>, stroke = <code>--teal-700</code>); the Study spark turns coral on active. <strong>Study</strong> = a speech bubble with an AI spark (conversation + adaptive AI) — it replaces the old target/pencil glyph, which read as a quiz, not an adaptive chat-driven feed. <strong>You</strong> = a person bust with a rising growth arc + spark climbing off the shoulder (identity tied to the CEFR climb &amp; progress) — it replaces the generic head-and-shoulders glyph, which said "account", not "your progress". <strong>Settings</strong> = sliders.</p>
+    <p style="font-size:var(--t-sm);color:var(--ink-2);margin-top:10px"><strong>On functional icons:</strong> the emoji used elsewhere in this prototype for UI affordances (mic 🎙️, bell 🔔, globe 🌐, speaker 🔊, etc.) are mockup placeholders only. In production they become the real icon set — <strong>SF Symbols</strong> on iOS and this same <strong>inline-SVG line family</strong> (1.7px stroke, 24px optical box) on web — never shipped as emoji. The mascot is separate: Cleo is always the custom vector, not an emoji.</p>
     <div style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap">
       <span style="display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--teal-700)">
         <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#0F766E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h11a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H10l-4 3v-3a3 3 0 0 1-3-3v-5a3 3 0 0 1 2-2.83" fill="#CCFBF1"/><path d="M17.5 2.2l.62 1.58a.6.6 0 0 0 .35.35L20 4.75l-1.53.62a.6.6 0 0 0-.35.35l-.62 1.58-.62-1.58a.6.6 0 0 0-.35-.35L15 4.75l1.53-.62a.6.6 0 0 0 .35-.35z" fill="#EA580C" stroke="none"/></svg>
@@ -810,19 +877,19 @@ Sources        content sources + license metadata</code></pre>
 <section class="block" id="taxonomy">
   <span class="kicker"><span class="num">02b</span> · Engine &amp; Content Taxonomy</span>
   <h2>The library is now an engine</h2>
-  <p class="section-lede">The 8 scenario categories still exist — finalized below — but learners never browse them. They are the taxonomy the coach draws from when choosing each next item. Each category still carries its guide mascot, sample scenarios, and goal/role/phrase structure; that metadata now rides on the feed item's context strip instead of a detail page. <strong>Express Yourself</strong> remains the home for Topic Description prompts.</p>
+  <p class="section-lede">The 8 scenario categories still exist — finalized below — but learners never browse them. They are the taxonomy the coach draws from when choosing each next item. There is now a <strong>single coach, Cleo</strong> (our custom vector mascot), across every category — the earlier per-category animal family is deferred. Each category still carries its sample scenarios and goal/role/phrase structure; that metadata now rides on the feed item's context strip instead of a detail page. <strong>Express Yourself</strong> remains the home for Topic Description prompts.</p>
   <div class="tablewrap">
     <table>
-      <thead><tr><th>#</th><th>Category</th><th>Guide mascot</th><th>Sample scenarios</th><th>Why it earns a slot</th></tr></thead>
+      <thead><tr><th>#</th><th>Category</th><th>Coach</th><th>Sample scenarios</th><th>Why it earns a slot</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td><b>Daily Life</b> <span class="pill teal">PRD</span></td><td>🐱 Cleo</td><td>Restaurant · Coffee shop · Directions · Renting · Neighbors</td><td>Highest-frequency everyday output for general learners.</td></tr>
-        <tr><td>2</td><td><b>Travel</b> <span class="pill teal">PRD</span></td><td>🦉 Ollie</td><td>Airport · Hotel · Customs · Transport · Emergency</td><td>Time-boxed, high-stakes phrases travelers need fast.</td></tr>
-        <tr><td>3</td><td><b>Social</b> <span class="pill teal">PRD</span></td><td>🦊 Fenn</td><td>Small talk · Self-intro · Invitations · Thanks · Polite refusal</td><td>The "understandable → natural" gap lives here.</td></tr>
-        <tr><td>4</td><td><b>Work</b> <span class="pill teal">PRD</span></td><td>🐻 Benny</td><td>Meetings · Interviews · Requirements · Support · Emails</td><td>Core need of working professionals.</td></tr>
-        <tr><td>5</td><td><b>Shopping &amp; Money</b> <span class="pill coral">NEW</span></td><td>🐝 Buzz</td><td>Retail · Returns &amp; refunds · Bank · Bargaining · Online orders</td><td>Distinct transactional language (numbers, complaints, negotiation) not covered by "ordering". Universal, high-frequency.</td></tr>
-        <tr><td>6</td><td><b>Health &amp; Services</b> <span class="pill coral">NEW</span></td><td>🐱 Cleo</td><td>Doctor / pharmacy · Dentist · Repairs · Hairdresser · Calling support</td><td>High-anxiety, high-value situations where precise, polite phrasing matters most; service-call patterns are reusable.</td></tr>
-        <tr><td>7</td><td><b>Education &amp; Growth</b> <span class="pill coral">NEW</span></td><td>🦉 Ollie</td><td>Classroom · Office hours · Group project · Library · Asking to clarify</td><td>Serves students &amp; intermediate learners; teaches clarification/confirmation language that transfers everywhere.</td></tr>
-        <tr><td>8</td><td><b>Express Yourself</b> <span class="pill coral">NEW</span></td><td>🦊 Fenn</td><td>Describe a photo · Tell a story · Give an opinion · Explain a process · Compare options</td><td>Home for Topic Description &amp; long-form coherence — the only category built around monologue. Drives the Coherence dimension.</td></tr>
+        <tr><td>1</td><td><b>Daily Life</b> <span class="pill teal">PRD</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Restaurant · Coffee shop · Directions · Renting · Neighbors</td><td>Highest-frequency everyday output for general learners.</td></tr>
+        <tr><td>2</td><td><b>Travel</b> <span class="pill teal">PRD</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Airport · Hotel · Customs · Transport · Emergency</td><td>Time-boxed, high-stakes phrases travelers need fast.</td></tr>
+        <tr><td>3</td><td><b>Social</b> <span class="pill teal">PRD</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Small talk · Self-intro · Invitations · Thanks · Polite refusal</td><td>The "understandable → natural" gap lives here.</td></tr>
+        <tr><td>4</td><td><b>Work</b> <span class="pill teal">PRD</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Meetings · Interviews · Requirements · Support · Emails</td><td>Core need of working professionals.</td></tr>
+        <tr><td>5</td><td><b>Shopping &amp; Money</b> <span class="pill coral">NEW</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Retail · Returns &amp; refunds · Bank · Bargaining · Online orders</td><td>Distinct transactional language (numbers, complaints, negotiation) not covered by "ordering". Universal, high-frequency.</td></tr>
+        <tr><td>6</td><td><b>Health &amp; Services</b> <span class="pill coral">NEW</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Doctor / pharmacy · Dentist · Repairs · Hairdresser · Calling support</td><td>High-anxiety, high-value situations where precise, polite phrasing matters most; service-call patterns are reusable.</td></tr>
+        <tr><td>7</td><td><b>Education &amp; Growth</b> <span class="pill coral">NEW</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Classroom · Office hours · Group project · Library · Asking to clarify</td><td>Serves students &amp; intermediate learners; teaches clarification/confirmation language that transfers everywhere.</td></tr>
+        <tr><td>8</td><td><b>Express Yourself</b> <span class="pill coral">NEW</span></td><td><span class="coach-cell"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo"><use href="#cleo-coach"/></svg>Cleo</span></td><td>Describe a photo · Tell a story · Give an opinion · Explain a process · Compare options</td><td>Home for Topic Description &amp; long-form coherence — the only category built around monologue. Drives the Coherence dimension.</td></tr>
       </tbody>
     </table>
   </div>
@@ -1048,7 +1115,7 @@ Sources        content sources + license metadata</code></pre>
             <!-- ===== ONBOARDING ===== -->
             <div class="app-screen" data-pane="onboarding">
               <div class="onb">
-                <div class="mascot">🦊</div>
+                <div class="mascot"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo, your AI coach"><use href="#cleo-coach"/></svg></div>
                 <h2>Say it like you mean it.</h2>
                 <p>No menus, no setup. Tap start and your coach hands you the first thing to practice. No account needed.</p>
                 <button class="btn btn-primary btn-block" data-goto="study">Start practicing</button>
@@ -1070,7 +1137,7 @@ Sources        content sources + license metadata</code></pre>
                 <span class="avatar">EK</span>
               </div>
               <div class="coach-strip">
-                <div class="av">🦊</div>
+                <div class="av"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo, your coach"><use href="#cleo-coach"/></svg></div>
                 <div class="cx" id="coachText">
                   <b>Let's warm up with a quick translation</b>
                   <small>Coffee shop · you've been shaky on polite requests lately.</small>
@@ -1177,7 +1244,7 @@ Sources        content sources + license metadata</code></pre>
                 <div class="study-state" data-state="summary" style="display:none">
                   <div class="feed-item">
                     <div class="summary-hero">
-                      <div class="mascot">🎉</div>
+                      <div class="mascot"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo celebrating your session"><use href="#cleo-celebrate"/></svg></div>
                       <h3>Session complete</h3>
                       <p>8 items · 3 expressions saved · 1 weak point revisited</p>
                     </div>
@@ -1268,7 +1335,7 @@ Sources        content sources + license metadata</code></pre>
                 <div class="set-group">
                   <div class="set-label">Account</div>
                   <div class="acct-card">
-                    <div class="acct-av">🐱</div>
+                    <div class="acct-av"><svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo, your coach"><use href="#cleo-coach"/></svg></div>
                     <div class="acct-tx">
                       <b>Practicing anonymously</b>
                       <small>Your progress lives on this device only.</small>
@@ -1538,13 +1605,13 @@ Sources        content sources + license metadata</code></pre>
       var card = document.querySelector('[data-pane="settings"] .acct-card');
       if (!card) return;
       if (synced){
-        card.querySelector('.acct-av').textContent = '✅';
+        card.querySelector('.acct-av').innerHTML = '<span aria-label="Synced" style="font-size:22px">✅</span>';
         card.querySelector('.acct-tx b').textContent = 'erik@email.com';
         card.querySelector('.acct-tx small').textContent = 'Synced across your devices.';
         card.querySelector('.acct-badge').textContent = 'Synced';
         acctToggle.textContent = 'Sign out';
       } else {
-        card.querySelector('.acct-av').textContent = '🐱';
+        card.querySelector('.acct-av').innerHTML = '<svg class="cleo" viewBox="0 0 512 512" role="img" aria-label="Cleo, your coach"><use href="#cleo-coach"/></svg>';
         card.querySelector('.acct-tx b').textContent = 'Practicing anonymously';
         card.querySelector('.acct-tx small').textContent = 'Your progress lives on this device only.';
         card.querySelector('.acct-badge').textContent = 'Anonymous';
