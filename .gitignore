@@ -36,3 +36,6 @@ xcuserdata/
 
 # rejected AI-icon options (kept locally, not versioned)
 brand/generated/
+
+# xcodegen-generated (source of truth is project.yml)
+DailyEnglish.xcodeproj/
