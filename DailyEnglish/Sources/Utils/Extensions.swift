@@ -44,14 +44,15 @@ extension Date {
 // MARK: - Color Extensions (Design System)
 
 extension Color {
-    // Background
+    // Warm editorial surfaces
     static let appBackground = Color(hex: "FAF8F5")
+    static let appPaper = Color(hex: "FFFDFB")
+    static let appBorder = Color(hex: "EBE4DC")
 
-    // Primary accent
+    // Semantic accents — Teal = action, Coral = correction, Violet = CEFR/progress
     static let appTeal = Color(hex: "14B8A6")
-
-    // Secondary
     static let appCoral = Color(hex: "F97316")
+    static let appViolet = Color(hex: "8B5CF6")
 
     // Success
     static let appGreen = Color(hex: "22C55E")
@@ -60,11 +61,10 @@ extension Color {
     static let appCharcoal = Color(hex: "1C1917")
     static let appWarmGray = Color(hex: "78716C")
 
-    // Skill colors
-    static let skillReading = Color(hex: "3B82F6")
-    static let skillWriting = Color(hex: "8B5CF6")
-    static let skillVocabulary = Color(hex: "F59E0B")
-    static let skillListening = Color(hex: "EC4899")
+    // 3-tier feedback diff (original struck coral → corrected teal → natural violet)
+    static let diffOriginal = Color(hex: "EF4444")
+    static let diffCorrected = Color(hex: "0D9488")
+    static let diffNatural = Color(hex: "7C3AED")
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -79,17 +79,6 @@ extension Color {
             blue: Double(b) / 255,
             opacity: 1
         )
-    }
-}
-
-extension Skill {
-    var color: Color {
-        switch self {
-        case .reading: .skillReading
-        case .writing: .skillWriting
-        case .vocabulary: .skillVocabulary
-        case .listening: .skillListening
-        }
     }
 }
 
@@ -124,22 +113,21 @@ extension Font {
 // MARK: - Card Modifier
 
 struct CardStyle: ViewModifier {
+    var cornerRadius: CGFloat = 20
     func body(content: Content) -> some View {
         content
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: .black.opacity(0.05), radius: 12, y: 6)
+            .background(Color.appPaper)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Color.appBorder, lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.04), radius: 14, y: 8)
     }
 }
 
 extension View {
-    func cardStyle() -> some View {
-        modifier(CardStyle())
-    }
-
-    func mascotStyle(cornerRadius: CGFloat = 10) -> some View {
-        self
-            .background(Color.appBackground)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    func cardStyle(cornerRadius: CGFloat = 20) -> some View {
+        modifier(CardStyle(cornerRadius: cornerRadius))
     }
 }

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cleo — mascot showcase (AI Scenario English Trainer)</title>
+<style>
+  :root{
+    --paper:#FAF8F5; --paper-2:#F4EFE8; --panel:#FFFFFF;
+    --ink:#1C1917; --ink-2:#57534E; --muted:#8B847C;
+    --border:#E7E2DB; --border-2:#DAD3C8;
+    --teal:#0D9488; --teal-700:#0F766E; --teal-soft:#CCFBF1; --teal-tint:#E6FAF5;
+    --coral:#EA580C; --violet:#7C3AED; --violet-soft:#EDE4FF; --violet-tint:#F4EFFF;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",Inter,Roboto,system-ui,sans-serif;
+    --radius:18px; --radius-sm:12px;
+    --shadow-sm:0 2px 8px rgba(28,25,23,.05); --shadow:0 10px 30px rgba(28,25,23,.07);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:var(--sans);color:var(--ink);overflow-x:hidden;line-height:1.6;
+    background:
+      radial-gradient(1100px 480px at 88% -8%, var(--teal-tint), transparent 60%),
+      radial-gradient(900px 460px at -6% 4%, var(--violet-tint), transparent 55%),
+      var(--paper);}
+  h1,h2,h3{line-height:1.12;letter-spacing:-.02em;margin:0}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+  header{padding:clamp(2.2rem,1.6rem+4vw,4rem) 0 1.4rem}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;text-transform:uppercase;
+    letter-spacing:.16em;font-weight:700;color:var(--teal-700);background:var(--teal-tint);
+    border:1px solid var(--teal-soft);padding:7px 14px;border-radius:999px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+  header h1{font-family:var(--serif);font-size:clamp(2.1rem,1.4rem+3vw,3.2rem);font-weight:700;margin:.5em 0 .3em}
+  header h1 em{font-style:italic;color:var(--teal-700)}
+  header p.lede{font-size:clamp(1rem,.92rem+.4vw,1.18rem);color:var(--ink-2);max-width:60ch}
+
+  section{margin:2.4rem 0}
+  .kicker{display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);margin-bottom:.5em}
+  section > h2{font-family:var(--serif);font-size:clamp(1.4rem,1.1rem+1vw,1.9rem);margin-bottom:.4em}
+  section > p.sub{color:var(--ink-2);max-width:64ch;margin:0 0 1.2rem}
+
+  .stage{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.4rem}
+  .stage .bar{display:flex;align-items:center;gap:10px;padding:12px 18px;font-weight:700;font-size:.95rem;border-bottom:1px solid var(--border)}
+  .stage .bar .tag{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:3px 9px;border-radius:7px}
+  .stage.light .bar{background:var(--paper-2);color:var(--ink)}
+  .stage.light .bar .tag{background:var(--teal-soft);color:var(--teal-700)}
+  .stage.dark .bar{background:#0c0a09;color:#FAF8F5;border-bottom-color:#2a2622}
+  .stage.dark .bar .tag{background:#1f1b18;color:#FDBA74}
+
+  .row{display:flex;flex-wrap:wrap;gap:clamp(20px,4vw,52px);align-items:flex-end;justify-content:center;padding:30px 18px}
+  .stage.light .row{background:var(--panel)}
+  .stage.dark .row{background:#1c1917}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0}
+  .cell .glyph{display:grid;place-items:center}
+  .cell .glyph svg{display:block}
+  .cell .sz{font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .stage.dark .cell .sz{color:#9c958c}
+  /* the four render sizes */
+  .s256 svg{width:256px;height:256px}
+  .s96 svg{width:96px;height:96px}
+  .s48 svg{width:48px;height:48px}
+  .s32 svg{width:32px;height:32px}
+
+  /* in-app context demos */
+  .ctx-grid{display:grid;gap:16px}
+  @media(min-width:720px){.ctx-grid{grid-template-columns:1fr 1fr}}
+  .ctx{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow-sm);padding:16px 18px}
+  .ctx h3{font-size:.95rem;margin-bottom:12px}
+  /* coach strip replica */
+  .coach-strip{display:flex;gap:11px;align-items:center;background:var(--violet-tint);border:1px solid var(--violet-soft);border-radius:16px;padding:12px 14px}
+  .coach-strip .av{width:38px;height:38px;border-radius:11px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+  .coach-strip .av svg{width:34px;height:34px;display:block}
+  .coach-strip b{font-size:13px;display:block}
+  .coach-strip small{font-size:12px;color:var(--ink-2)}
+  /* account avatar replica */
+  .acct{display:flex;align-items:center;gap:13px;padding:14px;background:linear-gradient(150deg,var(--violet),#6d28d9);color:#fff;border-radius:16px}
+  .acct .acct-av{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+  .acct .acct-av svg{width:40px;height:40px;display:block}
+  .acct b{font-size:14px;display:block}
+  .acct small{font-size:12px;opacity:.9}
+
+  .note{font-size:.8rem;color:var(--muted);background:var(--paper-2);border:1px solid var(--border);border-radius:11px;padding:12px 15px;line-height:1.55;margin-top:1.4rem}
+  footer{margin-top:3rem;padding:24px 0 56px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;text-align:center}
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     REUSABLE SYMBOLS — define once, <use> everywhere.
+     #cleo-coach     = neutral/friendly (coach strip, onboarding, account)
+     #cleo-celebrate = happy/cheering   (session summary)
+     Both share the same teal head silhouette so they read as ONE character.
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="cleoBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+
+    <!-- ===== COACH ===== -->
+    <symbol id="cleo-coach" viewBox="0 0 512 512">
+      <path d="M150 178 L120 78 L236 150 Z" fill="url(#cleoBody)"/>
+      <path d="M362 178 L392 78 L276 150 Z" fill="url(#cleoBody)"/>
+      <path d="M154 168 L138 110 L210 156 Z" fill="#0B5C56"/>
+      <path d="M358 168 L374 110 L302 156 Z" fill="#0B5C56"/>
+      <path d="M256 116 C150 116 96 196 96 286 C96 372 168 432 256 432 C344 432 416 372 416 286 C416 196 362 116 256 116 Z" fill="url(#cleoBody)"/>
+      <ellipse cx="206" cy="276" rx="34" ry="40" fill="#FAF8F5"/>
+      <ellipse cx="306" cy="276" rx="34" ry="40" fill="#FAF8F5"/>
+      <circle cx="214" cy="284" r="18" fill="#1C1917"/>
+      <circle cx="314" cy="284" r="18" fill="#1C1917"/>
+      <circle cx="221" cy="277" r="6" fill="#FFFFFF"/>
+      <circle cx="321" cy="277" r="6" fill="#FFFFFF"/>
+      <path d="M256 336 l24 20 -24 24 -24 -24 Z" fill="#EA580C"/>
+      <path d="M232 374 Q256 396 280 374" fill="none" stroke="#0B5C56" stroke-width="11" stroke-linecap="round"/>
+      <path d="M120 300 L168 308 M118 332 L168 332" fill="none" stroke="#0B5C56" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+      <path d="M392 300 L344 308 M394 332 L344 332" fill="none" stroke="#0B5C56" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+      <path d="M404 96 c12 40 18 46 58 58 -40 12 -46 18 -58 58 -12 -40 -18 -46 -58 -58 40 -12 46 -18 58 -58 Z" fill="#7C3AED"/>
+    </symbol>
+
+    <!-- ===== CELEBRATE ===== happy curved eyes, raised paws, confetti -->
+    <symbol id="cleo-celebrate" viewBox="0 0 512 512">
+      <!-- confetti accent (kept small; the CHARACTER carries it) -->
+      <circle cx="74" cy="120" r="11" fill="#EA580C"/>
+      <rect x="430" y="150" width="22" height="22" rx="5" fill="#7C3AED" transform="rotate(20 441 161)"/>
+      <circle cx="120" cy="60" r="8" fill="#14B8A6"/>
+      <path d="M452 86 l8 8 -8 8 -8 -8 Z" fill="#FDBA74"/>
+      <!-- raised paws (behind ears, peeking up at sides) -->
+      <circle cx="92" cy="210" r="40" fill="url(#cleoBody)"/>
+      <circle cx="420" cy="210" r="40" fill="url(#cleoBody)"/>
+      <!-- ears -->
+      <path d="M150 178 L120 78 L236 150 Z" fill="url(#cleoBody)"/>
+      <path d="M362 178 L392 78 L276 150 Z" fill="url(#cleoBody)"/>
+      <path d="M154 168 L138 110 L210 156 Z" fill="#0B5C56"/>
+      <path d="M358 168 L374 110 L302 156 Z" fill="#0B5C56"/>
+      <!-- head -->
+      <path d="M256 116 C150 116 96 196 96 286 C96 372 168 432 256 432 C344 432 416 372 416 286 C416 196 362 116 256 116 Z" fill="url(#cleoBody)"/>
+      <!-- happy closed (upward-curve) eyes -->
+      <path d="M178 282 Q206 250 234 282" fill="none" stroke="#FAF8F5" stroke-width="16" stroke-linecap="round"/>
+      <path d="M278 282 Q306 250 334 282" fill="none" stroke="#FAF8F5" stroke-width="16" stroke-linecap="round"/>
+      <!-- nose -->
+      <path d="M256 332 l24 20 -24 24 -24 -24 Z" fill="#EA580C"/>
+      <!-- big open happy mouth -->
+      <path d="M214 366 Q256 426 298 366 Q256 392 214 366 Z" fill="#0B5C56"/>
+      <!-- cheek blush -->
+      <ellipse cx="170" cy="338" rx="18" ry="11" fill="#FDBA74" opacity="0.6"/>
+      <ellipse cx="342" cy="338" rx="18" ry="11" fill="#FDBA74" opacity="0.6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> Brand asset · custom vector mascot</span>
+    <h1>Meet <em>Cleo</em>, the AI coach.</h1>
+    <p class="lede">One owned, flat-geometric cat in the warm editorial palette — teal body, coral nose, a violet AI spark. Not an emoji. Two expressions, <strong>coach</strong> and <strong>celebrate</strong>, defined once as reusable SVG symbols and rendered below at 256 / 96 / 48 / 32px on light and dark to prove she still reads as a cat at in-app avatar sizes (48 / 32).</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- COACH -->
+  <section>
+    <span class="kicker">Expression 1</span>
+    <h2>Coach — neutral &amp; friendly</h2>
+    <p class="sub">The default. Used for the Study coach-strip avatar, onboarding hero, and the Settings account avatar. The violet spark marks her as the AI coach.</p>
+
+    <div class="stage light">
+      <div class="bar"><span class="tag">Light</span> Coach on warm paper</div>
+      <div class="row">
+        <div class="cell"><div class="glyph s256"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo coach, 256px"><use href="#cleo-coach"/></svg></div><span class="sz">256 px</span></div>
+        <div class="cell"><div class="glyph s96"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo coach, 96px"><use href="#cleo-coach"/></svg></div><span class="sz">96 px</span></div>
+        <div class="cell"><div class="glyph s48"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo coach, 48px · avatar"><use href="#cleo-coach"/></svg></div><span class="sz">48 px · avatar</span></div>
+        <div class="cell"><div class="glyph s32"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo coach, 32px · avatar"><use href="#cleo-coach"/></svg></div><span class="sz">32 px · avatar</span></div>
+      </div>
+    </div>
+
+    <div class="stage dark">
+      <div class="bar"><span class="tag">Dark</span> Coach on ink</div>
+      <div class="row">
+        <div class="cell"><div class="glyph s256"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-coach"/></svg></div><span class="sz">256 px</span></div>
+        <div class="cell"><div class="glyph s96"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-coach"/></svg></div><span class="sz">96 px</span></div>
+        <div class="cell"><div class="glyph s48"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-coach"/></svg></div><span class="sz">48 px · avatar</span></div>
+        <div class="cell"><div class="glyph s32"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-coach"/></svg></div><span class="sz">32 px · avatar</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CELEBRATE -->
+  <section>
+    <span class="kicker">Expression 2</span>
+    <h2>Celebrate — happy &amp; cheering</h2>
+    <p class="sub">The session-summary moment: closed happy eyes, raised paws, a light confetti accent. Same silhouette as coach, so it is unmistakably the same Cleo.</p>
+
+    <div class="stage light">
+      <div class="bar"><span class="tag">Light</span> Celebrate on warm paper</div>
+      <div class="row">
+        <div class="cell"><div class="glyph s256"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo celebrating, 256px"><use href="#cleo-celebrate"/></svg></div><span class="sz">256 px</span></div>
+        <div class="cell"><div class="glyph s96"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo celebrating, 96px"><use href="#cleo-celebrate"/></svg></div><span class="sz">96 px</span></div>
+        <div class="cell"><div class="glyph s48"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo celebrating, 48px"><use href="#cleo-celebrate"/></svg></div><span class="sz">48 px</span></div>
+        <div class="cell"><div class="glyph s32"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo celebrating, 32px"><use href="#cleo-celebrate"/></svg></div><span class="sz">32 px</span></div>
+      </div>
+    </div>
+
+    <div class="stage dark">
+      <div class="bar"><span class="tag">Dark</span> Celebrate on ink</div>
+      <div class="row">
+        <div class="cell"><div class="glyph s256"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-celebrate"/></svg></div><span class="sz">256 px</span></div>
+        <div class="cell"><div class="glyph s96"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-celebrate"/></svg></div><span class="sz">96 px</span></div>
+        <div class="cell"><div class="glyph s48"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-celebrate"/></svg></div><span class="sz">48 px</span></div>
+        <div class="cell"><div class="glyph s32"><svg viewBox="0 0 512 512" aria-hidden="true"><use href="#cleo-celebrate"/></svg></div><span class="sz">32 px</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IN-CONTEXT -->
+  <section>
+    <span class="kicker">In context</span>
+    <h2>How Cleo sits in the app</h2>
+    <p class="sub">The exact in-app placements, at real size, to confirm legibility inside the UI components.</p>
+    <div class="ctx-grid">
+      <div class="ctx">
+        <h3>Study coach-strip (38px avatar)</h3>
+        <div class="coach-strip">
+          <div class="av"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo coach avatar"><use href="#cleo-coach"/></svg></div>
+          <div>
+            <b>Let's warm up with a quick translation</b>
+            <small>Coffee shop · polite requests</small>
+          </div>
+        </div>
+      </div>
+      <div class="ctx">
+        <h3>Settings account avatar (46px)</h3>
+        <div class="acct">
+          <div class="acct-av"><svg viewBox="0 0 512 512" role="img" aria-label="Cleo account avatar"><use href="#cleo-coach"/></svg></div>
+          <div>
+            <b>Practicing anonymously</b>
+            <small>Your progress lives on this device only.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="note"><strong>Master &amp; reuse.</strong> Canonical master vector: <code>brand/mascot-cleo.svg</code> (the coach pose). In product, both expressions ship as a single inline-SVG <code>&lt;symbol&gt;</code> sprite and are placed with <code>&lt;use&gt;</code> + CSS sizing — no raster assets, no per-instance path duplication. Style seed: app-icon Concept 4 "Cleo, Refined", so mascot and brand mark cohere.</p>
+</main>
+
+<footer>
+  <div class="wrap">Cleo mascot showcase · AI Scenario English Trainer · Inline SVG, system fonts, no external assets</div>
+</footer>
+
+</body>
+</html>

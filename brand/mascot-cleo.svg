@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cleo — the AI coach mascot for the Scenario English Trainer.
+  Canonical master. Flat / geometric, warm-editorial palette.
+  Teal body (#0D9488→#0F766E), coral nose (#EA580C), violet AI spark (#7C3AED).
+  Default expression = "coach" (neutral, friendly).
+  Designed to stay legible as a cat down to 32px: big triangular ears,
+  high eye contrast, single coral nose triangle, one clear silhouette.
+  viewBox 0 0 512 512, square.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Cleo, a friendly teal cat coach with a violet AI spark">
+  <defs>
+    <linearGradient id="cleoBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14B8A6"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ears: two confident triangles, drawn first so the head mass overlaps their base -->
+  <path d="M150 178 L120 78 L236 150 Z" fill="url(#cleoBody)"/>
+  <path d="M362 178 L392 78 L276 150 Z" fill="url(#cleoBody)"/>
+  <!-- inner ears -->
+  <path d="M154 168 L138 110 L210 156 Z" fill="#0B5C56"/>
+  <path d="M358 168 L374 110 L302 156 Z" fill="#0B5C56"/>
+
+  <!-- head: one rounded flat mass -->
+  <path d="M256 116
+           C150 116 96 196 96 286
+           C96 372 168 432 256 432
+           C344 432 416 372 416 286
+           C416 196 362 116 256 116 Z" fill="url(#cleoBody)"/>
+
+  <!-- eyes: large high-contrast ovals so the cat reads tiny -->
+  <ellipse cx="206" cy="276" rx="34" ry="40" fill="#FAF8F5"/>
+  <ellipse cx="306" cy="276" rx="34" ry="40" fill="#FAF8F5"/>
+  <circle cx="214" cy="284" r="18" fill="#1C1917"/>
+  <circle cx="314" cy="284" r="18" fill="#1C1917"/>
+  <!-- catch-lights -->
+  <circle cx="221" cy="277" r="6" fill="#FFFFFF"/>
+  <circle cx="321" cy="277" r="6" fill="#FFFFFF"/>
+
+  <!-- coral nose -->
+  <path d="M256 336 l24 20 -24 24 -24 -24 Z" fill="#EA580C"/>
+  <!-- friendly mouth -->
+  <path d="M232 374 Q256 396 280 374" fill="none" stroke="#0B5C56" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- whiskers (very subtle, structural not cutesy) -->
+  <path d="M120 300 L168 308 M118 332 L168 332" fill="none" stroke="#0B5C56" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+  <path d="M392 300 L344 308 M394 332 L344 332" fill="none" stroke="#0B5C56" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- violet AI spark (top-right), signals the AI coach -->
+  <path d="M404 96 c12 40 18 46 58 58 -40 12 -46 18 -58 58 -12 -40 -18 -46 -58 -58 40 -12 46 -18 58 -58 Z" fill="#7C3AED"/>
+</svg>

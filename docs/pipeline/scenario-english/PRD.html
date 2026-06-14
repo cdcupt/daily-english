@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PRD — AI Scenario English Trainer (v1.0, Pipeline)</title>
+<style>
+  :root{
+    --bg:#FAF8F5; --panel:#fff; --ink:#1C1917; --muted:#78716C;
+    --teal:#0D9488; --teal-soft:#CCFBF1; --coral:#EA580C; --violet:#7C3AED;
+    --green:#16A34A; --amber:#D97706; --red:#DC2626; --border:#E7E2DB;
+    --code:#0F172A; --code-ink:#E2E8F0; --radius:16px;
+    --shadow:0 8px 26px rgba(28,25,23,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+  header.hero{background:linear-gradient(135deg,#0D9488,#7C3AED);color:#fff;padding:48px 40px;border-radius:0 0 28px 28px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  header.hero::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.08);right:-160px;top:-180px}
+  .hero .eyebrow{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:6px 13px;border-radius:999px;font-size:13px;margin-bottom:16px;position:relative;z-index:2}
+  .hero h1{margin:0 0 12px;font-size:38px;line-height:1.12;letter-spacing:-.03em;max-width:820px;position:relative;z-index:2}
+  .hero p{margin:0;font-size:18px;color:rgba(255,255,255,.92);max-width:780px;position:relative;z-index:2}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:-30px auto 28px;max-width:1040px;padding:0 20px;position:relative;z-index:5}
+  .meta .c{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .meta .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+  .meta .v{font-weight:700;margin-top:2px}
+  nav.toc{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin:0 0 26px;box-shadow:var(--shadow);columns:2;column-gap:28px}
+  nav.toc a{display:block;padding:3px 0;font-size:14px;color:#44403C;break-inside:avoid}
+  section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:30px 32px;margin:18px 0;box-shadow:var(--shadow)}
+  section h2{margin:0 0 6px;font-size:25px;letter-spacing:-.02em}
+  section h2 .n{color:var(--teal);font-weight:800;margin-right:8px}
+  section h3{margin:22px 0 8px;font-size:18px}
+  .lead{font-size:16.5px;color:#44403C}
+  .callout{border-left:5px solid var(--teal);background:var(--teal-soft);padding:14px 16px;border-radius:12px;margin:14px 0}
+  .callout.warn{border-left-color:var(--amber);background:#FEF3E2}
+  .callout.danger{border-left-color:var(--red);background:#FEF2F2}
+  .callout.ok{border-left-color:var(--green);background:#ECFDF3}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{border:1px solid var(--border);border-radius:14px;padding:16px;background:#fff}
+  .card h3{margin:0 0 6px;font-size:16px}
+  .card p{margin:0;color:#57534E;font-size:14.5px}
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:14px 0;border:1px solid var(--border);border-radius:12px}
+  table{width:100%;border-collapse:collapse;min-width:540px}
+  th,td{padding:11px 13px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-size:14px}
+  th{background:#F6F3EF;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#57534E}
+  tr:last-child td{border-bottom:none}
+  .tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;margin:0 5px 5px 0}
+  .p0{background:#FEF2F2;color:#B91C1C}.p1{background:#FEF3E2;color:#B45309}.p2{background:#EEF2FF;color:#4338CA}
+  .done{background:#ECFDF3;color:#047857}
+  .pill{display:inline-block;padding:7px 12px;border-radius:999px;background:#F6F3EF;border:1px solid var(--border);font-size:13px;margin:0 6px 6px 0}
+  pre{background:var(--code);color:var(--code-ink);padding:16px;border-radius:14px;overflow:auto;font-size:13px;line-height:1.5}
+  code{background:#F1ECE5;border:1px solid var(--border);padding:1px 6px;border-radius:6px;font-size:.9em}
+  pre code{background:none;border:none;padding:0;color:inherit}
+  .flow{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+  .step{flex:1 1 140px;min-width:140px;background:#F6F3EF;border:1px solid var(--border);border-radius:12px;padding:13px}
+  .step .num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--teal);color:#fff;font-weight:700;font-size:12px;margin-bottom:7px}
+  .step strong{display:block;font-size:14px}
+  .step span{color:var(--muted);font-size:12.5px}
+  .footer{color:var(--muted);font-size:13px;margin-top:24px;text-align:center}
+  @media(max-width:820px){
+    .meta{grid-template-columns:1fr 1fr}
+    .grid2,.grid3{grid-template-columns:1fr}
+    nav.toc{columns:1}
+    header.hero{padding:34px 22px}
+    .hero h1{font-size:28px}
+    section{padding:22px 18px}
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="eyebrow">PRD v1.0 · Pipeline (5 roles · 3 gates) · Coordinator-authored</div>
+  <h1>AI Scenario English Trainer</h1>
+  <p>A practical, scenario-driven English trainer: pick a real-world situation, practice by translation, role-play dialogue, or topic description, get focused AI corrections and a CEFR-aligned score, and grow a personal expression bank that feeds spaced review. Delivered as a shared backend service with both a web client and a native iOS client.</p>
+</header>
+
+<div class="meta">
+  <div class="c"><div class="l">Doc Version</div><div class="v">v1.0 (final)</div></div>
+  <div class="c"><div class="l">Source PRD</div><div class="v">v0.2 (Desktop)</div></div>
+  <div class="c"><div class="l">Surfaces</div><div class="v">Backend + Web + iOS</div></div>
+  <div class="c"><div class="l">Scope</div><div class="v">All P0 + P1</div></div>
+</div>
+
+<div class="wrap">
+
+<nav class="toc">
+  <a href="#decisions">0. Locked Scope Decisions</a>
+  <a href="#summary">1. Product Summary</a>
+  <a href="#opportunity">2. Background &amp; Opportunity</a>
+  <a href="#goals">3. Goals &amp; Non-goals</a>
+  <a href="#users">4. Users &amp; Use Cases</a>
+  <a href="#loop">5. Core Learning Loop</a>
+  <a href="#features">6. Practice Modes</a>
+  <a href="#scenarios">7. Scenario Library</a>
+  <a href="#bank">8. Three-Layer Question Bank</a>
+  <a href="#sources">9. Content Sources &amp; Copyright</a>
+  <a href="#scoring">10. Scoring &amp; CEFR</a>
+  <a href="#feedback">11. AI Feedback Strategy</a>
+  <a href="#expression">12. Expression Bank</a>
+  <a href="#scope">13. Full Feature Scope (P0 + P1)</a>
+  <a href="#architecture">14. Platform &amp; Architecture</a>
+  <a href="#data">15. Data Models</a>
+  <a href="#metrics">16. Metrics &amp; Acceptance</a>
+  <a href="#delivery">17. Delivery Plan (Slices)</a>
+  <a href="#risks">18. Risks &amp; Boundaries</a>
+  <a href="#open">19. Open Questions</a>
+</nav>
+
+<section id="decisions">
+  <h2><span class="n">0</span>Locked Scope Decisions</h2>
+  <p class="lead">These were decided by the PM at kickoff and govern everything below. They reconcile the source PRD (which assumed "web first, local later") with the existing native-iOS codebase.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Decision</th><th>Choice</th><th>Implication</th></tr></thead>
+    <tbody>
+      <tr><td>Platforms</td><td><strong>Both web and mobile</strong> — web client + native iOS client over a shared core</td><td>One backend + API contract; two thin clients. iOS reuses the existing SwiftUI app's plumbing (AI client, TTS, Speech) where it still fits.</td></tr>
+      <tr><td>Backend</td><td><strong>Real backend service</strong> (DB + API)</td><td>Server owns scenarios, sessions, question-bank lifecycle, expression bank, ability profiles, review scheduling, and the content/admin workflow. AI calls run server-side.</td></tr>
+      <tr><td>Scope</td><td><strong>All P0 + P1</strong> features</td><td>Includes review tasks and the long-term ability profile (the P1 items), not just the core loop.</td></tr>
+      <tr><td>Repository</td><td><strong>Refactor existing repo</strong> <code>cdcupt/daily-english</code></td><td>Work on branch <code>redesign/scenario-english</code>; the 4-skill product is replaced by the scenario product. History preserved.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout warn"><strong>Scope note:</strong> "All P0 + P1 across backend + web + iOS" is a large build. The pipeline absorbs this by decomposing the build (Step 17) into verified, committed slices delivered backend-first, then web, then iOS. The three gates remain the only hard stops.</div>
+</section>
+
+<section id="summary">
+  <h2><span class="n">1</span>Product Summary</h2>
+  <p class="lead">This is not a traditional course app and not a generic AI chatbot. It is an AI scenario-based English trainer focused on helping users <em>express themselves in real situations</em>.</p>
+  <div class="callout"><strong>One-line positioning:</strong> Practice English through real-world scenarios, get focused AI corrections, and build a personal expression bank plus a CEFR ability profile.</div>
+  <h3>Core value propositions</h3>
+  <div class="grid3">
+    <div class="card"><h3>Practical</h3><p>Common real-life situations: ordering, travel, small talk, workplace, interviews, topic description.</p></div>
+    <div class="card"><h3>Corrective</h3><p>AI surfaces grammar, vocabulary, naturalness, pronunciation, fluency, and task-completion issues — only the few that matter most.</p></div>
+    <div class="card"><h3>Adaptive</h3><p>The question bank evolves via AI generation, editorial review, behavior data, and mistake-based personal review.</p></div>
+  </div>
+  <h3>Keywords</h3>
+  <div>
+    <span class="pill">Scenario-based learning</span><span class="pill">AI role-play</span><span class="pill">Translation practice</span>
+    <span class="pill">Topic description</span><span class="pill">Real-time scoring</span><span class="pill">CEFR estimate</span>
+    <span class="pill">Expression bank</span><span class="pill">Dynamic question bank</span><span class="pill">Mistake-based review</span>
+  </div>
+</section>
+
+<section id="opportunity">
+  <h2><span class="n">2</span>Background &amp; Opportunity</h2>
+  <p>Most AI English tools focus on tutors, pronunciation, vocab memorization, or gamified lessons. They reduce the speaking-practice gap but leave real holes.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Pain point</th><th>Symptom</th><th>Our opportunity</th></tr></thead>
+    <tbody>
+      <tr><td>Generic AI chat isn't practical</td><td>Users don't know what to say; the chat ends with no clear outcome.</td><td>Concrete scenarios with goals, roles, and target phrases drive practice.</td></tr>
+      <tr><td>Corrections aren't focused</td><td>Too many issues at once overwhelm the learner.</td><td>Level-aware feedback; highlight only 1–3 key issues.</td></tr>
+      <tr><td>Output isn't retained</td><td>Useful expressions are forgotten by the next day.</td><td>Auto-save vocabulary, patterns, and mistakes into a personal bank.</td></tr>
+      <tr><td>Progress is invisible</td><td>Users don't know what's between them and the next level.</td><td>Explainable scoring + CEFR ability profile with weak-point detail.</td></tr>
+      <tr><td>Static banks go stale</td><td>Fixed content is quickly exhausted or boring.</td><td>Hybrid: curated base bank + AI-generated bank + personal review bank.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout ok"><strong>Opportunity:</strong> Not another generic tutor — a practical scenario-driven system with AI correction, ability tracking, expression review, and an evolving question bank.</div>
+</section>
+
+<section id="goals">
+  <h2><span class="n">3</span>Goals &amp; Non-goals</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Goals</h3>
+      <ul>
+        <li>Help users express themselves in real-world English scenarios.</li>
+        <li>Improve naturalness via focused AI correction.</li>
+        <li>Auto-save unknown words, useful patterns, and recurring mistakes.</li>
+        <li>Provide a CEFR ability profile showing long-term progress.</li>
+        <li>Close the loop: practice → feedback → save → review → practice.</li>
+        <li>An expandable question bank with low content-maintenance cost.</li>
+        <li>Ship a shared backend with web and iOS clients in sync.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Non-goals (this version)</h3>
+      <ul>
+        <li>No full exam-prep question bank.</li>
+        <li>No community, rankings, or social features.</li>
+        <li>No live human teachers.</li>
+        <li>No official CEFR certification — AI estimate only.</li>
+        <li>English only; no other learning languages.</li>
+        <li>No scraping of competitor content, textbooks, or official exam questions.</li>
+        <li>No Android client this version.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="users">
+  <h2><span class="n">4</span>Users &amp; Use Cases</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>User type</th><th>Core need</th><th>Typical scenarios</th></tr></thead>
+    <tbody>
+      <tr><td>General learners</td><td>Speak English in daily life.</td><td>Ordering, shopping, directions, travel, small talk.</td></tr>
+      <tr><td>Working professionals</td><td>More natural workplace communication.</td><td>Meetings, interviews, client support, emails.</td></tr>
+      <tr><td>Travelers</td><td>High-frequency travel expressions fast.</td><td>Airport, hotel, restaurant, transport, emergencies.</td></tr>
+      <tr><td>Intermediate learners</td><td>Move from "understandable" to "natural."</td><td>Topic description, opinions, storytelling.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>User stories</h3>
+  <div class="grid2">
+    <div class="card"><h3>Scenario practice</h3><p>I choose a restaurant scenario and practice ordering, making requests, and responding to a waiter.</p></div>
+    <div class="card"><h3>Expression correction</h3><p>The AI flags unnatural English and suggests more natural alternatives.</p></div>
+    <div class="card"><h3>Retention</h3><p>The app saves words and patterns I misused so I can review them later.</p></div>
+    <div class="card"><h3>Progress</h3><p>I see my estimated CEFR level and what to improve to reach the next one.</p></div>
+  </div>
+</section>
+
+<section id="loop">
+  <h2><span class="n">5</span>Core Learning Loop</h2>
+  <p>The product is optimized around one repeatable loop, not isolated features.</p>
+  <div class="flow">
+    <div class="step"><div class="num">1</div><strong>Select scenario</strong><span>Restaurant, travel, social, work, topic.</span></div>
+    <div class="step"><div class="num">2</div><strong>Practice</strong><span>Translation, dialogue, or description.</span></div>
+    <div class="step"><div class="num">3</div><strong>AI feedback</strong><span>Grammar, vocab, pronunciation, naturalness.</span></div>
+    <div class="step"><div class="num">4</div><strong>Score</strong><span>Session + dimension scores, CEFR estimate.</span></div>
+    <div class="step"><div class="num">5</div><strong>Save</strong><span>Vocab, patterns, mistakes, expressions.</span></div>
+    <div class="step"><div class="num">6</div><strong>Review</strong><span>New tasks from weak points.</span></div>
+  </div>
+  <pre><code>Scenario → Output → Feedback → Scoring → Save → Review → Output again</code></pre>
+</section>
+
+<section id="features">
+  <h2><span class="n">6</span>Practice Modes</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Mode</th><th>User action</th><th>AI behavior</th><th>Focus</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Scenario Translation</strong></td><td>Translate a Chinese prompt into natural English (or explain an English sentence).</td><td>Returns corrected + more-natural version + error explanations.</td><td>Vocab, patterns, natural phrasing.</td></tr>
+      <tr><td><strong>Scenario Dialogue</strong></td><td>Role-play with the AI in a real situation.</td><td>Plays waiter / receptionist / interviewer / friend / colleague.</td><td>Interaction, quick response, fluency.</td></tr>
+      <tr><td><strong>Topic Description</strong></td><td>Speak 30s–2min on a topic.</td><td>Evaluates structure, fluency, grammar, vocab, naturalness.</td><td>Long-form speaking, coherence.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Example — Scenario Translation</h3>
+  <pre><code>Scenario: Ordering at a coffee shop
+Prompt (user): I want an iced Americano, no sugar, can less ice?
+
+AI feedback — more natural:
+  I'd like an iced Americano with no sugar. Could you make it with less ice?
+Explanation:
+  1. "I'd like..." is more polite than "I want..." when ordering.
+  2. "can less ice" is incomplete → "Could you make it with less ice?"
+  3. "with no sugar" sounds more complete than "no sugar."
+Save candidates: I'd like... · with no sugar · Could you make it with less ice?</code></pre>
+</section>
+
+<section id="scenarios">
+  <h2><span class="n">7</span>Scenario Library</h2>
+  <p>Launch with <strong>8 categories</strong>, 8–10 scenarios each — <strong>60–80 high-quality scenarios</strong> total. Categories: Daily Life, Travel, Social, Work (the source PRD's four shown), plus four more to reach eight (e.g. Health/Services, Education, Shopping/Money, Topic Description packs) — final eight finalized in the Design Document.</p>
+  <div class="grid2">
+    <div class="card"><h3>Daily Life</h3><span class="pill">Restaurant</span><span class="pill">Coffee Shop</span><span class="pill">Shopping</span><span class="pill">Directions</span><span class="pill">Renting</span><span class="pill">Pharmacy</span></div>
+    <div class="card"><h3>Travel</h3><span class="pill">Airport</span><span class="pill">Hotel</span><span class="pill">Customs</span><span class="pill">Transport</span><span class="pill">Emergency</span></div>
+    <div class="card"><h3>Social</h3><span class="pill">Small Talk</span><span class="pill">Self-intro</span><span class="pill">Invitations</span><span class="pill">Thanks</span><span class="pill">Polite Refusal</span></div>
+    <div class="card"><h3>Work</h3><span class="pill">Meetings</span><span class="pill">Interviews</span><span class="pill">Requirements</span><span class="pill">Customer Support</span><span class="pill">Emails</span></div>
+  </div>
+  <h3>Scenario data structure</h3>
+  <pre><code>{
+  "scenario_id": "coffee_shop_order_001",
+  "title": "Ordering at a Coffee Shop",
+  "category": "daily_life",
+  "level": "A2-B1",
+  "user_role": "Customer",
+  "ai_role": "Barista",
+  "goal": "Order a drink and request less ice and no sugar",
+  "key_phrases": ["I'd like...", "Could you make it with...?", "with no sugar", "less ice"],
+  "common_mistakes": ["Using 'I want...' too directly", "Saying 'can less ice' (incomplete)"],
+  "practice_modes": ["translation", "dialogue", "description"]
+}</code></pre>
+</section>
+
+<section id="bank">
+  <h2><span class="n">8</span>Three-Layer Question Bank</h2>
+  <p>Not a static list — an evolving content system: curated base bank + dynamic AI bank + personal review bank.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Layer</th><th>Source</th><th>Purpose</th><th>Personalized</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Curated base</strong></td><td>Human design + AI generation + review</td><td>Onboarding &amp; standard practice.</td><td>No</td></tr>
+      <tr><td><strong>Dynamic AI</strong></td><td>AI from scenario, level, goal</td><td>Freshness, anti-repetition.</td><td>Partially</td></tr>
+      <tr><td><strong>Personal review</strong></td><td>User mistakes, saved expressions, weak points</td><td>Personalized review tasks.</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Content lifecycle</h3>
+  <pre><code>draft → generated → auto_checked → review_pending → published → monitored → improved / archived</code></pre>
+  <h3>Quality metrics (per item)</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Metric</th><th>Meaning</th><th>Action on anomaly</th></tr></thead>
+    <tbody>
+      <tr><td>Completion rate</td><td>Started → finished.</td><td>Low → content unclear/long/hard.</td></tr>
+      <tr><td>Drop-off rate</td><td>Quit mid-task.</td><td>High → simplify / re-level.</td></tr>
+      <tr><td>Average score</td><td>Mean user score.</td><td>Extreme → recalibrate level.</td></tr>
+      <tr><td>Save rate</td><td>Expressions saved.</td><td>Low → low learning value.</td></tr>
+      <tr><td>Complaint rate</td><td>Reports of bad content.</td><td>Send to manual review.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout"><strong>Admin/editor workflow (P0):</strong> a content-review surface to move items through the lifecycle states, see quality metrics, and approve/archive. Web-only (operators), not shown to learners.</div>
+</section>
+
+<section id="sources">
+  <h2><span class="n">9</span>Content Sources &amp; Copyright</h2>
+  <p>Prioritize original + AI-generated + anonymized user demand + clearly-licensed open resources.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Priority</th><th>Source</th><th>Use</th><th>Risk</th></tr></thead>
+    <tbody>
+      <tr><td>P0</td><td>Original templates + AI generation</td><td>Main public bank</td><td>Low; needs naturalness review</td></tr>
+      <tr><td>P0</td><td>User demand clustering</td><td>Discover scenarios</td><td>Low; anonymize</td></tr>
+      <tr><td>P0</td><td>User mistake patterns</td><td>Personal review tasks</td><td>Low; privacy</td></tr>
+      <tr><td>P1</td><td>CEFR can-do descriptors</td><td>Level goals &amp; rubrics</td><td>Low; not official</td></tr>
+      <tr><td>P1</td><td>Tatoeba</td><td>Sentence pairs for translation</td><td>Medium; attribution (CC-BY)</td></tr>
+      <tr><td>P2</td><td>Common Voice</td><td>Speech/pronunciation data</td><td>Low</td></tr>
+      <tr><td>P2</td><td>Wiktionary/Wikibooks</td><td>Definitions, grammar</td><td>Medium-high; ShareAlike</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout danger"><strong>Do not scrape or copy:</strong> Duolingo / Speak / ELSA / Praktika content; official IELTS/TOEFL/Cambridge questions; paid textbooks; news articles; YouTube subtitles; social-media content. Every item carries source/license metadata.</div>
+</section>
+
+<section id="scoring">
+  <h2><span class="n">10</span>Scoring &amp; CEFR</h2>
+  <p>Scoring is a core differentiator — not one subjective AI number, but explainable dimensions tracked over time.</p>
+  <div class="callout warn"><strong>Compliance copy (required, verbatim where shown):</strong> "Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification."</div>
+  <h3>Two layers</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Layer</th><th>Description</th><th>Display</th></tr></thead>
+    <tbody>
+      <tr><td>Session score</td><td>One translation/dialogue/description task.</td><td>Score 78/100 · Est. CEFR B1-</td></tr>
+      <tr><td>Long-term ability</td><td>Recent sessions → stable profile.</td><td>Current A2+ · Stable A2–B1</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Six dimensions</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Dimension</th><th>Measures</th></tr></thead>
+    <tbody>
+      <tr><td>Vocabulary Range</td><td>Variety/appropriateness of vocabulary &amp; expressions.</td></tr>
+      <tr><td>Grammar Accuracy</td><td>Tense, articles, agreement, completeness.</td></tr>
+      <tr><td>Fluency</td><td>Rate, pauses, repetitions, self-corrections (speech).</td></tr>
+      <tr><td>Coherence</td><td>Connectors, consistency, logical flow.</td></tr>
+      <tr><td>Interaction</td><td>Responding, clarifying, confirming (dialogue).</td></tr>
+      <tr><td>Pronunciation</td><td>Phonemes, stress, intonation, intelligibility (speech).</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Technical flow</h3>
+  <pre><code>User speech → STT transcription
+→ speech features (rate, pauses, repetitions, clarity, ASR confidence)
+→ LLM rubric scoring (grammar, vocab, naturalness, interaction, task completion)
+→ aggregation (session score, dimension scores, CEFR estimate)
+→ report (summary, weak points, recommended review, next task)</code></pre>
+  <div class="callout"><strong>ASR confidence gate:</strong> low-confidence audio is flagged, the user is asked to retry, and low-confidence results are excluded from long-term ability scoring.</div>
+</section>
+
+<section id="feedback">
+  <h2><span class="n">11</span>AI Feedback Strategy</h2>
+  <p>Never dump every issue. Feedback is level-aware and mode-aware.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Mode</th><th>Description</th><th>Used in</th></tr></thead>
+    <tbody>
+      <tr><td>Light correction</td><td>Flag only key issues without breaking flow.</td><td>Dialogue</td></tr>
+      <tr><td>Instant correction</td><td>Correct each sentence right after it.</td><td>Translation</td></tr>
+      <tr><td>Post-session review</td><td>Analyze whole performance at the end.</td><td>Topic description, long dialogues</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Level-aware</h3>
+  <div class="grid3">
+    <div class="card"><h3>A1–A2</h3><p>Only correct errors that block understanding; short, copyable sentences.</p></div>
+    <div class="card"><h3>B1–B2</h3><p>Grammar, collocations, naturalness; native-like alternatives.</p></div>
+    <div class="card"><h3>C1+</h3><p>Tone, precision, style, logical structure.</p></div>
+  </div>
+  <h3>Feedback payload (JSON contract)</h3>
+  <pre><code>{
+  "original": "I want check in early.",
+  "corrected": "I'd like to check in early.",
+  "natural_version": "Would it be possible to check in early?",
+  "issues": [
+    {"type":"grammar","explanation":"'want' needs 'to do'; 'I'd like' is more polite in hotels."},
+    {"type":"naturalness","explanation":"'Would it be possible to...' is a more polite request."}
+  ],
+  "save_candidates": ["I'd like to...", "Would it be possible to...?", "check in early"]
+}</code></pre>
+</section>
+
+<section id="expression">
+  <h2><span class="n">12</span>Personal Expression Bank</h2>
+  <p>The retention engine — not a vocab list, but a personal asset generated from real practice.</p>
+  <div class="grid3">
+    <div class="card"><h3>Vocabulary</h3><p>Words the user doesn't know or misuses.</p></div>
+    <div class="card"><h3>Sentence patterns</h3><p>Reusable patterns like "Would it be possible to...".</p></div>
+    <div class="card"><h3>Mistake pairs</h3><p>Original → corrected → natural.</p></div>
+    <div class="card"><h3>Saved expressions</h3><p>Manually saved by the user.</p></div>
+    <div class="card"><h3>Scenario phrases</h3><p>Expressions tied to a scenario.</p></div>
+    <div class="card"><h3>Review tasks</h3><p>Generated from weak points + spaced repetition.</p></div>
+  </div>
+  <h3>Mistake → review generation</h3>
+  <pre><code>Mistake: "I want check in early."
+Corrected: "I'd like to check in early." / "Would it be possible to check in early?"
+Generated review tasks:
+  1. Use "I'd like to..." to say: "I want to check in early."
+  2. Use "Would it be possible to..." to ask politely about early check-in.
+  3. Re-enter the hotel front-desk scenario and use "check in early" naturally.</code></pre>
+</section>
+
+<section id="scope">
+  <h2><span class="n">13</span>Full Feature Scope (P0 + P1 — all in this version)</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Module</th><th>Feature</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>Scenario Library</td><td>8 categories, 60–80 scenarios.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Practice Modes</td><td>Translation, dialogue, topic description.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Voice Input</td><td>Voice response + transcription (web + iOS).</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>AI Correction</td><td>Original, corrected, natural version, explanations.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Scoring System</td><td>Session score, 6 dimension scores, CEFR estimate.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Base Question Bank</td><td>Curated items with metadata.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Question Bank Management</td><td>Status, version, source/license, quality metrics, admin workflow.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Expression Bank</td><td>Auto-save vocab, patterns, mistakes.</td><td><span class="tag p0">P0</span></td></tr>
+      <tr><td>Review</td><td>Daily review tasks from the expression bank (spaced repetition).</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>Ability Profile</td><td>Long-term CEFR profile + dimension trends.</td><td><span class="tag p1">P1</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Surfaces (AI-native — two pages, not a menu)</h3>
+  <div class="callout"><strong>Design principle:</strong> the app decides what to study; the user just shows up and practices. The whole learning loop collapses into ONE adaptive session feed. The scenario library, 3 practice modes, scoring, expression bank, and review still all exist — they are <em>engine, not pages</em>. Same features as the P0+P1 list above; far fewer screens.</div>
+  <pre><code>Learner app (web + iOS) — THREE surfaces:
+
+  STUDY  (the app, really)
+    A single AI-driven session feed. On open, the coach hands the user the next
+    best item — a scenario to practice, a sentence to translate, a dialogue turn,
+    or a resurfaced weak point. The user responds (voice or text); correction,
+    score, and "save to your bank" all happen INLINE; then it rolls into the next
+    item. Adaptive next-item (no menu, no mode picker, no library browse).
+
+  YOU  (the mirror)
+    Long-term CEFR profile + dimension trends, the expression bank
+    (vocab / patterns / mistakes / saved / scenario phrases), and review status.
+    Reflect-and-look-back surface; everything active lives in Study.
+
+  SETTINGS  (configure)
+    Account + magic-link upgrade / sign out; voice & TTS preference; native
+    language (for translation prompts); review reminders; appearance; data &
+    privacy; about + the CEFR compliance copy. (AI runs server-side via the
+    official provider API, so no user API key here.)
+
+  (Onboarding is a transient flow — anonymous start + optional magic-link upgrade —
+   not a standing page.)
+
+Operator (web only, OUTSIDE the learner app):
+  Admin — question-bank items, lifecycle states, quality metrics, review/approve/archive</code></pre>
+</section>
+
+<section id="architecture">
+  <h2><span class="n">14</span>Platform &amp; Architecture (intent — detailed in TECH doc)</h2>
+  <p>This is the PRD-level intent. The exact stack, schema, and APIs are decided in the Infrastructure Design / Tech Document (Step 4) by the Backend &amp; Frontend workers and reviewed by the Coordinator.</p>
+  <div class="grid3">
+    <div class="card"><h3>Backend service</h3><p>Owns data + business logic + AI orchestration. Exposes a REST/JSON API consumed identically by web and iOS. Server-side AI calls go to official provider APIs directly (OpenAI default, provider-configurable).</p></div>
+    <div class="card"><h3>Web client</h3><p>Responsive learner app + operator admin. Voice capture in-browser; thin, talks only to the API.</p></div>
+    <div class="card"><h3>iOS client</h3><p>Native SwiftUI app refactored from the existing repo. Reuses TTS/Speech plumbing; switches from local-only SwiftData to API-backed data (with sensible offline caching).</p></div>
+  </div>
+  <div class="callout"><strong>Shared contract:</strong> All AI outputs are structured JSON (feedback, scoring, generation). Every session is traceable to <code>scenario_id</code>, <code>item_id</code>, <code>session_id</code>. The API contract is the single source of truth both clients build against.</div>
+</section>
+
+<section id="data">
+  <h2><span class="n">15</span>Data Models (target tables)</h2>
+  <pre><code>users · scenarios · question_items · practice_sessions · practice_turns
+ai_feedback_items · expression_bank_items · review_tasks
+user_ability_profiles · content_sources · question_quality_metrics</code></pre>
+  <h3>Question bank item</h3>
+  <pre><code>{
+  "item_id":"coffee_shop_order_a2_001","type":"scenario_translation","status":"published","version":3,
+  "category":"daily_life","scenario":"coffee_shop_order","cefr_level":"A2","difficulty_score":42,
+  "user_role":"customer","ai_role":"barista",
+  "learning_goal":"Make a polite drink order and request customization",
+  "prompt_cn":"我想要一杯冰美式，不加糖，可以少放点冰吗？",
+  "reference_answers":["I'd like an iced Americano with no sugar. Could you make it with less ice?"],
+  "target_phrases":["I'd like...","Could you make it with...?","with no sugar","less ice"],
+  "common_mistakes":[{"wrong":"can less ice","explanation":"Incomplete. Use: Could you make it with less ice?"}],
+  "rubric":{"vocabulary":20,"grammar":25,"naturalness":25,"task_completion":20,"pronunciation":10},
+  "source":{"type":"ai_generated","license":"owned","reviewed_by":"editor","created_at":"2026-06-14"},
+  "quality_metrics":{"completion_rate":0.78,"average_score":72,"save_rate":0.64,"complaint_rate":0.01}
+}</code></pre>
+  <h3>User ability profile</h3>
+  <pre><code>{
+  "user_id":"user_001","overall_cefr":"A2+","stable_range":["A2","B1"],
+  "dimensions":{"vocabulary":{"score":68,"level":"A2+"},"grammar":{"score":64,"level":"A2"},
+    "fluency":{"score":72,"level":"B1-"},"coherence":{"score":61,"level":"A2"},
+    "interaction":{"score":75,"level":"B1-"},"pronunciation":{"score":78,"level":"B1"}},
+  "weaknesses":["article usage","sentence connection","polite request patterns"]
+}</code></pre>
+  <h3>Expression bank item</h3>
+  <pre><code>{
+  "item_id":"expr_001","user_id":"user_001","type":"sentence_pattern",
+  "content":"Would it be possible to...?","meaning_cn":"是否可以……？",
+  "source_session_id":"session_001","source_scenario_id":"hotel_checkin_001",
+  "user_original":"Can I early check in?","natural_expression":"Would it be possible to check in early?",
+  "review_status":{"next_review_at":"2026-06-15T09:00:00Z","mastery":0.42}
+}</code></pre>
+</section>
+
+<section id="metrics">
+  <h2><span class="n">16</span>Metrics &amp; Acceptance</h2>
+  <h3>Product metrics (targets)</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Metric</th><th>Definition</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td>Practice completion</td><td>Complete a session after starting.</td><td>&gt; 60%</td></tr>
+      <tr><td>Day-1 retention</td><td>Return the next day.</td><td>&gt; 25%</td></tr>
+      <tr><td>Expression save rate</td><td>Sessions saving ≥1 expression.</td><td>&gt; 70%</td></tr>
+      <tr><td>Review conversion</td><td>Complete a shown review task.</td><td>&gt; 35%</td></tr>
+      <tr><td>Scoring satisfaction</td><td>User rating of scoring usefulness.</td><td>&gt; 4.0/5</td></tr>
+      <tr><td>Complaint rate</td><td>Items reported bad.</td><td>&lt; 2%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Functional acceptance criteria</h3>
+  <ul>
+    <li>User selects a scenario and completes ≥1 practice mode (web and iOS).</li>
+    <li>Speech is transcribed and passed into the AI feedback flow.</li>
+    <li>Every session produces a score report (total + CEFR + ≥4 dimensions).</li>
+    <li>AI feedback includes original, corrected, natural version, and explanation.</li>
+    <li>≥1 save candidate extracted from each meaningful session.</li>
+    <li>Expression bank supports view, review, and mastery status.</li>
+    <li>Question items include source, license, status, version, quality metrics.</li>
+    <li>Low-quality items can be moved to review/archived via admin.</li>
+    <li>CEFR is labeled an AI estimate everywhere it appears.</li>
+  </ul>
+</section>
+
+<section id="delivery">
+  <h2><span class="n">17</span>Delivery Plan (build slices)</h2>
+  <p>After Gate 2, the build (Step 6) is decomposed into verified, committed slices. Order: <strong>backend-first</strong> (the contract everything depends on), then web learner, then admin, then iOS, then review + ability profile (P1).</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>#</th><th>Slice</th><th>Done when</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Backend skeleton + DB schema + scenario seed (8 cat / 60–80)</td><td>API serves scenarios; migrations run; seed loads.</td></tr>
+      <tr><td>2</td><td>Practice session engine + AI feedback JSON contract</td><td>Translation + description sessions return structured feedback.</td></tr>
+      <tr><td>3</td><td>Scoring + CEFR estimation engine</td><td>Session report with 6 dimensions + CEFR; ASR-confidence gate.</td></tr>
+      <tr><td>4</td><td>Expression bank + auto-save</td><td>Save candidates persist and are viewable.</td></tr>
+      <tr><td>5</td><td>Dialogue mode + voice input/transcription</td><td>Role-play turns; STT into the flow on both clients.</td></tr>
+      <tr><td>6</td><td>Web learner client — two surfaces (Study feed + You)</td><td>Full adaptive loop usable in browser; inline feedback/score/save.</td></tr>
+      <tr><td>7</td><td>Question-bank management + admin workflow</td><td>Lifecycle states + quality metrics + approve/archive.</td></tr>
+      <tr><td>8</td><td>Review task generator (P1, spaced repetition)</td><td>Daily review tasks from weak points.</td></tr>
+      <tr><td>9</td><td>Ability profile (P1)</td><td>Long-term CEFR + dimension trends.</td></tr>
+      <tr><td>10</td><td>iOS client refactor onto the API</td><td>Full loop on device; TTS/Speech reused.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="risks">
+  <h2><span class="n">18</span>Risks &amp; Boundaries</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Unstable AI scoring</td><td>Fixed rubrics, calibration examples, long-term averaging.</td></tr>
+      <tr><td>CEFR misread as official</td><td>Always label as AI estimate; show compliance copy.</td></tr>
+      <tr><td>Over-correction discourages users</td><td>Level-aware feedback; 1–3 key issues per session.</td></tr>
+      <tr><td>Low scenario quality</td><td>High-frequency scenarios with clear goal/role/phrases/mistakes.</td></tr>
+      <tr><td>ASR errors</td><td>Track confidence; retry; exclude low-confidence from long-term scoring.</td></tr>
+      <tr><td>Copyright</td><td>Original + licensed sources only; per-item source/license metadata.</td></tr>
+      <tr><td>Unnatural AI tasks</td><td>Auto-checks, AI review, human sampling, feedback monitoring.</td></tr>
+      <tr><td><strong>Scope (pipeline-specific)</strong></td><td>All P0+P1 × 3 surfaces is large → slice delivery, backend-first, green at each step.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="open">
+  <h2><span class="n">19</span>Open Questions (to resolve in design/tech, not blockers)</h2>
+  <ul>
+    <li><strong>Auth &amp; accounts:</strong> the data model implies <code>users</code>. Do we need real sign-in (email/OAuth) in this version, or anonymous device accounts? — proposed default: lightweight account (email magic-link) with anonymous fallback.</li>
+    <li><strong>Hosting:</strong> reuse the BWH VPS (Docker + Caddy) or a managed host? — proposed default: BWH to match existing ops.</li>
+    <li><strong>The other 4 scenario categories</strong> (PRD shows 4 of 8) — finalized in Design.</li>
+    <li><strong>iOS distribution:</strong> TestFlight/App Store needs signing credentials — out of automated scope until provided.</li>
+  </ul>
+  <div class="callout"><strong>Next:</strong> Step 2 kickoff (parallel role consult) → Step 3 Design Document → <strong>Gate 1</strong> (PM confirms the design). No code until after Gate 2.</div>
+</section>
+
+<div class="footer">
+  PRD v1.0 · authored by the Coordinator from source PRD v0.2 + PM kickoff decisions · AI Scenario English Trainer ·
+  CEFR references are for learning only, not official certification.
+</div>
+
+</div>
+</body>
+</html>
