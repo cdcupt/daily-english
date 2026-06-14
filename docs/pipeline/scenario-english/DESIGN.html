@@ -464,6 +464,37 @@
   .setting-row .st b{font-size:13px;display:block}
   .setting-row .st small{font-size:11px;color:var(--muted)}
 
+  /* ===== SETTINGS surface ===== */
+  .set-group{margin-bottom:16px}
+  .set-group > .set-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--ink-2);margin:0 0 8px 4px}
+  .set-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden}
+  .set-card .setting-row{margin:0;border:none;border-radius:0;border-bottom:1px solid var(--border);box-shadow:none}
+  .set-card .setting-row:last-child{border-bottom:none}
+  /* account card */
+  .acct-card{display:flex;align-items:center;gap:13px;padding:16px;background:linear-gradient(150deg,var(--violet),#6d28d9);color:#fff;border-radius:16px;box-shadow:var(--shadow-sm)}
+  .acct-card .acct-av{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:22px;flex-shrink:0}
+  .acct-card .acct-tx{flex:1;min-width:0}
+  .acct-card .acct-tx b{font-size:15px;display:block}
+  .acct-card .acct-tx small{font-size:12px;opacity:.9;display:block}
+  .acct-card .acct-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.2);padding:3px 9px;border-radius:7px;display:inline-block;margin-top:5px}
+  /* theme segmented control */
+  .theme-seg{display:flex;gap:6px;padding:6px;background:var(--paper-2);border:1px solid var(--border);border-radius:13px;margin:0 13px 13px}
+  .theme-seg button{flex:1;border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:700;color:var(--ink-2);padding:8px 6px;border-radius:9px;cursor:pointer;transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+  .theme-seg button[aria-pressed="true"]{background:var(--panel);color:var(--teal-700);box-shadow:var(--shadow-sm)}
+  .theme-seg button:hover{color:var(--ink)}
+  /* settings toggle (visual) */
+  .set-toggle{width:42px;height:24px;border-radius:99px;background:var(--teal);position:relative;border:none;cursor:pointer;flex-shrink:0;transition:background var(--dur) var(--ease)}
+  .set-toggle::after{content:"";position:absolute;top:2px;left:20px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left var(--dur) var(--ease)}
+  .set-toggle[aria-pressed="false"]{background:var(--border-2)}
+  .set-toggle[aria-pressed="false"]::after{left:2px}
+  .danger-row{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--border)}
+  .danger-row:last-child{border-bottom:none}
+  .danger-row .si{font-size:18px}
+  .danger-row .st{flex:1}
+  .danger-row .st b{font-size:13px;display:block}
+  .danger-row .st small{font-size:11px;color:var(--muted)}
+  .danger-row.delete .st b{color:var(--red)}
+
   /* onboarding */
   .onb{padding:30px 24px;text-align:center}
   .onb .mascot{font-size:64px;margin-bottom:10px}
@@ -503,7 +534,7 @@
   .mini-btn.archive{border-color:var(--red);color:var(--red)}
   .mini-btn.archive:hover{background:var(--red);color:#fff}
 
-  /* bottom tab bar (mobile app) — now just TWO surfaces */
+  /* bottom tab bar (mobile app) — now THREE surfaces */
   .tabbar{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);padding:8px 6px 10px}
   .device.desktop .tabbar{display:none}
   .tabbar button{flex:1;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:inherit;font-size:11px;font-weight:700;padding:6px 0;transition:color var(--dur) var(--ease)}
@@ -511,7 +542,7 @@
   .tabbar button[aria-pressed="true"]{color:var(--teal-700)}
   .tabbar button[aria-pressed="true"] .ti{transform:translateY(-1px)}
 
-  /* desktop web nav (top) — two surfaces */
+  /* desktop web nav (top) — three surfaces */
   .web-nav{display:none}
   .device.desktop .web-nav{display:flex;align-items:center;gap:8px;padding:14px 26px;border-bottom:1px solid var(--border);background:var(--panel)}
   .web-nav .brand{font-family:var(--serif);font-weight:700;font-size:17px;margin-right:14px}
@@ -544,10 +575,10 @@
   <div class="wrap">
     <span class="eyebrow"><span class="dot"></span> Design Document v2 · AI-native pivot · Gate 1 (re-review)</span>
     <h1>The app decides. <em>You just practice.</em></h1>
-    <p class="lede">After the PM's IA pivot, the learner product collapses from a five-tab library-and-modes app into <strong>two surfaces</strong>: an adaptive <strong>Study</strong> feed where the whole learning loop happens inline, and <strong>You</strong>, the look-back mirror. Same warm editorial identity, same full P0+P1 feature set — now an engine, not a menu.</p>
+    <p class="lede">After the PM's IA pivot, the learner product collapses from a five-tab library-and-modes app into <strong>three surfaces</strong>: an adaptive <strong>Study</strong> feed where the whole learning loop happens inline, <strong>You</strong>, the look-back mirror, and <strong>Settings</strong>, where account and preferences live. Same warm editorial identity, same full P0+P1 feature set — now an engine, not a menu.</p>
     <div class="hero-meta">
       <span class="chip"><b>Direction</b> · Warm editorial coaching</span>
-      <span class="chip"><b>Learner surfaces</b> · Study · You</span>
+      <span class="chip"><b>Learner surfaces</b> · Study · You · Settings</span>
       <span class="chip"><b>Operator</b> · Admin (separate)</span>
       <span class="chip"><b>Scope</b> · All P0 + P1 (re-homed)</span>
       <span class="chip"><b>Signature</b> · Inline 3-tier diff</span>
@@ -556,7 +587,7 @@
       <span class="bi">🔁</span>
       <div>
         <b>What changed in v2</b>
-        <p>Only the information architecture. Every feature in the PRD survives. Practice + Report became <em>inline states of the Study feed</em>; the scenario library + 3 modes became <em>item types behind the feed</em>; the Expression bank + ability profile moved to <em>You</em>. Onboarding stays a transient flow; Admin stays a separate operator tool outside the learner app.</p>
+        <p>Only the information architecture. Every feature in the PRD survives. Practice + Report became <em>inline states of the Study feed</em>; the scenario library + 3 modes became <em>item types behind the feed</em>; the Expression bank + ability profile moved to <em>You</em>; account &amp; preferences are promoted to a third top-level surface, <em>Settings</em>. Onboarding stays a transient flow; Admin stays a separate operator tool outside the learner app.</p>
       </div>
     </div>
   </div>
@@ -643,7 +674,7 @@
       <span class="pill coral">Feedback diff</span><span class="pill coral">ASR retry banner</span>
       <span class="pill violet">Inline score chip</span><span class="pill violet">Dimension bars</span>
       <span class="pill violet">CEFR badge</span><span class="pill paper">Save pill</span>
-      <span class="pill paper">Session summary</span><span class="pill paper">Two-surface tab bar</span>
+      <span class="pill paper">Session summary</span><span class="pill paper">Three-surface tab bar</span>
       <span class="pill paper">Mastery bar</span><span class="pill paper">Lifecycle pill (admin)</span>
       <p style="margin-top:12px;font-size:var(--t-xs);color:var(--muted)">Surfaces use <code>CardStyle</code> (18–20px radius, soft shadow) as the base raised surface; recessed surfaces use warm <code>--paper-2</code>. The score ring shrinks to an <em>inline mini-ring chip</em> in the feed and to a full hero ring on You.</p>
     </div>
@@ -665,7 +696,7 @@
         <tr><td><b>Contrast</b></td><td>All text ≥ 4.5:1 (≥ 3:1 large). Color is never the <em>only</em> signal — the diff uses labels + strikethrough + icons, item types use a labelled badge plus hue, so it reads for color-blind users.</td></tr>
         <tr><td><b>Focus states</b></td><td>Visible 3px violet focus ring on every interactive element (web). iOS uses system focus + VoiceOver. No focus is ever suppressed.</td></tr>
         <tr><td><b>Reduced motion</b></td><td><code>prefers-reduced-motion</code> drops all transitions/animations to ~0ms; the diff, score chip, and thinking dots appear instantly. (Honored live in this very document's mockup.)</td></tr>
-        <tr><td><b>Keyboard nav</b></td><td>Full tab order; the two-surface tab bar, You sub-tabs, save toggles, and the in-feed "Check my answer" are real buttons with <code>aria-pressed</code>. Skip-link to main content + to the mockup.</td></tr>
+        <tr><td><b>Keyboard nav</b></td><td>Full tab order; the three-surface tab bar, You sub-tabs, Settings toggles, save toggles, and the in-feed "Check my answer" are real buttons with <code>aria-pressed</code>. Skip-link to main content + to the mockup.</td></tr>
         <tr><td><b>Non-blocking ASR retry</b></td><td>Low-confidence audio shows an inline, dismissible coral banner with a Retry action inside the feed item — it never modal-traps the user or discards their turn. Accept the draft, retry, or switch to typing.</td></tr>
         <tr><td><b>Voice alternatives</b></td><td>Every voice item in the feed has a text fallback. Speaking is never the only path to completing an item (intelligibility scoring is simply skipped).</td></tr>
         <tr><td><b>Targets &amp; copy</b></td><td>≥ 44×44px touch targets. CEFR is labeled an estimate everywhere it appears — inline chip in the feed and full breakdown on You both carry the verbatim disclaimer.</td></tr>
@@ -679,12 +710,12 @@
 <!-- ====================================================== -->
 <section class="block" id="ia">
   <span class="kicker"><span class="num">02</span> · Information Architecture</span>
-  <h2>Two surfaces, not a menu</h2>
-  <p class="section-lede">v1 carried a five-tab learner shell (Home · Scenarios · Practice · Expressions · Profile). v2 collapses that to <strong>two learner surfaces</strong> — <strong>Study</strong> (the adaptive feed where everything active happens) and <strong>You</strong> (the look-back mirror) — plus a transient onboarding flow and a separate operator Admin. Web and iOS share the same two-surface model: a two-item bottom tab bar on mobile, a two-item top nav on desktop.</p>
+  <h2>Three surfaces, not a menu</h2>
+  <p class="section-lede">v1 carried a five-tab learner shell (Home · Scenarios · Practice · Expressions · Profile). v2 collapses that to <strong>three learner surfaces</strong> — <strong>Study</strong> (the adaptive feed where everything active happens), <strong>You</strong> (the look-back mirror), and <strong>Settings</strong> (account &amp; preferences) — plus a transient onboarding flow and a separate operator Admin. Web and iOS share the same three-surface model: a three-item bottom tab bar on mobile, a three-item top nav on desktop.</p>
 
   <div class="bento feature">
     <div class="card">
-      <h3>🎯 Learner — two surfaces (web + iOS)</h3>
+      <h3>🎯 Learner — three surfaces (web + iOS)</h3>
       <pre><code>STUDY  (the app, really)
    One adaptive session feed. On open, the coach hands the
    user the NEXT BEST item. The whole loop happens inline:
@@ -700,9 +731,15 @@
 YOU  (the mirror)
    Long-term CEFR profile + 6-dimension trends · the
    expression bank (Vocabulary · Patterns · Mistakes ·
-   Saved · Scenario phrases) · review status &amp; mastery ·
-   settings &amp; account. Nothing active happens here.</code></pre>
-      <p style="margin-top:10px">Everything that was a verb (practice, score, save, review) lives in <strong>Study</strong>. Everything that is a noun (your profile, your bank, your history) lives in <strong>You</strong>.</p>
+   Saved · Scenario phrases) · review status &amp; mastery.
+   Nothing active happens here.
+
+SETTINGS  (configure)
+   Account (anonymous status · magic-link upgrade · sign
+   out) · Voice &amp; TTS preference · Native language ·
+   Review reminders · Appearance · Data &amp; privacy ·
+   About + CEFR compliance copy. Server-backed — no API key.</code></pre>
+      <p style="margin-top:10px">Everything that was a verb (practice, score, save, review) lives in <strong>Study</strong>. Everything that is a noun (your profile, your bank, your history) lives in <strong>You</strong>. Everything you <em>configure</em> (account, voice, language, reminders, privacy) lives in <strong>Settings</strong>.</p>
     </div>
     <div class="card" style="background:var(--paper-2)">
       <h3>🛠️ Operator — Admin (web only, outside the app)</h3>
@@ -716,7 +753,7 @@ Sources        content sources + license metadata</code></pre>
     </div>
   </div>
 
-  <div class="callout violet"><strong>Navigation parity:</strong> identical two-surface model on web + iOS keeps muscle memory portable. The only platform difference is placement — bottom tab bar on iOS/mobile-web, top nav on desktop-web. On web the active surface and the active You sub-tab live in the <strong>URL</strong> (shareable, back-button-correct); the Study feed itself is a stream, so "back" returns to You rather than rewinding items.</div>
+  <div class="callout violet"><strong>Navigation parity:</strong> identical three-surface model on web + iOS keeps muscle memory portable. The only platform difference is placement — bottom tab bar on iOS/mobile-web, top nav on desktop-web. On web the active surface, the active You sub-tab, and the active Settings section live in the <strong>URL</strong> (shareable, back-button-correct); the Study feed itself is a stream, so "back" returns to the previous surface rather than rewinding items.</div>
 
   <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">How every old screen is re-homed</h3>
   <p class="section-lede">Nothing was deleted. Each v1 screen became either an inline state of the Study feed, a slice of the engine behind it, or a section of You.</p>
@@ -729,8 +766,9 @@ Sources        content sources + license metadata</code></pre>
         <tr><td><b>Practice</b> (Translation / Dialogue / Description)</td><td><span class="pill teal">Study</span></td><td>The three modes become three <em>item types</em> in the feed. The user answers inline; the mode is chosen by the coach, not a picker.</td></tr>
         <tr><td><b>Score Report</b></td><td><span class="pill teal">Study</span></td><td>Becomes the inline <em>score chip</em> after each item + an end-of-session <em>summary card</em>. Full 6-dimension breakdown lives on You.</td></tr>
         <tr><td><b>Expressions + Review</b></td><td><span class="pill violet">You</span> (bank) + <span class="pill teal">Study</span> (review)</td><td>The bank (5 sub-tabs) becomes a You section. <em>Doing</em> review moves into Study as resurfaced review items; You shows review <em>status</em> &amp; mastery.</td></tr>
-        <tr><td><b>Profile</b></td><td><span class="pill violet">You</span></td><td>CEFR hero, 6-dimension trends, weaknesses, account &amp; settings — all become You. Disclaimer repeated here.</td></tr>
-        <tr><td><b>Onboarding</b></td><td><span class="pill paper">Transient</span></td><td>Unchanged in spirit: anonymous start + optional magic-link upgrade. A flow, not a standing tab.</td></tr>
+        <tr><td><b>Profile</b></td><td><span class="pill violet">You</span></td><td>CEFR hero, 6-dimension trends, weaknesses — become You. Account &amp; preferences split out to Settings. Disclaimer repeated here.</td></tr>
+        <tr><td><b>Settings &amp; account</b></td><td><span class="pill paper">Settings</span></td><td><strong>Promoted to its own top-level surface</strong> (was a sub-tab inside You). Account + magic-link upgrade / sign out, Voice &amp; TTS, Native language, Review reminders, Appearance, Data &amp; privacy, About + CEFR disclaimer.</td></tr>
+        <tr><td><b>Onboarding</b></td><td><span class="pill paper">Transient</span></td><td>Unchanged in spirit: anonymous start + optional magic-link upgrade. A flow, not a standing tab; the upgrade is re-reachable from Settings → Account.</td></tr>
         <tr><td><b>Admin</b></td><td><span class="pill paper">Operator</span></td><td>Unchanged. Separate web-only operator surface outside the learner app.</td></tr>
       </tbody>
     </table>
@@ -778,8 +816,8 @@ Sources        content sources + license metadata</code></pre>
 <!-- ====================================================== -->
 <section class="block" id="screens">
   <span class="kicker"><span class="num">03</span> · Surface-by-Surface Specs</span>
-  <h2>Two surfaces, every state</h2>
-  <p class="section-lede">Study is specced as a feed with many inline states and item types; You as a profile + bank with sub-sections; Admin as the operator tool. Each lists purpose, layout, key components, and <strong>all states</strong>. The live prototype in §5 renders the starred surfaces.</p>
+  <h2>Three surfaces, every state</h2>
+  <p class="section-lede">Study is specced as a feed with many inline states and item types; You as a profile + bank with sub-sections; Settings as account + preference cards; Admin as the operator tool. Each lists purpose, layout, key components, and <strong>all states</strong>. The live prototype in §5 renders the starred surfaces.</p>
 
   <!-- Onboarding -->
   <details class="screen-spec" open>
@@ -842,8 +880,8 @@ Sources        content sources + license metadata</code></pre>
         <div class="spec-block"><h4>Sub-tab: Profile</h4><ul><li>CEFR hero (overall + stable range, labeled AI estimate).</li><li>6-dimension 30-day trend chart.</li><li>"Focus next" weakness chips (article usage, polite requests…).</li><li>Disclaimer repeated verbatim.</li></ul></div>
         <div class="spec-block"><h4>Sub-tab: Bank</h4><ul><li>Five categories: Vocabulary · Patterns · Mistakes · Saved · Scenario phrases.</li><li>Each item: content, meaning, source scenario, mastery bar.</li><li>Auto-populated by the inline save pill in Study.</li></ul></div>
         <div class="spec-block"><h4>Sub-tab: Review status</h4><ul><li>How many items are due / scheduled and overall mastery.</li><li>"Doing" review is a Study action — this is the dashboard, with a "Practice these in Study" CTA that drops review items into the feed.</li></ul></div>
-        <div class="spec-block"><h4>Sub-tab: Settings &amp; account</h4><ul><li>Anonymous vs synced account (magic-link upgrade re-entry).</li><li>Voice, notifications, level-targeting preferences.</li></ul></div>
       </div>
+      <div class="callout violet" style="margin-top:6px"><strong>Changed in v3:</strong> You now has <strong>three</strong> sub-tabs (Profile · Bank · Review status). The former <em>Settings &amp; account</em> sub-tab has been <strong>promoted to its own top-level Settings surface</strong> — see the next spec.</div>
       <div class="spec-block" style="margin-top:6px"><h4>States</h4>
         <div class="states-row">
           <span class="state-pill empty"><span class="d"></span>Too few sessions ("practice 3 more to unlock your level")</span>
@@ -853,6 +891,33 @@ Sources        content sources + license metadata</code></pre>
           <span class="state-pill success"><span class="d"></span>Level-up moment</span>
         </div>
       </div>
+    </div>
+  </details>
+
+  <!-- SETTINGS -->
+  <details class="screen-spec" open>
+    <summary>⚙️ Settings — account &amp; preferences ★ <span class="surface-tag study">web · iOS · configure</span><span class="caret">▸</span></summary>
+    <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>The configure surface (new third top-level tab).</b> Everything you set, not something you do. Grouped into clean cards in the warm design language. The model is <strong>server-backed</strong>, so there is <em>no user API-key field</em> — AI runs server-side via 9relay.</p>
+      <div class="spec-grid">
+        <div class="spec-block"><h4>Section: Account</h4><ul><li>Anonymous status badge + "Upgrade with email magic-link" (re-enters the onboarding upgrade flow, merges the anon record).</li><li>When upgraded: shows the linked email + "Sign out".</li><li>Never blocks practice — anonymous is a first-class state.</li></ul></div>
+        <div class="spec-block"><h4>Section: Voice &amp; TTS</h4><ul><li>Multi-voice picker (reuses the existing multi-voice idea — system / warm / crisp coach voices).</li><li>Voice-input toggle (server-side ASR on/off).</li></ul></div>
+        <div class="spec-block"><h4>Section: Native language</h4><ul><li>Language used for translation prompts &amp; meaning glosses. Default <strong>Chinese</strong>.</li></ul></div>
+        <div class="spec-block"><h4>Section: Review reminders</h4><ul><li>Notification toggle + daily reminder time picker. Drives the streak nudge.</li></ul></div>
+        <div class="spec-block"><h4>Section: Appearance</h4><ul><li>Theme (System / Light / Dark) and text size. Warm palette holds across themes.</li></ul></div>
+        <div class="spec-block"><h4>Section: Data &amp; privacy</h4><ul><li>Export my data · Delete my data (destructive confirm).</li><li>Privacy note: practice content powers personal review only.</li></ul></div>
+        <div class="spec-block"><h4>Section: About</h4><ul><li>App version + the verbatim CEFR compliance copy.</li></ul></div>
+        <div class="spec-block"><h4>States</h4>
+          <div class="states-row">
+            <span class="state-pill default"><span class="d"></span>Signed in anonymously (Upgrade CTA)</span>
+            <span class="state-pill success"><span class="d"></span>Upgraded / synced (email + Sign out)</span>
+            <span class="state-pill loading"><span class="d"></span>Sending magic link</span>
+            <span class="state-pill error"><span class="d"></span>Save / link error (inline, non-blocking)</span>
+            <span class="state-pill asr"><span class="d"></span>Delete-data confirm (destructive)</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout amber" style="margin-top:14px"><strong>Verbatim compliance copy (shown in Settings → About):</strong><br>"Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification."</div>
     </div>
   </details>
 
@@ -918,7 +983,7 @@ Sources        content sources + license metadata</code></pre>
 <section class="block" id="mockup">
   <span class="kicker"><span class="num">05</span> · Interactive Mockup</span>
   <h2>Click through the real thing</h2>
-  <p class="section-lede">A working prototype with the actual palette, type, and components. Walk the AI-native flow: <strong>Onboarding → Study → You → Admin</strong>. Inside Study, step through its inline states with the row of buttons under the coach strip — a practice item, the 3-tier correction reveal, the inline score, a low-ASR retry, and a resurfaced review item. Toggle <strong>Mobile (390px / iOS)</strong> vs <strong>Desktop (web)</strong>. Honors <code>prefers-reduced-motion</code>.</p>
+  <p class="section-lede">A working prototype with the actual palette, type, and components. Walk the AI-native flow: <strong>Onboarding → Study → You → Settings → Admin</strong>. Inside Study, step through its inline states with the row of buttons under the coach strip — a practice item, the 3-tier correction reveal, the inline score, a low-ASR retry, and a resurfaced review item. Settings is the new third learner tab. Toggle <strong>Mobile (390px / iOS)</strong> vs <strong>Desktop (web)</strong>. Honors <code>prefers-reduced-motion</code>.</p>
 
   <div class="mockup-stage">
     <div class="mockup-controls" role="group" aria-label="Mockup controls">
@@ -927,6 +992,7 @@ Sources        content sources + license metadata</code></pre>
         <button class="seg" data-screen="onboarding" aria-pressed="false">Onboarding</button>
         <button class="seg" data-screen="study" aria-pressed="true">Study</button>
         <button class="seg" data-screen="you" aria-pressed="false">You</button>
+        <button class="seg" data-screen="settings" aria-pressed="false">Settings</button>
         <button class="seg" data-screen="admin" aria-pressed="false">Admin</button>
       </div>
       <div class="group" role="group" aria-label="Device">
@@ -945,6 +1011,7 @@ Sources        content sources + license metadata</code></pre>
             <span class="brand">Scenario English<span class="dot">.</span></span>
             <button data-screen="study" aria-pressed="true">Study</button>
             <button data-screen="you" aria-pressed="false">You</button>
+            <button data-screen="settings" aria-pressed="false">Settings</button>
             <span class="spacer"></span>
             <span class="avatar" style="width:34px;height:34px;font-size:13px">EK</span>
           </div>
@@ -1111,7 +1178,6 @@ Sources        content sources + license metadata</code></pre>
                   <button class="ytab" aria-pressed="true" data-you="profile">Profile</button>
                   <button class="ytab" aria-pressed="false" data-you="bank">Bank</button>
                   <button class="ytab" aria-pressed="false" data-you="review">Review status</button>
-                  <button class="ytab" aria-pressed="false" data-you="settings">Settings</button>
                 </div>
 
                 <!-- Profile -->
@@ -1163,14 +1229,90 @@ Sources        content sources + license metadata</code></pre>
                   <p style="font-size:13px;color:var(--ink-2);margin:10px 0 12px">Reviewing happens in Study — we'll drop these items into your feed.</p>
                   <button class="btn btn-primary btn-block" data-goto="study">Practice these in Study →</button>
                 </div>
+              </div>
+            </div>
 
-                <!-- Settings -->
-                <div class="you-pane" data-youpane="settings">
-                  <div class="setting-row"><span class="si">🐱</span><div class="st"><b>Anonymous account</b><small>Sync to keep your progress safe</small></div><button class="btn btn-ghost btn-sm" data-goto="onboarding">Sync</button></div>
-                  <div class="setting-row"><span class="si">🎙️</span><div class="st"><b>Voice input</b><small>On · server-side transcription</small></div><span class="pill teal" style="margin:0">On</span></div>
-                  <div class="setting-row"><span class="si">🎯</span><div class="st"><b>Level target</b><small>Adaptive · currently aiming B1</small></div><span class="pill violet" style="margin:0">B1</span></div>
-                  <div class="setting-row"><span class="si">🔔</span><div class="st"><b>Daily reminder</b><small>09:00 · keep your streak</small></div><span class="pill paper" style="margin:0">On</span></div>
+            <!-- ===== SETTINGS ===== -->
+            <div class="app-screen" data-pane="settings">
+              <div class="app-top"><div class="greet"><small>Configure</small><b>Settings</b></div><span class="avatar">EK</span></div>
+              <div class="app-pad">
+
+                <!-- Account (default: anonymous) -->
+                <div class="set-group">
+                  <div class="set-label">Account</div>
+                  <div class="acct-card">
+                    <div class="acct-av">🐱</div>
+                    <div class="acct-tx">
+                      <b>Practicing anonymously</b>
+                      <small>Your progress lives on this device only.</small>
+                      <span class="acct-badge">Anonymous</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:9px;margin-top:10px">
+                    <button class="btn btn-primary" style="flex:1" data-goto="onboarding">✉️ Upgrade with magic-link</button>
+                    <button class="btn btn-ghost btn-sm" id="acctToggle" aria-label="Preview signed-in state">Preview synced</button>
+                  </div>
+                  <p class="hint" style="text-align:left;margin:8px 0 0">Upgrading emails a one-tap link and merges this device's progress. No password.</p>
                 </div>
+
+                <!-- Voice & TTS -->
+                <div class="set-group">
+                  <div class="set-label">Voice &amp; TTS</div>
+                  <div class="set-card">
+                    <div class="setting-row"><span class="si">🎙️</span><div class="st"><b>Voice input</b><small>Server-side transcription (ASR)</small></div><button class="set-toggle" aria-pressed="true" aria-label="Voice input on"></button></div>
+                    <div class="setting-row"><span class="si">🔊</span><div class="st"><b>Coach voice</b><small>Reads corrections &amp; the natural version aloud</small></div><span class="pill teal" style="margin:0">Warm ▾</span></div>
+                  </div>
+                </div>
+
+                <!-- Native language -->
+                <div class="set-group">
+                  <div class="set-label">Native language</div>
+                  <div class="set-card">
+                    <div class="setting-row"><span class="si">🌐</span><div class="st"><b>Translation &amp; meanings</b><small>Used for prompts and glosses</small></div><span class="pill violet" style="margin:0">中文 ▾</span></div>
+                  </div>
+                </div>
+
+                <!-- Review reminders -->
+                <div class="set-group">
+                  <div class="set-label">Review reminders</div>
+                  <div class="set-card">
+                    <div class="setting-row"><span class="si">🔔</span><div class="st"><b>Daily reminder</b><small>Nudge to keep your streak</small></div><button class="set-toggle" aria-pressed="true" aria-label="Daily reminder on"></button></div>
+                    <div class="setting-row"><span class="si">⏰</span><div class="st"><b>Reminder time</b><small>When we'll ping you</small></div><span class="pill paper" style="margin:0">09:00 ▾</span></div>
+                  </div>
+                </div>
+
+                <!-- Appearance -->
+                <div class="set-group">
+                  <div class="set-label">Appearance</div>
+                  <div class="set-card" style="padding-top:13px">
+                    <div class="theme-seg" role="group" aria-label="Theme">
+                      <button aria-pressed="true">System</button>
+                      <button aria-pressed="false">Light</button>
+                      <button aria-pressed="false">Dark</button>
+                    </div>
+                    <div class="setting-row"><span class="si">🔠</span><div class="st"><b>Text size</b><small>Larger type across the app</small></div><span class="pill paper" style="margin:0">Default ▾</span></div>
+                  </div>
+                </div>
+
+                <!-- Data & privacy -->
+                <div class="set-group">
+                  <div class="set-label">Data &amp; privacy</div>
+                  <div class="set-card">
+                    <div class="danger-row"><span class="si">📤</span><div class="st"><b>Export my data</b><small>Download your bank &amp; history</small></div><button class="btn btn-ghost btn-sm">Export</button></div>
+                    <div class="danger-row delete"><span class="si">🗑️</span><div class="st"><b>Delete my data</b><small>Permanently erase everything</small></div><button class="btn btn-coral btn-sm">Delete</button></div>
+                  </div>
+                  <p class="hint" style="text-align:left;margin:8px 0 0">Your practice content powers your personal review only — it is never sold or shared.</p>
+                </div>
+
+                <!-- About -->
+                <div class="set-group" style="margin-bottom:4px">
+                  <div class="set-label">About</div>
+                  <div class="set-card">
+                    <div class="setting-row"><span class="si">ℹ️</span><div class="st"><b>Scenario English</b><small>Version 2.0 · server-backed</small></div></div>
+                  </div>
+                  <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
+                </div>
+
               </div>
             </div>
 
@@ -1216,10 +1358,11 @@ Sources        content sources + license metadata</code></pre>
 
           </div><!-- /viewport -->
 
-          <!-- MOBILE BOTTOM TAB BAR — TWO surfaces -->
+          <!-- MOBILE BOTTOM TAB BAR — THREE surfaces -->
           <nav class="tabbar" id="tabbar" aria-label="App surfaces">
             <button data-screen="study" aria-pressed="true"><span class="ti">🎯</span>Study</button>
             <button data-screen="you" aria-pressed="false"><span class="ti">🪞</span>You</button>
+            <button data-screen="settings" aria-pressed="false"><span class="ti">⚙️</span>Settings</button>
           </nav>
 
         </div><!-- /screen -->
@@ -1336,6 +1479,46 @@ Sources        content sources + license metadata</code></pre>
       b.setAttribute('aria-label', on ? 'Saved' : 'Save expression');
     });
   });
+
+  // Settings: visual switch toggles (aria-pressed only)
+  document.querySelectorAll('.set-toggle').forEach(function(t){
+    t.addEventListener('click', function(){
+      t.setAttribute('aria-pressed', String(t.getAttribute('aria-pressed') !== 'true'));
+    });
+  });
+
+  // Settings: theme segmented control (single-select)
+  document.querySelectorAll('.theme-seg').forEach(function(bar){
+    bar.addEventListener('click', function(e){
+      var btn = e.target.closest('button'); if (!btn) return;
+      Array.prototype.forEach.call(bar.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed','false'); });
+      btn.setAttribute('aria-pressed','true');
+    });
+  });
+
+  // Settings: preview anonymous vs upgraded account state
+  var acctToggle = document.getElementById('acctToggle');
+  if (acctToggle){
+    var synced = false;
+    acctToggle.addEventListener('click', function(){
+      synced = !synced;
+      var card = document.querySelector('[data-pane="settings"] .acct-card');
+      if (!card) return;
+      if (synced){
+        card.querySelector('.acct-av').textContent = '✅';
+        card.querySelector('.acct-tx b').textContent = 'erik@email.com';
+        card.querySelector('.acct-tx small').textContent = 'Synced across your devices.';
+        card.querySelector('.acct-badge').textContent = 'Synced';
+        acctToggle.textContent = 'Sign out';
+      } else {
+        card.querySelector('.acct-av').textContent = '🐱';
+        card.querySelector('.acct-tx b').textContent = 'Practicing anonymously';
+        card.querySelector('.acct-tx small').textContent = 'Your progress lives on this device only.';
+        card.querySelector('.acct-badge').textContent = 'Anonymous';
+        acctToggle.textContent = 'Preview synced';
+      }
+    });
+  }
 
   setDevice('mobile');
   setScreen('study');

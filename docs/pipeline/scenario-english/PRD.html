@@ -440,7 +440,7 @@ Generated review tasks:
   </div>
   <h3>Surfaces (AI-native — two pages, not a menu)</h3>
   <div class="callout"><strong>Design principle:</strong> the app decides what to study; the user just shows up and practices. The whole learning loop collapses into ONE adaptive session feed. The scenario library, 3 practice modes, scoring, expression bank, and review still all exist — they are <em>engine, not pages</em>. Same features as the P0+P1 list above; far fewer screens.</div>
-  <pre><code>Learner app (web + iOS) — TWO surfaces:
+  <pre><code>Learner app (web + iOS) — THREE surfaces:
 
   STUDY  (the app, really)
     A single AI-driven session feed. On open, the coach hands the user the next
@@ -451,8 +451,14 @@ Generated review tasks:
 
   YOU  (the mirror)
     Long-term CEFR profile + dimension trends, the expression bank
-    (vocab / patterns / mistakes / saved / scenario phrases), review status,
-    and settings. Reflect-and-look-back surface; everything active lives in Study.
+    (vocab / patterns / mistakes / saved / scenario phrases), and review status.
+    Reflect-and-look-back surface; everything active lives in Study.
+
+  SETTINGS  (configure)
+    Account + magic-link upgrade / sign out; voice & TTS preference; native
+    language (for translation prompts); review reminders; appearance; data &
+    privacy; about + the CEFR compliance copy. (AI runs server-side via 9relay,
+    so no user API key here.)
 
   (Onboarding is a transient flow — anonymous start + optional magic-link upgrade —
    not a standing page.)
