@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kickoff Decisions — AI Scenario English Trainer</title>
+<style>
+  :root{--bg:#FAF8F5;--panel:#fff;--ink:#1C1917;--muted:#78716C;--teal:#0D9488;--teal-soft:#CCFBF1;--coral:#EA580C;--amber:#D97706;--red:#DC2626;--green:#16A34A;--border:#E7E2DB;--radius:14px;--shadow:0 8px 26px rgba(28,25,23,.06)}
+  *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 70px}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 22px}
+  section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;margin:16px 0;box-shadow:var(--shadow)}
+  section h2{margin:0 0 12px;font-size:20px}
+  .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+  table{width:100%;border-collapse:collapse;min-width:520px}
+  th,td{padding:10px 13px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-size:14px}
+  th{background:#F6F3EF;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#57534E}
+  tr:last-child td{border-bottom:none}
+  code{background:#F1ECE5;border:1px solid var(--border);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .callout{border-left:5px solid var(--teal);background:var(--teal-soft);padding:13px 15px;border-radius:11px;margin:12px 0}
+  .callout.warn{border-left-color:var(--amber);background:#FEF3E2}
+  ul{margin:8px 0}
+  @media(max-width:720px){section{padding:18px 16px}}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Kickoff Decisions</h1>
+<p class="sub">Synthesis of the Step-2 parallel consult (Backend/Infra + Client architects). Coordinator-locked defaults — PM may revise at Gate 1/2. None are blockers.</p>
+
+<section>
+<h2>Locked architecture decisions</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Area</th><th>Decision</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td>Backend stack</td><td>TypeScript + PostgreSQL (framework — Fastify or NestJS — finalized in Tech Doc); Drizzle/Prisma + Zod</td><td>Type-sharing with web client; <code>jsonb</code> for AI payloads; one-VPS simplicity.</td></tr>
+<tr><td>AI orchestration</td><td>Route via <strong>9relay</strong> (OpenAI-compatible); strict JSON schema + Zod re-validate + 1 repair retry; persist raw output; pinned model+prompt version per task; temp 0–0.2</td><td>One key surface + usage tracking; reliable structured output; auditability.</td></tr>
+<tr><td>Auth</td><td>Anonymous device account on first launch → optional email magic-link upgrade (merges record); JWT access/refresh</td><td>Zero-friction loop; cross-device sync without OAuth complexity.</td></tr>
+<tr><td>STT / voice</td><td><strong>Server-side ASR canonical</strong> (Whisper); client uploads audio; iOS on-device Speech = live draft hint only</td><td>Identical scoring across clients; server owns the ASR-confidence value the gate needs.</td></tr>
+<tr><td>Scoring / CEFR</td><td>Hybrid: code-computed speech features (rate/pauses/repetition/confidence) + LLM rubric (calibration anchors) + <strong>deterministic CEFR mapping</strong> + moving-average long-term profile</td><td>Directly mitigates the PRD's score-instability risk.</td></tr>
+<tr><td>Web client</td><td>Next.js App Router + TS + Tailwind token layer (mirrors design tokens) + TanStack Query; URL state for filters/tabs</td><td>App-like + SSR for learner surfaces + admin route segment.</td></tr>
+<tr><td>iOS client</td><td>Reuse TTS, Speech, design tokens, mascots, tab shell; replace SwiftData models + 4-skill views; API-backed via generated Swift client</td><td>Keep the assets, drop the local-first model.</td></tr>
+<tr><td>Shared contract</td><td>OpenAPI 3.1 = source of truth → <code>openapi-typescript</code> (web) + <code>swift-openapi-generator</code> (iOS), generated in CI</td><td>Byte-identical AI JSON contracts; build fails on drift.</td></tr>
+<tr><td>Deployment</td><td>Docker on BWH VPS alongside 9relay; Caddy vhost <code>api.&lt;domain&gt;</code>; Postgres named volume; nightly <code>pg_dump</code> off-box; resource-limited</td><td>Match existing ops; protect prod 9relay.</td></tr>
+<tr><td>Design direction</td><td>"Warm editorial coaching": warm paper bg, teal=action, coral=correction/attention, violet=CEFR/progress; mascots as scenario guides; 3-tier feedback diff (original→corrected→natural)</td><td>Carries one identity across web + iOS; reuses existing warm palette.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section>
+<h2>Open items (defaults chosen — confirm at a gate, not blocking)</h2>
+<ul>
+  <li><strong>Hosting topology:</strong> default = shared BWH VPS, resource-limited + separate DB volume + nightly backup. Alternative = a second cheap node to isolate the DB from prod 9relay.</li>
+  <li><strong>STT host/cost:</strong> default = 9relay-routed Whisper; revisit self-hosted <code>faster-whisper</code> if per-minute cost is high.</li>
+  <li><strong>9relay for app AI:</strong> default = yes (touches your prod key surface; usage will show under a dedicated key).</li>
+  <li><strong>Web framework:</strong> default = Next.js App Router; lighter SPA possible since most surfaces are behind auth.</li>
+  <li><strong>iOS offline depth:</strong> read-only offline (browse scenarios + review expressions); practice/scoring requires network (server-side AI).</li>
+</ul>
+</section>
+
+<section>
+<h2>Top cross-cutting risks</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td>AI JSON malformation / drift</td><td>Strict schema + Zod re-validate + repair-retry + raw-output logging + contract tests on prompt changes.</td></tr>
+<tr><td>Score instability (PRD-flagged)</td><td>Code-derived CEFR + calibration anchors + low temp + moving-average profile + golden-set regression test in CI.</td></tr>
+<tr><td>Contract drift web↔iOS</td><td>OpenAPI + generated clients in CI; PR fails on shape change.</td></tr>
+<tr><td>Voice capture fragmentation (Safari/iOS)</td><td>Server-side ASR on uploaded blob is canonical; browser live transcript is a disposable hint; test iPhone Safari early.</td></tr>
+<tr><td>Shared VPS contention with prod 9relay</td><td>Resource limits, separate Postgres volume, off-box backups; monitor.</td></tr>
+<tr><td>Scope (P0+P1 × 3 surfaces)</td><td>Sliced delivery, backend-first, green at each step; iOS last.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<p class="sub">Next: Step 3 — Designer produces the Design Document (flows, screens, states, clickable mockup) → Coordinator review → <strong>Gate 1</strong>.</p>
+</div></body></html>
