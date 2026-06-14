@@ -834,7 +834,7 @@ next_review_at = now + interval → spawn review_task at due_at</code></pre>
 
 <section id="tech-bk-ops">
   <h2><span class="n">B9</span>Deployment &amp; Ops (BWH VPS)</h2>
-  <p class="lead">A self-contained Docker Compose stack behind Caddy, resource-limited as general good practice so it coexists cleanly with any other tenants on the host. BWH is a candidate host; the app has no dependency on anything else running there.</p>
+  <p class="lead"><strong>BWH is a shared, multi-tenant host</strong> — 9relay, BillMind, and a <strong>shared PostgreSQL</strong> already run there. This app must <strong>coexist without disrupting anything already deployed</strong>: it adds an <code>api</code> (and optional <code>whisper</code>) container, <strong>reuses the existing shared Postgres</strong> with its own dedicated database + role (no second Postgres instance), binds to a free localhost port, and only <em>adds</em> Caddy vhosts. The app has no runtime dependency on the other tenants — just careful neighbourliness.</p>
 
   <h3>Deployment topology</h3>
   <div class="tablewrap">
@@ -849,7 +849,7 @@ next_review_at = now + interval → spawn review_task at due_at</code></pre>
     <rect x="40" y="130" width="320" height="190" rx="12" fill="#fff" stroke="#0D9488" stroke-width="1.5" stroke-dasharray="5 4"/>
     <text x="56" y="152" font-size="11.5" font-weight="700" fill="#0F766E">app stack (cpu/mem limited)</text>
     <rect x="60" y="166" width="130" height="48" rx="10" fill="#CCFBF1" stroke="#0D9488"/><text x="125" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#0F766E">api</text><text x="125" y="204" text-anchor="middle" font-size="9.5" fill="#0F766E">Fastify :3000</text>
-    <rect x="210" y="166" width="130" height="48" rx="10" fill="#F5F3FF" stroke="#7C3AED"/><text x="275" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#5B21B6">db</text><text x="275" y="204" text-anchor="middle" font-size="9.5" fill="#7C3AED">postgres:16 vol</text>
+    <rect x="210" y="166" width="130" height="48" rx="10" fill="#FBFAF8" stroke="#78716C"/><text x="275" y="186" text-anchor="middle" font-size="11.5" font-weight="700" fill="#44403C">shared Postgres</text><text x="275" y="202" text-anchor="middle" font-size="9" fill="#57534E">existing · own DB+role</text>
     <rect x="60" y="232" width="130" height="48" rx="10" fill="#F5F3FF" stroke="#7C3AED"/><text x="125" y="254" text-anchor="middle" font-size="12" font-weight="700" fill="#5B21B6">whisper</text><text x="125" y="270" text-anchor="middle" font-size="9.5" fill="#7C3AED">faster-whisper</text>
     <rect x="210" y="232" width="130" height="48" rx="10" fill="#fff" stroke="#0D9488"/><text x="275" y="254" text-anchor="middle" font-size="11" font-weight="700" fill="#0F766E">audio volume</text><text x="275" y="270" text-anchor="middle" font-size="9.5" fill="#57534E">weekly snapshot</text>
     <!-- other tenants note -->
@@ -866,13 +866,23 @@ next_review_at = now + interval → spawn review_task at due_at</code></pre>
     <path d="M340 190 C 720 90, 740 120, 778 152" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#dp)"/><text x="600" y="100" font-size="10" fill="#15803D">nightly pg_dump → gzip</text>
   </svg>
   </div>
-  <span class="cap">BWH host: Caddy → self-contained app containers {api, db, whisper} (cpu/mem-limited); AI/ASR call the official provider API off-host over HTTPS; nightly pg_dump ships off-box.</span>
+  <span class="cap">BWH host: Caddy → app containers {api, optional whisper} (cpu/mem-limited) that <strong>reuse the existing shared Postgres</strong> (own DB+role, not a new instance); AI/ASR call the official provider API off-host over HTTPS; nightly pg_dump of this app's DB ships off-box.</span>
 
   <div class="grid2">
-    <div class="card"><h3>Services</h3><p><code>api</code> (Fastify), <code>db</code> (postgres:16, named volume), optional <code>whisper</code> (faster-whisper). Caddy vhosts: <code>english.daichenlab.com</code> (web, admin at <code>/admin</code>) + <code>api.english.daichenlab.com</code> → <code>api:3000</code>, auto-TLS + B10 headers. DNS via Cloudflare in <strong>DNS-only mode</strong> (grey cloud) — A records <code>english</code> + <code>api.english</code> → host IP; Caddy obtains Let's Encrypt certs directly (HTTP-01). Matches the user's other apps.</p></div>
-    <div class="card"><h3>Resource limits</h3><p>Per-service cpu/memory limits + Postgres <code>shared_buffers</code> cap as general good practice, so the app coexists cleanly with any other tenants. Concurrency cap on AI/ASR to bound spend + CPU.</p></div>
+    <div class="card"><h3>Services</h3><p><code>api</code> (Fastify) + optional <code>whisper</code>, on a <strong>unique compose project + container names</strong> (e.g. <code>scenario-english-api</code>). <strong>DB = reuse the shared Postgres</strong> (the existing instance BillMind/9relay use) via a <strong>new database + role</strong> — no new Postgres container. API bound to a <strong>free localhost port</strong> (verify nothing else uses it). Caddy gets <strong>two new vhosts appended</strong> (existing vhosts untouched): <code>english.daichenlab.com</code> (web, admin at <code>/admin</code>) + <code>api.english.daichenlab.com</code> → the API's localhost port, auto-TLS. DNS via Cloudflare <strong>DNS-only</strong> — A records <code>english</code> + <code>api.english</code> → host IP; Caddy gets Let's Encrypt certs (HTTP-01).</p></div>
+    <div class="card"><h3>Resource limits</h3><p>Per-service cpu/memory limits so the app never starves the <strong>shared Postgres</strong> or the other tenants. Connection-pool cap sized for the shared DB; concurrency cap on AI/ASR to bound spend + CPU. Don't touch other tenants' limits/volumes.</p></div>
     <div class="card"><h3>Backups</h3><p>Nightly <code>pg_dump</code> → gzip → off-box; 14-day retention; documented restore. Audio blobs on a separate volume, weekly snapshot.</p></div>
-    <div class="card"><h3>Secrets / env</h3><p>Host <code>.env</code> (not in repo): DB URL, JWT secrets, provider API key(s) (<code>OPENAI_API_KEY</code>, optional <code>GEMINI_API_KEY</code>), optional self-hosted Whisper URL, Resend key. Boot-time presence check.</p></div>
+    <div class="card"><h3>Secrets / env</h3><p>Host <code>.env</code> (not in repo): DB URL (<strong>shared Postgres → this app's DB+role</strong>), JWT secrets, provider API key(s) (<code>OPENAI_API_KEY</code>, optional <code>GEMINI_API_KEY</code>), optional self-hosted Whisper URL, Resend key. Boot-time presence check.</p></div>
+  </div>
+  <div class="callout warn"><strong>Coexistence checklist (BWH is multi-tenant — do this before deploy):</strong>
+    <ol style="margin:8px 0 0">
+      <li><strong>Inventory first:</strong> <code>docker ps</code> + check used host ports + list Postgres databases — know what's already running (9relay, BillMind, shared Postgres) before touching anything.</li>
+      <li><strong>Reuse the shared Postgres:</strong> create a dedicated database + role for this app (least privilege, scoped to its own DB); <em>never</em> spin up a competing Postgres or alter other DBs.</li>
+      <li><strong>Pick a free localhost port</strong> for the API (verify it's unused; bind to <code>127.0.0.1</code> only — Caddy fronts it).</li>
+      <li><strong>Unique names:</strong> distinct compose project + container + volume names (<code>scenario-english-*</code>) so nothing collides with existing stacks.</li>
+      <li><strong>Additive Caddy only:</strong> append the two new vhost blocks; do not edit or reload-break the 9relay/BillMind vhosts. Validate with <code>caddy validate</code> before reload.</li>
+      <li><strong>Resource caps + own backups:</strong> set cpu/mem limits; back up only this app's database; confirm the shared Postgres and other tenants are unaffected after deploy.</li>
+    </ol>
   </div>
   <h3>Migrations + CI</h3>
   <pre><code>deploy: git pull → docker compose build api
