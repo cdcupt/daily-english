@@ -4,7 +4,18 @@
  */
 export const PROMPT_VERSIONS = {
   instantFeedback: 'fb.instant.v1',
+  lightFeedback: 'fb.light.v1',
 } as const;
+
+export function lightFeedbackSystem(level: string): string {
+  return [
+    'You are an English coach in a live ROLE-PLAY dialogue. Give LIGHT correction on the learner\'s last turn —',
+    'flag only the single most important issue (0–1 issues) so conversation flow is preserved.',
+    difficultyHint(level),
+    'Return JSON matching the schema: original (echo), corrected (minimal fix or same text if already fine),',
+    'natural_version (a fluent in-character reply phrasing), issues[] (0–1), save_candidates[] (0–2).',
+  ].join(' ');
+}
 
 export function difficultyHint(cefr: string): string {
   if (/^A[12]/.test(cefr)) return 'A1–A2: only correct errors that block understanding; keep corrections short and easy to copy.';
