@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getProfile, listExpressions } from "@/api/endpoints";
+import { getProfile, getProfileTrends, listExpressions } from "@/api/endpoints";
 import type {
   AbilityProfile,
+  ProfileTrends,
   Expression,
   ExpressionType,
   Paginated,
 } from "@/api/types";
+import { TrendChart } from "./TrendChart";
 
 const DIM_COLORS: Record<string, string> = {
   vocabulary: "var(--color-teal)",
@@ -35,6 +37,11 @@ export function YouView() {
     queryFn: getProfile,
   });
 
+  const trendsQ = useQuery<ProfileTrends>({
+    queryKey: ["profile-trends", 30],
+    queryFn: () => getProfileTrends(30),
+  });
+
   const exprQ = useQuery<Paginated<Expression>>({
     queryKey: ["expressions", tab],
     queryFn: () => listExpressions(tab === "all" ? undefined : tab),
@@ -53,6 +60,16 @@ export function YouView() {
       )}
 
       {profileQ.data && <ProfilePanel profile={profileQ.data} />}
+
+      <div className="a-card trend-card">
+        <div className="section-label" style={{ margin: "0 0 6px" }}>
+          Trend
+        </div>
+        {trendsQ.isLoading && (
+          <div className="skel" style={{ height: 92, borderRadius: 12 }} />
+        )}
+        {trendsQ.data && <TrendChart series={trendsQ.data.series} />}
+      </div>
 
       <div className="section-label">Expression bank</div>
       <div className="expr-subtabs" role="tablist" aria-label="Expression types">

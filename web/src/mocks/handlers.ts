@@ -12,6 +12,8 @@ import type {
   AudioTurnResult,
   ScoreReport,
   AbilityProfile,
+  ProfileTrends,
+  TrendPoint,
   Expression,
   FeedbackPayload,
   AdminItem,
@@ -138,6 +140,42 @@ const PROFILE: AbilityProfile = {
   disclaimer:
     "Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.",
 };
+
+/**
+ * Realistic 30-day ability trend: a noisy upward climb from ~52 to ~74 with a
+ * few null/gap days (no practice) so the chart renders gaps, not zeros.
+ */
+function buildTrends(days = 30): ProfileTrends {
+  const GAP_OFFSETS = new Set([26, 18, 9]); // days-ago with no practice
+  const today = new Date();
+  const series: TrendPoint[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const date = d.toISOString().slice(0, 10);
+
+    if (GAP_OFFSETS.has(i)) {
+      series.push({ date, total: null, dimensions: {} });
+      continue;
+    }
+
+    const progress = (days - 1 - i) / (days - 1); // 0 → 1 over the window
+    const base = 52 + progress * 22; // 52 → 74 baseline climb
+    const wobble = Math.sin(i * 1.3) * 3.2; // gentle day-to-day noise
+    const total = Math.round(Math.max(0, Math.min(100, base + wobble)));
+    series.push({
+      date,
+      total,
+      dimensions: {
+        vocabulary: Math.round(Math.min(100, total + 6)),
+        grammar: Math.round(Math.max(0, total - 4)),
+        coherence: Math.round(total + 1),
+        interaction: Math.round(Math.max(0, total - 8)),
+      },
+    });
+  }
+  return { days, series };
+}
 
 const STUDY_NEXT: StudyNext = {
   kind: "practice",
@@ -324,6 +362,11 @@ export async function mockFetch<T>(
 
   if (path === "/profile") {
     return PROFILE as T;
+  }
+
+  if (path === "/profile/trends") {
+    const days = Number(req.query?.days ?? 30) || 30;
+    return buildTrends(days) as T;
   }
 
   if (path === "/expressions" && method === "GET") {

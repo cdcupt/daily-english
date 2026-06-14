@@ -195,6 +195,17 @@ export const userAbilityProfiles = pgTable('user_ability_profiles', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const dimensionSnapshots = pgTable('dimension_snapshots', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  capturedAt: timestamp('captured_at', { withTimezone: true }).notNull().defaultNow(),
+  total: integer('total').notNull(),
+  overallCefr: text('overall_cefr').notNull(),
+  dimensions: jsonb('dimensions').$type<Record<string, DimensionScore>>().notNull(),
+}, (t) => ({
+  userTimeIdx: index('ds_user_time').on(t.userId, t.capturedAt),
+}));
+
 export const questionQualityMetrics = pgTable('question_quality_metrics', {
   itemId: uuid('item_id').primaryKey().references(() => questionItems.id),
   completionRate: real('completion_rate').notNull().default(0),

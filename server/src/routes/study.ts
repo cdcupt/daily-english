@@ -1,7 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { getDb } from '../db/client.js';
-import { scenarios, questionItems, practiceSessions, userAbilityProfiles, expressionBankItems } from '../db/schema.js';
+import { scenarios, questionItems, practiceSessions, userAbilityProfiles, expressionBankItems, dimensionSnapshots } from '../db/schema.js';
+import { gte, and } from 'drizzle-orm';
+import { buildTrendSeries } from '../scoring/trends.js';
 import { requireAuth } from '../auth/plugin.js';
 import { ok, fail } from '../schemas.js';
 import { selectNextItem, profileScoreFromDimensions } from '../adaptive/select.js';
@@ -99,5 +101,22 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
       weaknesses: p?.weaknesses ?? [],
       disclaimer: CEFR_DISCLAIMER,
     }));
+  });
+
+  // 30-day dimension trend series (You chart).
+  app.get('/v1/profile/trends', { preHandler: requireAuth }, async (req, reply) => {
+    const q = req.query as { days?: string };
+    const days = Math.min(90, Math.max(7, Number.parseInt(q.days ?? '30', 10) || 30));
+    const now = new Date();
+    const since = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const db = getDb();
+    const snaps = await db.select().from(dimensionSnapshots).where(and(
+      eq(dimensionSnapshots.userId, req.user!.sub), gte(dimensionSnapshots.capturedAt, since),
+    ));
+    const series = buildTrendSeries(
+      snaps.map((s) => ({ capturedAt: s.capturedAt, total: s.total, dimensions: s.dimensions })),
+      days, now,
+    );
+    return reply.send(ok({ days, series }, { points: series.length }));
   });
 }

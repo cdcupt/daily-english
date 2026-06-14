@@ -110,6 +110,19 @@ export interface AbilityProfile {
   disclaimer: string;
 }
 
+/** One day of the 30-day ability trend. `total` is null on days with no data. */
+export interface TrendPoint {
+  date: string; // YYYY-MM-DD
+  total: number | null;
+  dimensions: Record<string, number>;
+}
+
+/** GET /v1/profile/trends — windowed ability series for the You surface. */
+export interface ProfileTrends {
+  days: number;
+  series: TrendPoint[];
+}
+
 export type ExpressionType =
   | "mistake_pair"
   | "phrase"

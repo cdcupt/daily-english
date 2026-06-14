@@ -8,7 +8,7 @@ import { generateInstantFeedback } from '../ai/feedback.js';
 import { scoreSession, type ScoreEntry } from '../scoring/session.js';
 import { updateEma } from '../scoring/engine.js';
 import { scoreToCEFR } from '../scoring/cefr.js';
-import { userAbilityProfiles, expressionBankItems } from '../db/schema.js';
+import { userAbilityProfiles, expressionBankItems, dimensionSnapshots } from '../db/schema.js';
 import { mistakePairFromFeedback } from '../expressions/service.js';
 import { and } from 'drizzle-orm';
 
@@ -155,6 +155,11 @@ export async function sessionRoutes(app: FastifyInstance): Promise<void> {
     await db.update(userAbilityProfiles)
       .set({ dimensions: nextDims, overallCefr: scoreToCEFR(overall), updatedAt: new Date() })
       .where(eq(userAbilityProfiles.userId, req.user!.sub));
+
+    // Snapshot the profile for the 30-day trend (You surface).
+    await db.insert(dimensionSnapshots).values({
+      userId: req.user!.sub, total: score.total, overallCefr: score.cefr_estimate, dimensions: score.dimensions,
+    });
 
     return reply.send(ok(report));
   });

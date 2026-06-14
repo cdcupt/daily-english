@@ -11,6 +11,7 @@ import type {
   AudioTurnResult,
   ScoreReport,
   AbilityProfile,
+  ProfileTrends,
   Expression,
   SaveExpressionInput,
   ExpressionType,
@@ -83,6 +84,14 @@ export function finishSession(sessionId: string): Promise<ScoreReport> {
 /** GET /v1/profile — long-term ability profile for the You surface. */
 export function getProfile(): Promise<AbilityProfile> {
   return request<AbilityProfile>("/profile", { method: "GET" });
+}
+
+/** GET /v1/profile/trends?days=30 — windowed ability series for the You surface. */
+export function getProfileTrends(days = 30): Promise<ProfileTrends> {
+  return request<ProfileTrends>("/profile/trends", {
+    method: "GET",
+    query: { days },
+  });
 }
 
 /** GET /v1/expressions — paginated bank, optionally filtered by type. */
