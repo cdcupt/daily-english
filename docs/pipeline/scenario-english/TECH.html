@@ -580,8 +580,8 @@ stable_range = [scoreToCEFR(ema-σ), scoreToCEFR(ema+σ)]</code></pre>
   <table>
     <thead><tr><th>Option</th><th>Cost / latency</th><th>Recommendation</th></tr></thead>
     <tbody>
-      <tr><td>OpenAI transcription API (official: <code>gpt-4o-transcribe</code> / <code>whisper-1</code>)</td><td>Per-minute API cost; zero ops</td><td>Start here (default; one key surface).</td></tr>
-      <tr><td>Self-hosted <strong>faster-whisper</strong></td><td>Fixed VPS cost; word timestamps + logprobs</td><td><strong>Recommended target</strong> — needed for per-word confidence + timestamps; removes per-minute cost; switch once volume justifies.</td></tr>
+      <tr><td><strong>OpenAI <code>whisper-1</code>, <code>response_format=verbose_json</code></strong> <span class="tag done">LOCKED DEFAULT</span></td><td>Per-minute API cost; zero ops</td><td>Build on this. <code>verbose_json</code> returns segment timestamps + <code>avg_logprob</code> + <code>no_speech_prob</code> — exactly what the confidence gate and speech-feature math need. (<code>gpt-4o-transcribe</code> is higher-accuracy but exposes fewer logprobs, so not the scoring default.)</td></tr>
+      <tr><td>Self-hosted <strong>faster-whisper</strong></td><td>Fixed VPS cost; per-word timestamps + logprobs</td><td><strong>Future option</strong> behind the same <code>ASRClient</code> interface — switch (config-only) when per-minute cost or richer per-word features justify it.</td></tr>
     </tbody>
   </table>
   </div>
