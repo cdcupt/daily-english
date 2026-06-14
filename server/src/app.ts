@@ -8,6 +8,7 @@ import { sessionRoutes } from './routes/sessions.js';
 import { expressionRoutes } from './routes/expressions.js';
 import { audioTurnRoutes } from './routes/audioTurns.js';
 import { studyRoutes } from './routes/study.js';
+import { adminRoutes } from './routes/admin.js';
 
 /**
  * Builds the Fastify app with the standard response envelope, security headers,
@@ -53,6 +54,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(expressionRoutes);
   await app.register(audioTurnRoutes());
   await app.register(studyRoutes);
+  await app.register(adminRoutes);
 
   return app;
 }

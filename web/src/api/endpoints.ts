@@ -15,6 +15,12 @@ import type {
   SaveExpressionInput,
   ExpressionType,
   Paginated,
+  AdminItem,
+  ItemStatus,
+  TransitionResult,
+  RegenerateResult,
+  GenerateResult,
+  GenerateInput,
 } from "./types";
 
 /** POST /v1/auth/anonymous — create or resume the device session, store tokens. */
@@ -101,5 +107,40 @@ export function saveExpression(input: SaveExpressionInput): Promise<Expression> 
 export function deleteExpression(id: string): Promise<{ deleted: boolean }> {
   return request<{ deleted: boolean }>(`/expressions/${id}`, {
     method: "DELETE",
+  });
+}
+
+/* ---------- Operator / admin (requires an operator access token) ---------- */
+
+/** GET /v1/admin/items — full question-bank list with status + quality metrics. */
+export function adminListItems(): Promise<AdminItem[]> {
+  return request<AdminItem[]>("/admin/items", { method: "GET" });
+}
+
+/** POST /v1/admin/items/:id/transition — move an item to an allowed next state. */
+export function adminTransitionItem(
+  id: string,
+  to: ItemStatus,
+): Promise<TransitionResult> {
+  return request<TransitionResult>(`/admin/items/${id}/transition`, {
+    method: "POST",
+    body: { to },
+  });
+}
+
+/** POST /v1/admin/items/:id/regenerate — AI-regenerate into a new draft version. */
+export function adminRegenerateItem(id: string): Promise<RegenerateResult> {
+  return request<RegenerateResult>(`/admin/items/${id}/regenerate`, {
+    method: "POST",
+  });
+}
+
+/** POST /v1/admin/generate — generate a brand-new item draft for a scenario. */
+export function adminGenerateItem(
+  input: GenerateInput,
+): Promise<GenerateResult> {
+  return request<GenerateResult>("/admin/generate", {
+    method: "POST",
+    body: input,
   });
 }

@@ -14,10 +14,30 @@ import type {
   AbilityProfile,
   Expression,
   FeedbackPayload,
+  AdminItem,
+  ItemStatus,
+  GenerateResult,
+  TransitionResult,
+  RegenerateResult,
 } from "@/api/types";
 
 export function isMockMode(): boolean {
   return process.env.NEXT_PUBLIC_API_MODE === "mock";
+}
+
+/**
+ * Build a JWT-shaped mock token so `getRole()` can decode a role offline. In
+ * mock mode the role defaults to `operator` (so /admin renders without a
+ * backend); set NEXT_PUBLIC_MOCK_ROLE=user to preview the 404 gate.
+ */
+function mockToken(kind: "access" | "refresh"): string {
+  const role =
+    process.env.NEXT_PUBLIC_MOCK_ROLE === "user" ? "user" : "operator";
+  const b64 = (obj: unknown) =>
+    btoa(JSON.stringify(obj)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const header = b64({ alg: "none", typ: "JWT" });
+  const payload = b64({ sub: "mock-user", role, typ: kind });
+  return `${header}.${payload}.mock`;
 }
 
 interface MockRequest {
@@ -159,6 +179,99 @@ const SCORE_REPORT: ScoreReport = {
   recommended_review: ["a table for two", "could I reserve"],
 };
 
+// Sample question bank spanning several lifecycle states + metric shapes.
+let adminSeq = 200;
+const mockAdminItems: AdminItem[] = [
+  {
+    id: "qi-1",
+    itemKey: "coffee_shop_order_a2_001",
+    type: "scenario_translation",
+    status: "published",
+    version: 3,
+    cefrLevel: "A2",
+    difficultyScore: 32,
+    scenarioId: "scn-daily-coffee",
+    metrics: { completionRate: 0.78, saveRate: 0.64, complaintRate: 0.01 },
+  },
+  {
+    id: "qi-2",
+    itemKey: "hotel_checkin_b1_003",
+    type: "scenario_dialogue",
+    status: "review_pending",
+    version: 1,
+    cefrLevel: "B1",
+    difficultyScore: 54,
+    scenarioId: "scn-travel-hotel",
+    metrics: null,
+  },
+  {
+    id: "qi-3",
+    itemKey: "interview_intro_b2_002",
+    type: "scenario_dialogue",
+    status: "auto_checked",
+    version: 1,
+    cefrLevel: "B2",
+    difficultyScore: 71,
+    scenarioId: "scn-work-interview",
+    metrics: null,
+  },
+  {
+    id: "qi-4",
+    itemKey: "return_refund_a2_004",
+    type: "scenario_translation",
+    status: "monitored",
+    version: 2,
+    cefrLevel: "A2",
+    difficultyScore: 30,
+    scenarioId: "scn-shop-refund",
+    metrics: { completionRate: 0.41, saveRate: 0.22, complaintRate: 0.06 },
+  },
+  {
+    id: "qi-5",
+    itemKey: "small_talk_weather_a1_001",
+    type: "topic_description",
+    status: "draft",
+    version: 1,
+    cefrLevel: "A1",
+    difficultyScore: 12,
+    scenarioId: "scn-social-smalltalk",
+    metrics: null,
+  },
+  {
+    id: "qi-6",
+    itemKey: "directions_metro_a2_009",
+    type: "scenario_dialogue",
+    status: "generated",
+    version: 1,
+    cefrLevel: "A2",
+    difficultyScore: 28,
+    scenarioId: "scn-daily-directions",
+    metrics: null,
+  },
+  {
+    id: "qi-7",
+    itemKey: "old_directions_a2_007",
+    type: "scenario_translation",
+    status: "archived",
+    version: 4,
+    cefrLevel: "A2",
+    difficultyScore: 33,
+    scenarioId: "scn-daily-directions",
+    metrics: { completionRate: 0.33, saveRate: 0.12, complaintRate: 0.09 },
+  },
+  {
+    id: "qi-8",
+    itemKey: "negotiate_price_b1_005",
+    type: "scenario_dialogue",
+    status: "improved",
+    version: 5,
+    cefrLevel: "B1",
+    difficultyScore: 58,
+    scenarioId: "scn-shop-negotiate",
+    metrics: { completionRate: 0.69, saveRate: 0.5, complaintRate: 0.02 },
+  },
+];
+
 export async function mockFetch<T>(
   path: string,
   req: MockRequest,
@@ -170,8 +283,8 @@ export async function mockFetch<T>(
     return {
       userId: "mock-user",
       deviceId: "mock-device",
-      access: "mock-access-token",
-      refresh: "mock-refresh-token",
+      access: mockToken("access"),
+      refresh: mockToken("refresh"),
     } satisfies AnonymousAuth as T;
   }
 
@@ -243,6 +356,57 @@ export async function mockFetch<T>(
     const idx = mockExpressions.findIndex((e) => e.id === id);
     if (idx >= 0) mockExpressions.splice(idx, 1);
     return { deleted: true } as T;
+  }
+
+  if (path === "/admin/items" && method === "GET") {
+    return mockAdminItems as T;
+  }
+
+  if (/\/admin\/items\/.+\/transition$/.test(path) && method === "POST") {
+    const id = path.split("/")[3];
+    const to = (req.body as { to?: ItemStatus } | undefined)?.to ?? "draft";
+    const item = mockAdminItems.find((i) => i.id === id);
+    if (item) item.status = to;
+    return { id, status: to } satisfies TransitionResult as T;
+  }
+
+  if (/\/admin\/items\/.+\/regenerate$/.test(path) && method === "POST") {
+    const id = path.split("/")[3];
+    const item = mockAdminItems.find((i) => i.id === id);
+    if (item) {
+      item.status = "draft";
+      item.version += 1;
+    }
+    return {
+      id,
+      status: item?.status ?? "draft",
+      version: item?.version ?? 1,
+    } satisfies RegenerateResult as T;
+  }
+
+  if (path === "/admin/generate" && method === "POST") {
+    const b = (req.body ?? {}) as {
+      scenarioId?: string;
+      type?: AdminItem["type"];
+      cefrLevel?: string;
+    };
+    const row: AdminItem = {
+      id: `qi-${adminSeq++}`,
+      itemKey: `${(b.scenarioId ?? "scenario").replace(/^scn-/, "")}_${b.type ?? "scenario_translation"}_${Date.now()}`,
+      type: b.type ?? "scenario_translation",
+      status: "generated",
+      version: 1,
+      cefrLevel: b.cefrLevel ?? "A2",
+      difficultyScore: null,
+      scenarioId: b.scenarioId ?? "scn-unknown",
+      metrics: null,
+    };
+    mockAdminItems.unshift(row);
+    return {
+      id: row.id,
+      status: row.status,
+      itemKey: row.itemKey,
+    } satisfies GenerateResult as T;
   }
 
   throw new Error(`[mock] Unhandled ${method} ${path}`);

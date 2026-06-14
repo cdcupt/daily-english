@@ -45,6 +45,35 @@ export function isAuthenticated(): boolean {
   return !!getAccessToken();
 }
 
+/**
+ * Decode the `role` claim from the stored access token. The server issues a JWT
+ * (`{ sub, role, ... }`); we read the role claim WITHOUT verifying the signature
+ * — verification is the server's job, this only decides which UI to render. The
+ * admin surface is still fully gated server-side (operators get data, everyone
+ * else gets a 404), so a forged client claim reveals nothing.
+ */
+export function getRole(): "user" | "operator" | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length < 2) return null;
+  try {
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json =
+      typeof atob === "function"
+        ? atob(payload)
+        : Buffer.from(payload, "base64").toString("binary");
+    const claims = JSON.parse(json) as { role?: string };
+    return claims.role === "operator" ? "operator" : "user";
+  } catch {
+    return null;
+  }
+}
+
+export function isOperator(): boolean {
+  return getRole() === "operator";
+}
+
 export function storeTokens(t: StoredTokens): void {
   if (hasStorage()) {
     window.localStorage.setItem(ACCESS_KEY, t.access);

@@ -1172,3 +1172,422 @@ textarea:focus-visible,
   padding: 3px 8px;
   border-radius: 6px;
 }
+
+/* ============================================================
+   OPERATOR ADMIN — dark, dense, table-forward "Bank Ops" chrome.
+   Deliberately distinct from the warm learner app (DESIGN admin screen).
+   ============================================================ */
+.admin-wrap {
+  --op-bg: #14110f;
+  --op-panel: #1f1b18;
+  --op-panel-2: #272220;
+  --op-line: #353029;
+  --op-line-2: #423b33;
+  --op-text: #f4efe8;
+  --op-text-2: #b9b1a6;
+  --op-muted: #8b837a;
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 420px at 92% -10%, rgba(13, 148, 136, 0.16), transparent 60%),
+    radial-gradient(720px 420px at -6% 0%, rgba(124, 58, 237, 0.14), transparent 55%),
+    var(--op-bg);
+  color: var(--op-text);
+  display: grid;
+  grid-template-columns: 220px 1fr;
+}
+@media (max-width: 880px) {
+  .admin-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-side {
+  background: #0f0d0b;
+  border-right: 1px solid var(--op-line);
+  padding: 22px 16px;
+}
+@media (max-width: 880px) {
+  .admin-side {
+    border-right: none;
+    border-bottom: 1px solid var(--op-line);
+    padding: 16px 18px;
+  }
+}
+.admin-side .brand {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 700;
+}
+.admin-side .brand .dot {
+  color: var(--color-teal);
+}
+.admin-side .op-tag {
+  display: block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--op-muted);
+  margin: 4px 0 20px;
+}
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+@media (max-width: 880px) {
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+.admin-nav span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--op-text-2);
+  padding: 9px 12px;
+  border-radius: 9px;
+}
+.admin-nav span.on {
+  background: rgba(13, 148, 136, 0.18);
+  color: #5eead4;
+}
+
+.admin-main {
+  padding: 24px 26px 64px;
+  overflow-x: hidden;
+}
+@media (max-width: 880px) {
+  .admin-main {
+    padding: 18px 16px 56px;
+  }
+}
+.op-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #0f0d0b;
+  border: 1px solid var(--op-line-2);
+  color: var(--op-text-2);
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.admin-main h1 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--op-text);
+}
+.admin-main .sub {
+  font-size: 13px;
+  color: var(--op-muted);
+  margin-top: 2px;
+}
+
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+@media (max-width: 700px) {
+  .admin-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.admin-kpi {
+  background: var(--op-panel);
+  border: 1px solid var(--op-line);
+  border-radius: 13px;
+  padding: 13px 14px;
+}
+.admin-kpi .v {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+}
+.admin-kpi .v.teal {
+  color: #5eead4;
+}
+.admin-kpi .v.coral {
+  color: #fb923c;
+}
+.admin-kpi .l {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--op-muted);
+}
+
+/* table — wraps to horizontal scroll if it must, never overflows viewport */
+.admin-tablewrap {
+  border: 1px solid var(--op-line);
+  border-radius: 13px;
+  overflow: hidden;
+  background: var(--op-panel);
+}
+.admin-scroll {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+.admin-table th,
+.admin-table td {
+  padding: 11px 13px;
+  text-align: left;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--op-line);
+  white-space: nowrap;
+}
+.admin-table th {
+  background: var(--op-panel-2);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--op-text-2);
+}
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.admin-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.025);
+}
+.admin-table .key {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  color: var(--op-text);
+}
+.admin-table .ver {
+  color: var(--op-muted);
+}
+.admin-table .metric {
+  font-variant-numeric: tabular-nums;
+  color: var(--op-text-2);
+}
+.admin-table .metric.warn {
+  color: #fb923c;
+  font-weight: 700;
+}
+.admin-table .dash {
+  color: var(--op-muted);
+}
+
+/* lifecycle pills */
+.lc {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lc-draft {
+  background: rgba(185, 177, 166, 0.16);
+  color: #cabfb0;
+}
+.lc-info {
+  background: rgba(13, 148, 136, 0.18);
+  color: #5eead4;
+}
+.lc-review {
+  background: rgba(217, 119, 6, 0.18);
+  color: #fbbf24;
+}
+.lc-published {
+  background: rgba(22, 163, 74, 0.2);
+  color: #4ade80;
+}
+.lc-archived {
+  background: rgba(220, 38, 38, 0.18);
+  color: #f87171;
+}
+
+/* item type chip */
+.op-type {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--op-text-2);
+  text-transform: capitalize;
+}
+
+/* action cluster */
+.op-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+.op-btn {
+  border: 1px solid var(--op-line-2);
+  background: var(--op-panel-2);
+  color: var(--op-text);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+.op-btn:hover:not(:disabled) {
+  border-color: var(--color-teal);
+  color: #5eead4;
+}
+.op-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.op-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.op-btn.go-published {
+  border-color: rgba(22, 163, 74, 0.5);
+  color: #4ade80;
+}
+.op-btn.go-published:hover:not(:disabled) {
+  background: rgba(22, 163, 74, 0.18);
+}
+.op-btn.go-archived {
+  border-color: rgba(220, 38, 38, 0.5);
+  color: #f87171;
+}
+.op-btn.go-archived:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.18);
+  border-color: #f87171;
+}
+.op-btn.regen {
+  border-color: rgba(124, 58, 237, 0.5);
+  color: #c4b5fd;
+}
+.op-btn.regen:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.18);
+}
+
+/* generate-new panel */
+.op-gen {
+  background: var(--op-panel);
+  border: 1px solid var(--op-line);
+  border-radius: 13px;
+  padding: 16px;
+  margin-bottom: 18px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.op-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.op-field.grow {
+  flex: 1;
+  min-width: 180px;
+}
+.op-field label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--op-muted);
+}
+.op-input,
+.op-select {
+  background: var(--op-panel-2);
+  border: 1px solid var(--op-line-2);
+  border-radius: 9px;
+  color: var(--op-text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 9px 11px;
+  min-width: 0;
+}
+.op-input:focus,
+.op-select:focus {
+  outline: none;
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25);
+}
+.op-gen-btn {
+  background: var(--color-teal);
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+.op-gen-btn:hover:not(:disabled) {
+  background: var(--color-teal-700);
+}
+.op-gen-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.op-status-msg {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+.op-status-msg.err {
+  color: #f87171;
+}
+.op-status-msg.ok {
+  color: #4ade80;
+}
+
+.admin-loading,
+.admin-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--op-text-2);
+  font-size: 13px;
+}
+
+.op-skel {
+  background: linear-gradient(
+    90deg,
+    var(--op-panel-2) 25%,
+    #2f2926 50%,
+    var(--op-panel-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+/* 404 gate */
+.op-404 {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+.op-404 .code {
+  font-family: var(--font-serif);
+  font-size: 60px;
+  color: var(--color-ink);
+}
+.op-404 p {
+  color: var(--color-ink-2);
+  font-size: 15px;
+}

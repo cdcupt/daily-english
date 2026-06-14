@@ -99,6 +99,40 @@ export const FEEDBACK_JSON_SCHEMA = {
   },
 } as const;
 
+// ---------- AI item generation (admin content pipeline) ----------
+export const ItemGenSchema = z.object({
+  prompt_cn: z.string().min(1),
+  reference_answers: z.array(z.string().min(1)).min(1).max(3),
+  target_phrases: z.array(z.string().min(1)).max(6),
+  common_mistakes: z.array(z.object({ wrong: z.string(), explanation: z.string() })).max(4),
+  difficulty_score: z.number().int().min(0).max(100),
+});
+export type ItemGen = z.infer<typeof ItemGenSchema>;
+
+export const ITEM_GEN_JSON_SCHEMA = {
+  name: 'item_gen',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      prompt_cn: { type: 'string' },
+      reference_answers: { type: 'array', items: { type: 'string' } },
+      target_phrases: { type: 'array', items: { type: 'string' } },
+      common_mistakes: {
+        type: 'array',
+        items: {
+          type: 'object', additionalProperties: false,
+          properties: { wrong: { type: 'string' }, explanation: { type: 'string' } },
+          required: ['wrong', 'explanation'],
+        },
+      },
+      difficulty_score: { type: 'number' },
+    },
+    required: ['prompt_cn', 'reference_answers', 'target_phrases', 'common_mistakes', 'difficulty_score'],
+  },
+} as const;
+
 /** Standard response envelope helpers. */
 export function ok<T>(data: T, meta: unknown = null) {
   return { data, error: null, meta };

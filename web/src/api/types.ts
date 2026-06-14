@@ -145,3 +145,59 @@ export interface Paginated<T> {
   page: number;
   limit: number;
 }
+
+/* ---------- Operator / admin surface (server/src/routes/admin.ts) ---------- */
+
+/** Lifecycle states from server/src/content/lifecycle.ts. */
+export type ItemStatus =
+  | "draft"
+  | "generated"
+  | "auto_checked"
+  | "review_pending"
+  | "published"
+  | "monitored"
+  | "improved"
+  | "archived";
+
+/** Per-item quality metrics (nullable when an item has no telemetry yet). */
+export interface QuestionQualityMetrics {
+  completionRate: number | null;
+  saveRate: number | null;
+  complaintRate: number | null;
+}
+
+/** A row of GET /v1/admin/items. `metrics` is null until telemetry exists. */
+export interface AdminItem {
+  id: string;
+  itemKey: string;
+  type: ItemType;
+  status: ItemStatus;
+  version: number;
+  cefrLevel: string;
+  difficultyScore: number | null;
+  scenarioId: string;
+  metrics: QuestionQualityMetrics | null;
+}
+
+export interface TransitionResult {
+  id: string;
+  status: ItemStatus;
+}
+
+export interface RegenerateResult {
+  id: string;
+  status: ItemStatus;
+  version: number;
+}
+
+export interface GenerateResult {
+  id: string;
+  status: ItemStatus;
+  itemKey: string;
+}
+
+export interface GenerateInput {
+  scenarioId: string;
+  type: ItemType;
+  cefrLevel: string;
+}
