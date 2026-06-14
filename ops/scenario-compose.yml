@@ -1,0 +1,27 @@
+# AI Scenario English Trainer — production compose (BWH, multi-tenant).
+# Coexists with 9relay/BillMind: unique names, own localhost port (8101),
+# reuses the shared 9relay-postgres via the external 9relay_default network,
+# resource-capped so it can never starve the neighbours. Run from the repo root:
+#   docker compose -f ops/scenario-compose.yml up -d --build
+# Secrets live in /opt/scenario-english/.env (NOT in the repo).
+name: scenario-english
+services:
+  api:
+    container_name: scenario-english-api
+    build:
+      context: ../server
+    env_file: /opt/scenario-english/.env
+    ports:
+      - "127.0.0.1:8101:8101"
+    networks:
+      - relay
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+networks:
+  relay:
+    external: true
+    name: 9relay_default

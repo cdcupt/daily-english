@@ -1,0 +1,23 @@
+# AI Scenario English Trainer — Caddy vhosts (append to /opt/9relay/Caddyfile).
+# Additive only; do not modify the 9relay / billmind blocks. Mirrors the
+# billmind.daichenlab.com block. The API reverse-proxies the app container; the
+# web app (Next.js) is added once it has a runtime container.
+
+api.english.daichenlab.com {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy scenario-english-api:8101 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+	log {
+		output file /var/log/caddy/english.api.access.log
+	}
+}
+
+# english.daichenlab.com — learner web app (added when the web container ships).
