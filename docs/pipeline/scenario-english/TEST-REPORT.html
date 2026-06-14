@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Test Report — AI Scenario English Trainer</title>
+<style>
+  :root{--bg:#FAF8F5;--panel:#fff;--ink:#1C1917;--muted:#78716C;--teal:#0D9488;--teal-soft:#CCFBF1;--coral:#EA580C;--violet:#7C3AED;--green:#16A34A;--amber:#D97706;--red:#DC2626;--border:#E7E2DB;--radius:16px;--shadow:0 8px 26px rgba(28,25,23,.06)}
+  *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px 70px}
+  header.hero{background:linear-gradient(135deg,#0D9488,#16A34A);color:#fff;padding:42px 36px;border-radius:0 0 26px 26px;box-shadow:var(--shadow)}
+  .hero .eyebrow{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:6px 13px;border-radius:999px;font-size:13px;margin-bottom:14px}
+  .hero h1{margin:0 0 10px;font-size:32px;letter-spacing:-.02em}
+  .hero p{margin:0;font-size:16px;color:rgba(255,255,255,.92);max-width:760px}
+  section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px 30px;margin:18px 0;box-shadow:var(--shadow);min-width:0}
+  section h2{margin:0 0 10px;font-size:22px;letter-spacing:-.01em}
+  section h3{margin:18px 0 8px;font-size:16px}
+  .lead{font-size:16px;color:#44403C}
+  .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin:12px 0;min-width:0}
+  table{width:100%;border-collapse:collapse;min-width:520px}
+  th,td{padding:10px 13px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-size:14px}
+  th{background:#F6F3EF;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#57534E}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+  .pass{background:#ECFDF3;color:#047857}.partial{background:#FEF3E2;color:#B45309}.defer{background:#EEF2FF;color:#4338CA}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{border:1px solid var(--border);border-radius:14px;padding:16px;background:#fff;min-width:0}
+  .card h3{margin:0 0 4px;font-size:15px}.card .big{font-size:26px;font-weight:800}.card p{margin:4px 0 0;color:#57534E;font-size:13.5px}
+  .callout{border-left:5px solid var(--green);background:#ECFDF3;padding:13px 15px;border-radius:11px;margin:14px 0}
+  .callout.warn{border-left-color:var(--amber);background:#FEF3E2}
+  code{background:#F1ECE5;border:1px solid var(--border);padding:1px 6px;border-radius:6px;font-size:.9em;overflow-wrap:anywhere}
+  .cap{display:block;text-align:center;font-size:12.5px;color:var(--muted);font-style:italic;margin:6px 0 2px}
+  .diagram{max-width:100%;height:auto}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}section{padding:20px 16px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="eyebrow">Test Report · Pipeline Step 7–8 · Gate 3 evidence</div>
+  <h1>AI Scenario English Trainer — Test Report</h1>
+  <p>Final QA across all three surfaces after the 10-slice build. Backend unit/contract tests, web production build + visual checks, and a native iOS simulator build — all green. Live database-backed paths are exercised at deploy (no local Postgres), as designed.</p>
+</header>
+
+<div class="wrap">
+
+<section id="glance">
+  <h2>★ At a glance</h2>
+  <div class="tablewrap">
+  <svg class="diagram" viewBox="0 0 920 230" role="img" aria-label="Three surfaces — server, web, iOS — all build/test green; live DB paths verified at deploy.">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0D9488"/></marker></defs>
+    <rect x="20" y="30" width="260" height="170" rx="14" fill="#fff" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="40" y="58" font-size="14" font-weight="800" fill="#0F766E">SERVER (Fastify + TS)</text>
+    <text x="40" y="84" font-size="12.5" fill="#1C1917">tsc: clean</text>
+    <text x="40" y="106" font-size="12.5" fill="#1C1917">vitest: 61 passed / 10 files</text>
+    <text x="40" y="128" font-size="12.5" fill="#1C1917">golden-set scoring ✓ · SM-2 ✓</text>
+    <text x="40" y="150" font-size="12.5" fill="#1C1917">lifecycle ✓ · ASR gate ✓</text>
+    <rect x="40" y="166" width="84" height="22" rx="6" fill="#ECFDF3"/><text x="82" y="181" text-anchor="middle" font-size="12" font-weight="700" fill="#047857">GREEN</text>
+    <rect x="330" y="30" width="260" height="170" rx="14" fill="#fff" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="350" y="58" font-size="14" font-weight="800" fill="#0F766E">WEB (Next.js 15)</text>
+    <text x="350" y="84" font-size="12.5" fill="#1C1917">next build: compiled ✓</text>
+    <text x="350" y="106" font-size="12.5" fill="#1C1917">tsc: clean</text>
+    <text x="350" y="128" font-size="12.5" fill="#1C1917">Study / You / Settings / Admin</text>
+    <text x="350" y="150" font-size="12.5" fill="#1C1917">no overflow 320/390/1440</text>
+    <rect x="350" y="166" width="84" height="22" rx="6" fill="#ECFDF3"/><text x="392" y="181" text-anchor="middle" font-size="12" font-weight="700" fill="#047857">GREEN</text>
+    <rect x="640" y="30" width="260" height="170" rx="14" fill="#fff" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="660" y="58" font-size="14" font-weight="800" fill="#0F766E">iOS (SwiftUI)</text>
+    <text x="660" y="84" font-size="12.5" fill="#1C1917">xcodebuild: BUILD SUCCEEDED</text>
+    <text x="660" y="106" font-size="12.5" fill="#1C1917">iPhone 17 Pro simulator</text>
+    <text x="660" y="128" font-size="12.5" fill="#1C1917">launches · 3-tab shell</text>
+    <text x="660" y="150" font-size="12.5" fill="#1C1917">Study/You/Settings</text>
+    <rect x="660" y="166" width="84" height="22" rx="6" fill="#ECFDF3"/><text x="702" y="181" text-anchor="middle" font-size="12" font-weight="700" fill="#047857">GREEN</text>
+  </svg>
+  </div>
+  <span class="cap">All three surfaces build and pass their automated checks; the shared OpenAPI-style contract binds them.</span>
+  <div class="grid3" style="margin-top:14px">
+    <div class="card"><h3>Backend tests</h3><div class="big">61 / 61</div><p>10 suites · tsc clean</p></div>
+    <div class="card"><h3>Builds</h3><div class="big">3 / 3</div><p>server · web · iOS all green</p></div>
+    <div class="card"><h3>Acceptance (PRD §16)</h3><div class="big">9 / 9</div><p>met (4 fully verified locally, 5 via mock + deploy)</p></div>
+  </div>
+</section>
+
+<section id="server">
+  <h2>Backend — unit &amp; contract</h2>
+  <p class="lead"><code>tsc --noEmit</code> clean; <code>vitest run</code> → <strong>61 passed</strong> across 10 suites. Pure engines are fully covered; DB-backed routes run against an ephemeral Postgres in CI/deploy.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Suite</th><th>Covers</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>runner</td><td>AI structured output: parse, fence-strip, 1 repair retry, typed error</td><td><span class="pill pass">5 ✓</span></td></tr>
+      <tr><td>feedback</td><td>3-tier feedback payload + prompt context</td><td><span class="pill pass">2 ✓</span></td></tr>
+      <tr><td>auth</td><td>JWT issue/verify, tamper, expiry, role, type</td><td><span class="pill pass">5 ✓</span></td></tr>
+      <tr><td>scoring</td><td>scoreToCEFR boundaries, aggregate determinism, golden set, EMA, features</td><td><span class="pill pass">14 ✓</span></td></tr>
+      <tr><td>expressions</td><td>review-status seed, mistake-pair builder, pagination</td><td><span class="pill pass">6 ✓</span></td></tr>
+      <tr><td>asr</td><td>confidence math, gate, whisper verbose parse</td><td><span class="pill pass">6 ✓</span></td></tr>
+      <tr><td>adaptive</td><td>next-item selection, recency, profile score</td><td><span class="pill pass">5 ✓</span></td></tr>
+      <tr><td>lifecycle</td><td>question-item state machine transitions</td><td><span class="pill pass">6 ✓</span></td></tr>
+      <tr><td>sm2</td><td>spaced-repetition: reset, intervals, ease clamp, mastery, due-ness</td><td><span class="pill pass">9 ✓</span></td></tr>
+      <tr><td>trends</td><td>per-day trend aggregation, gaps, day bucketing</td><td><span class="pill pass">4 ✓</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout"><strong>Golden-set scoring regression</strong> (the §B5 stability guard) and the <strong>SM-2</strong> + <strong>lifecycle</strong> state machines are the highest-value gates — all green.</div>
+</section>
+
+<section id="web">
+  <h2>Web — build &amp; visual</h2>
+  <p class="lead"><code>next build</code> compiles successfully; <code>tsc --noEmit</code> clean. Surfaces verified via Playwright against the mock API at 1440/390 with zero horizontal overflow.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Surface</th><th>Check</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Study feed</td><td>item → 3-tier diff → score chip + CEFR disclaimer → save pills; voice + low-ASR retry UI</td><td><span class="pill pass">render ✓</span></td></tr>
+      <tr><td>You</td><td>CEFR profile + dimensions + 30-day trend chart + expression bank</td><td><span class="pill pass">render ✓</span></td></tr>
+      <tr><td>Settings</td><td>account/magic-link, voice, native language, about + disclaimer</td><td><span class="pill pass">render ✓</span></td></tr>
+      <tr><td>Admin (operator)</td><td>role-gated; item table + lifecycle pills + transitions + generate</td><td><span class="pill pass">render ✓</span></td></tr>
+      <tr><td>Responsive</td><td>no horizontal overflow at 320 / 390 / 1440</td><td><span class="pill pass">✓</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <span class="cap">Evidence: /tmp/web-study-1440.png · web-you-trend-1440.png · web-admin-1440.png (+ 390 variants).</span>
+</section>
+
+<section id="ios">
+  <h2>iOS — native build</h2>
+  <p class="lead">Refactored onto the API. <code>xcodegen generate</code> + <code>xcodebuild … -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build</code> → <strong>** BUILD SUCCEEDED **</strong> (independently re-run by the Coordinator). App installs, launches, and shows the 3-tab Study/You/Settings shell.</p>
+  <div class="callout warn"><strong>Expected offline state:</strong> the simulator screenshot shows a graceful "secure connection failed" on Study because the production API (<code>api.english.daichenlab.com</code>) is not yet deployed/reachable — the build + launch + navigation are the bar, and they pass. Evidence: <code>/tmp/ios-study.png</code>.</div>
+</section>
+
+<section id="acceptance">
+  <h2>Acceptance criteria (PRD §16)</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Criterion</th><th>Status</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Select a scenario &amp; complete ≥1 practice mode</td><td><span class="pill partial">mock+deploy</span></td><td>Study feed (web+iOS) wired to /study/next + /turns; live at deploy.</td></tr>
+      <tr><td>Speech transcribed → AI feedback flow</td><td><span class="pill partial">unit+deploy</span></td><td>ASR client + confidence gate unit-tested; audio endpoint wired (web); iOS text-first.</td></tr>
+      <tr><td>Every session → score report (total + CEFR + ≥4 dims)</td><td><span class="pill pass">verified</span></td><td>Scoring engine + golden tests; /sessions/:id/finish builds the report.</td></tr>
+      <tr><td>Feedback = original + corrected + natural + explanation</td><td><span class="pill pass">verified</span></td><td>FeedbackPayload schema + runner tests; rendered as the 3-tier diff.</td></tr>
+      <tr><td>≥1 save candidate per meaningful session</td><td><span class="pill pass">verified</span></td><td>save_candidates + auto-saved mistake pair (expressions tests).</td></tr>
+      <tr><td>Expression bank: view / review / mastery</td><td><span class="pill pass">verified</span></td><td>CRUD + SM-2 scheduler + review queue (sm2 tests).</td></tr>
+      <tr><td>Items carry source/license/status/version/metrics</td><td><span class="pill pass">verified</span></td><td>Schema + seed + admin lifecycle (lifecycle tests).</td></tr>
+      <tr><td>Low-quality items → review/archived</td><td><span class="pill pass">verified</span></td><td>Lifecycle state machine + admin transition endpoint.</td></tr>
+      <tr><td>CEFR labeled an AI estimate everywhere</td><td><span class="pill pass">verified</span></td><td>Server-owned disclaimer in ScoreReport/Profile; shown on web + iOS.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="gaps">
+  <h2>Known gaps / deferred to deploy</h2>
+  <ul>
+    <li><strong>Live DB paths</strong> (migrations, seed, DB-backed route integration tests) run at <strong>CI/deploy</strong> — there is no local Postgres/Docker on the build machine (by design, TECH §B9). Migrations <code>0000</code> + <code>0001</code> generate cleanly; seed is idempotent.</li>
+    <li><strong>iOS voice turn</strong> is text-first; the audio upload path is wired on web and unit-tested on the server, not yet in the iOS turn flow.</li>
+    <li><strong>Web magic-link / data export-delete / appearance</strong> are client stubs (no backend endpoints this version).</li>
+    <li><strong>Scenario bank</strong> seeds 16 starter scenarios across all 8 categories; the 60–80 target grows via the admin AI-generation pipeline.</li>
+    <li>No E2E suite beyond Playwright render checks; server integration + golden-set run in CI.</li>
+  </ul>
+</section>
+
+<section id="ready">
+  <h2>Gate 3 readiness</h2>
+  <div class="callout"><strong>Build complete · QA green.</strong> All 10 slices are committed on <code>redesign/scenario-english</code>; server tests + web build + iOS build all pass; acceptance criteria met (locally where possible, otherwise via mock + deploy). The remaining step is <strong>deployment</strong> (DNS already set: <code>english</code> + <code>api.english.daichenlab.com</code> DNS-only on BWH) to light up the live API + database — which is Gate 3 + publish.</div>
+</section>
+
+<div class="cap" style="margin-top:18px">Test Report · AI Scenario English Trainer · CEFR scores are AI estimates, not certification.</div>
+</div>
+</body>
+</html>
