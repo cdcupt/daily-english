@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Design Document — AI Scenario English Trainer</title>
+<title>Design Document — AI Scenario English Trainer (v2 · AI-native)</title>
 <style>
   /* ============================================================
      DESIGN TOKENS — "Warm editorial coaching"
@@ -107,6 +107,13 @@
     padding:8px 13px;border-radius:999px;box-shadow:var(--shadow-sm);color:var(--ink-2)}
   .chip b{color:var(--ink)}
 
+  /* pivot banner */
+  .pivot{display:flex;gap:14px;align-items:flex-start;background:var(--violet-tint);border:1px solid var(--violet-soft);
+    border-left:4px solid var(--violet);border-radius:0 14px 14px 0;padding:16px 18px;margin-top:1.6rem;max-width:78ch}
+  .pivot .bi{font-size:22px;line-height:1}
+  .pivot b{color:var(--violet)}
+  .pivot p{font-size:var(--t-sm);color:var(--ink-2);margin:4px 0 0}
+
   /* ---------- TOC ---------- */
   nav.toc{position:sticky;top:0;z-index:90;background:rgba(250,248,245,.82);
     backdrop-filter:saturate(150%) blur(12px);border-bottom:1px solid var(--border);
@@ -142,6 +149,7 @@
   .lead-card{background:linear-gradient(150deg,var(--teal-700),var(--teal));color:#fff;border:none}
   .lead-card h3,.lead-card p{color:#fff}
   .lead-card p{color:rgba(255,255,255,.9)}
+  .lead-card.violet{background:linear-gradient(150deg,#6d28d9,var(--violet))}
 
   /* swatches */
   .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:1rem}
@@ -226,12 +234,26 @@
   .screen-spec[open] > summary .caret{transform:rotate(90deg)}
   .screen-spec .body{padding:18px 20px 22px}
   .screen-spec .surface-tag{font-size:var(--t-xs);font-weight:700;padding:3px 9px;border-radius:6px;background:var(--violet-soft);color:var(--violet)}
+  .screen-spec .surface-tag.study{background:var(--teal-soft);color:var(--teal-700)}
+  .screen-spec .surface-tag.op{background:var(--ink);color:#fff}
   .spec-grid{display:grid;gap:16px}
   @media(min-width:680px){.spec-grid{grid-template-columns:1fr 1fr}}
   .spec-block h4{font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;color:var(--coral);margin-bottom:6px}
   .spec-block ul{margin:0;padding-left:18px;font-size:var(--t-sm);color:var(--ink-2)}
   .spec-block li{margin-bottom:4px}
   .states-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+
+  /* item-type catalog (Study) */
+  .itemtypes{display:grid;gap:12px;margin:1rem 0}
+  @media(min-width:620px){.itemtypes{grid-template-columns:1fr 1fr}}
+  .itype{display:flex;gap:13px;align-items:flex-start;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;box-shadow:var(--shadow-sm)}
+  .itype .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0;background:var(--teal-tint)}
+  .itype.dialogue .ic{background:var(--coral-tint)}
+  .itype.description .ic{background:var(--violet-tint)}
+  .itype.review .ic{background:var(--violet-soft)}
+  .itype b{font-size:var(--t-sm);display:block}
+  .itype small{font-size:var(--t-xs);color:var(--ink-2);display:block;margin-top:2px}
+  .itype .tag2{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:6px;display:inline-block}
 
   pre{background:#1A1714;color:#EDE7DD;padding:16px;border-radius:var(--radius-sm);overflow-x:auto;font-size:var(--t-xs);line-height:1.55;border:1px solid #2A251F;min-width:0;max-width:100%}
   code{font-family:ui-monospace,"SF Mono",Menlo,monospace}
@@ -242,6 +264,7 @@
   .mockup-stage{margin:1.4rem 0 0}
   .mockup-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
   .mockup-controls .group{display:flex;gap:6px;flex-wrap:wrap;background:var(--paper-2);padding:6px;border-radius:14px;border:1px solid var(--border)}
+  .mockup-controls .glabel{font-size:var(--t-xs);font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);align-self:center;margin:0 2px}
   .seg{border:none;background:transparent;font-family:inherit;font-size:var(--t-sm);font-weight:700;color:var(--ink-2);
     padding:8px 14px;border-radius:9px;cursor:pointer;transition:background var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur) var(--ease)}
   .seg:hover{color:var(--ink)}
@@ -311,65 +334,63 @@
   .btn-ghost{background:var(--paper-2);color:var(--ink);border:1px solid var(--border)}
   .btn-ghost:hover{background:var(--teal-tint);color:var(--teal-700)}
   .btn-block{width:100%}
+  .btn-sm{padding:8px 13px;font-size:13px;border-radius:11px}
 
   .section-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--ink-2);margin:18px 0 10px}
   .section-label .more{float:right;color:var(--teal);font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer}
 
-  /* category tiles (asymmetric bento) */
-  .cat-bento{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-  .cat{border-radius:16px;padding:14px;cursor:pointer;border:1px solid var(--border);background:var(--panel);
-    transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease)}
-  .cat:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--teal-soft)}
-  .cat .ic{font-size:24px}
-  .cat b{display:block;font-size:14px;margin-top:8px}
-  .cat small{font-size:11px;color:var(--muted)}
-  .cat.wide{grid-column:1 / -1;display:flex;align-items:center;gap:14px;background:var(--violet-tint);border-color:var(--violet-soft)}
-  .cat.wide .ic{font-size:30px}
-  .cat.wide b{margin-top:0}
+  /* ===== STUDY FEED ===== */
+  .coach-strip{display:flex;gap:11px;align-items:center;background:var(--violet-tint);border:1px solid var(--violet-soft);border-radius:16px;padding:12px 14px;margin:6px 20px 6px}
+  .coach-strip .av{width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,var(--violet),var(--teal));display:grid;place-items:center;font-size:20px;flex-shrink:0}
+  .coach-strip .cx{flex:1;min-width:0}
+  .coach-strip b{font-size:13px;display:block}
+  .coach-strip small{font-size:12px;color:var(--ink-2)}
+  .coach-strip .prog{font-size:11px;font-weight:800;color:var(--violet);white-space:nowrap}
 
-  /* scenario list rows */
-  .filterbar{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
-  .filterbar::-webkit-scrollbar{display:none}
-  .fchip{white-space:nowrap;font-size:12px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--ink-2);cursor:pointer;transition:all var(--dur) var(--ease)}
-  .fchip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .fchip:hover{border-color:var(--teal)}
-  .srow{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 15px;margin-bottom:10px;cursor:pointer;transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
-  .srow:hover{transform:translateX(3px);box-shadow:var(--shadow-sm)}
-  .srow .em{width:44px;height:44px;border-radius:12px;background:var(--teal-tint);display:grid;place-items:center;font-size:22px;flex-shrink:0}
-  .srow .info{flex:1;min-width:0}
-  .srow .info b{font-size:14px;display:block}
-  .srow .info small{font-size:12px;color:var(--muted)}
-  .lvl{font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;background:var(--violet-soft);color:var(--violet)}
+  /* a feed item card */
+  .feed-item{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px;position:relative;overflow:hidden}
+  .feed-item .it-head{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+  .feed-item .it-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 9px;border-radius:7px}
+  .it-badge.translation{background:var(--teal-soft);color:var(--teal-700)}
+  .it-badge.dialogue{background:var(--coral-soft);color:var(--coral)}
+  .it-badge.description{background:var(--violet-soft);color:var(--violet)}
+  .it-badge.review{background:var(--violet);color:#fff}
+  .feed-item .it-scn{font-size:11px;color:var(--muted);font-weight:700}
+  .feed-item .it-q{font-family:var(--serif);font-size:18px;margin:0 0 4px;line-height:1.3}
 
-  /* practice mode picker */
-  .mode-pick{display:grid;gap:11px}
-  .mode{display:flex;gap:13px;align-items:flex-start;padding:15px;border-radius:15px;border:1px solid var(--border);background:var(--panel);cursor:pointer;transition:all var(--dur) var(--ease)}
-  .mode:hover{border-color:var(--teal);box-shadow:var(--shadow-sm)}
-  .mode .mi{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
-  .mode.translation .mi{background:var(--teal-tint)}
-  .mode.dialogue .mi{background:var(--coral-tint)}
-  .mode.description .mi{background:var(--violet-tint)}
-  .mode b{font-size:14px}
-  .mode small{font-size:12px;color:var(--ink-2);display:block;margin-top:2px}
-
-  /* practice — translation */
   .prompt-cn{background:var(--paper-2);border:1px dashed var(--border-2);border-radius:14px;padding:14px 16px;font-size:16px;margin-bottom:14px}
   .prompt-cn small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;font-weight:700}
-  .input-box{background:var(--panel);border:1.5px solid var(--teal);border-radius:14px;padding:14px;font-size:15px;min-height:70px;box-shadow:0 0 0 4px var(--teal-tint)}
+  .input-box{background:var(--panel);border:1.5px solid var(--teal);border-radius:14px;padding:14px;font-size:15px;min-height:64px;box-shadow:0 0 0 4px var(--teal-tint)}
   .input-box .caret-line{color:var(--ink)}
   .input-actions{display:flex;gap:9px;margin-top:12px}
 
+  /* inline score chip (in-feed) */
+  .score-chip{display:inline-flex;align-items:center;gap:10px;background:var(--violet-tint);border:1px solid var(--violet-soft);border-radius:13px;padding:10px 14px;margin:12px 0}
+  .score-chip .mini-ring{width:42px;height:42px;border-radius:50%;background:conic-gradient(var(--teal) 0 78%, var(--paper-2) 78% 100%);position:relative;flex-shrink:0}
+  .score-chip .mini-ring::before{content:"";position:absolute;inset:6px;background:var(--panel);border-radius:50%}
+  .score-chip .mini-ring b{position:relative;z-index:2;display:grid;place-items:center;height:100%;font-family:var(--serif);font-size:15px}
+  .score-chip .sx b{font-size:13px;display:block}
+  .score-chip .sx small{font-size:11px;color:var(--ink-2)}
+  .score-chip .cefr-mini{font-size:11px;font-weight:800;color:var(--violet);background:var(--violet-soft);padding:3px 8px;border-radius:7px;white-space:nowrap}
+
+  /* inline save row */
+  .save-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:6px}
+  .save-pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;background:var(--paper-2);border:1px solid var(--border);border-radius:999px;padding:6px 7px 6px 12px;color:var(--ink-2)}
+  .save-pill .add{border:none;background:var(--violet);color:#fff;font-weight:800;font-size:14px;width:24px;height:24px;border-radius:50%;cursor:pointer;transition:transform var(--dur) var(--ease),background var(--dur) var(--ease)}
+  .save-pill .add:active{transform:scale(.9)}
+  .save-pill .add.saved{background:var(--green)}
+
   /* dialogue bubbles */
-  .bubble{max-width:80%;padding:11px 14px;border-radius:16px;margin-bottom:11px;font-size:14px;line-height:1.45;position:relative}
-  .bubble.ai{background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:5px}
+  .bubble{max-width:84%;padding:11px 14px;border-radius:16px;margin-bottom:11px;font-size:14px;line-height:1.45;position:relative}
+  .bubble.ai{background:var(--paper-2);border:1px solid var(--border);border-bottom-left-radius:5px}
   .bubble.me{background:var(--teal);color:#fff;margin-left:auto;border-bottom-right-radius:5px}
   .bubble .role{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:3px}
   .bubble.flagged{border-bottom:2px solid var(--coral)}
   .flag-note{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:var(--coral);font-weight:700;margin-top:5px;background:var(--coral-tint);padding:4px 9px;border-radius:8px}
-  .voice-bar{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 16px;margin-top:8px}
-  .mic{width:52px;height:52px;border-radius:50%;background:var(--coral);color:#fff;display:grid;place-items:center;font-size:22px;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(234,88,12,.34);transition:transform var(--dur) var(--ease)}
+  .voice-bar{display:flex;align-items:center;gap:12px;background:var(--paper-2);border:1px solid var(--border);border-radius:16px;padding:12px 16px;margin-top:8px}
+  .mic{width:48px;height:48px;border-radius:50%;background:var(--coral);color:#fff;display:grid;place-items:center;font-size:20px;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(234,88,12,.34);transition:transform var(--dur) var(--ease);flex-shrink:0}
   .mic:active{transform:scale(.93)}
-  .wave{flex:1;display:flex;align-items:center;gap:3px;height:32px}
+  .wave{flex:1;display:flex;align-items:center;gap:3px;height:30px}
   .wave i{flex:1;background:var(--teal);border-radius:99px;opacity:.5}
 
   /* ASR low-confidence banner */
@@ -378,30 +399,54 @@
   .asr-banner b{font-size:13px;color:var(--coral)}
   .asr-banner small{font-size:12px;color:var(--ink-2);display:block}
 
-  /* report */
-  .score-hero{text-align:center;padding:18px 0 8px}
-  .score-ring{width:140px;height:140px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
-    background:conic-gradient(var(--teal) 0 78%, var(--paper-2) 78% 100%);position:relative}
-  .score-ring::before{content:"";position:absolute;inset:14px;background:var(--paper);border-radius:50%}
-  .score-ring .v{position:relative;z-index:2;font-family:var(--serif);font-size:40px;font-weight:700}
-  .score-ring .v small{font-size:14px;color:var(--muted);font-weight:600}
-  .cefr-badge{display:inline-flex;align-items:center;gap:8px;background:var(--violet-soft);color:var(--violet);font-weight:800;padding:8px 16px;border-radius:999px;margin-top:12px;font-size:15px}
+  /* thinking dots */
+  .thinking{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;font-weight:600;padding:8px 2px}
+  .thinking .dots{display:inline-flex;gap:4px}
+  .thinking .dots i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:bounce 1.2s infinite ease-in-out}
+  .thinking .dots i:nth-child(2){animation-delay:.15s}
+  .thinking .dots i:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-5px);opacity:1}}
+
+  /* session summary / celebration */
+  .summary-hero{text-align:center;padding:20px 0 8px}
+  .summary-hero .mascot{font-size:54px}
+  .summary-hero h3{font-family:var(--serif);font-size:24px;margin:6px 0 2px}
+  .summary-hero p{font-size:13px;color:var(--ink-2)}
+  .sum-stats{display:flex;gap:10px;margin:14px 0}
+  .sum-stat{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px;text-align:center}
+  .sum-stat .v{font-family:var(--serif);font-size:24px;font-weight:700}
+  .sum-stat .v.teal{color:var(--teal-700)}.sum-stat .v.violet{color:var(--violet)}.sum-stat .v.coral{color:var(--coral)}
+  .sum-stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+
+  /* skeleton */
+  .skel{background:linear-gradient(90deg,var(--paper-2) 25%,#ece6dd 50%,var(--paper-2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
+  @keyframes shimmer{to{background-position:-200% 0}}
+
+  .disclaimer{font-size:11px;color:var(--muted);background:var(--paper-2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-top:14px;line-height:1.5}
+
+  /* ===== YOU surface ===== */
+  .you-tabs{display:flex;gap:6px;overflow-x:auto;margin:4px 0 14px;scrollbar-width:none}
+  .you-tabs::-webkit-scrollbar{display:none}
+  .ytab{white-space:nowrap;font-size:12px;font-weight:700;padding:8px 14px;border-radius:999px;background:var(--panel);border:1px solid var(--border);color:var(--ink-2);cursor:pointer;transition:all var(--dur) var(--ease)}
+  .ytab[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .ytab:hover{border-color:var(--teal)}
+  .you-pane{display:none}
+  .you-pane.active{display:block}
+
+  .cefr-hero{background:linear-gradient(150deg,var(--violet),#6d28d9);color:#fff;border-radius:20px;padding:22px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px}
+  .cefr-hero .big{font-family:var(--serif);font-size:52px;font-weight:700;line-height:1}
+  .cefr-hero .rng{font-size:13px;opacity:.9;margin-top:6px}
+  .trend{display:flex;align-items:flex-end;gap:6px;height:90px;padding:10px 0}
+  .trend i{flex:1;background:var(--teal);border-radius:6px 6px 0 0;opacity:.85;transition:height var(--dur) var(--ease)}
+  .trend i:last-child{background:var(--violet)}
   .dim-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
   .dim-row .nm{width:96px;font-size:12px;font-weight:700;flex-shrink:0}
   .dim-track{flex:1;height:9px;background:var(--paper-2);border-radius:99px;overflow:hidden}
   .dim-fill{height:100%;border-radius:99px}
   .dim-row .sc{width:30px;text-align:right;font-size:12px;font-weight:800;color:var(--ink-2)}
-  .disclaimer{font-size:11px;color:var(--muted);background:var(--paper-2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-top:14px;line-height:1.5}
-  .save-card{display:flex;align-items:center;gap:11px;background:var(--violet-tint);border:1px solid var(--violet-soft);border-radius:13px;padding:12px 14px;margin-bottom:9px}
-  .save-card .txt{flex:1;font-size:13px}
-  .save-card .txt b{display:block}
-  .save-btn{border:none;background:var(--violet);color:#fff;font-weight:800;font-size:18px;width:34px;height:34px;border-radius:10px;cursor:pointer;transition:transform var(--dur) var(--ease)}
-  .save-btn:active{transform:scale(.9)}
-  .save-btn.saved{background:var(--green)}
 
-  /* expressions tabs */
-  .expr-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;scrollbar-width:none}
-  .expr-tabs::-webkit-scrollbar{display:none}
+  .expr-subtabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;scrollbar-width:none}
+  .expr-subtabs::-webkit-scrollbar{display:none}
   .etab{white-space:nowrap;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;background:var(--panel);border:1px solid var(--border);color:var(--ink-2);cursor:pointer}
   .etab[aria-pressed="true"]{background:var(--teal);color:#fff;border-color:var(--teal)}
   .expr-item{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px 15px;margin-bottom:10px}
@@ -409,17 +454,15 @@
   .expr-item .cn{font-size:13px;color:var(--muted)}
   .mastery{height:6px;background:var(--paper-2);border-radius:99px;overflow:hidden;margin-top:9px}
   .mastery i{display:block;height:100%;background:var(--violet);border-radius:99px}
-  .review-banner{background:linear-gradient(140deg,var(--violet),#9d5cff);color:#fff;border-radius:18px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
-  .review-banner h3{font-family:var(--serif);font-size:20px;margin-bottom:4px}
-  .review-banner p{font-size:13px;opacity:.92;margin-bottom:12px}
-
-  /* profile */
-  .cefr-hero{background:linear-gradient(150deg,var(--violet),#6d28d9);color:#fff;border-radius:20px;padding:22px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px}
-  .cefr-hero .big{font-family:var(--serif);font-size:52px;font-weight:700;line-height:1}
-  .cefr-hero .rng{font-size:13px;opacity:.9;margin-top:6px}
-  .trend{display:flex;align-items:flex-end;gap:6px;height:90px;padding:10px 0}
-  .trend i{flex:1;background:var(--teal);border-radius:6px 6px 0 0;opacity:.85;transition:height var(--dur) var(--ease)}
-  .trend i:last-child{background:var(--violet)}
+  .review-status{display:flex;align-items:center;gap:11px;background:var(--violet-tint);border:1px solid var(--violet-soft);border-radius:14px;padding:13px 15px;margin-bottom:12px}
+  .review-status .rs-ic{font-size:24px}
+  .review-status b{font-size:14px;display:block}
+  .review-status small{font-size:12px;color:var(--ink-2)}
+  .setting-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:13px 15px;margin-bottom:9px}
+  .setting-row .si{font-size:18px}
+  .setting-row .st{flex:1}
+  .setting-row .st b{font-size:13px;display:block}
+  .setting-row .st small{font-size:11px;color:var(--muted)}
 
   /* onboarding */
   .onb{padding:30px 24px;text-align:center}
@@ -427,17 +470,19 @@
   .onb h2{font-family:var(--serif);font-size:26px;margin-bottom:8px}
   .onb p{font-size:14px;color:var(--ink-2);max-width:34ch;margin:0 auto 22px}
   .magic-input{display:flex;gap:8px;margin-top:14px}
-  .magic-input input{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;background:var(--panel)}
+  .magic-input input{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;background:var(--panel);min-width:0}
   .magic-input input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 4px var(--teal-tint)}
 
   /* admin (desktop) */
   .admin{display:grid;grid-template-columns:200px 1fr;height:100%}
   .admin-side{background:var(--ink);color:#fff;padding:20px 14px}
-  .admin-side .brand{font-family:var(--serif);font-size:18px;margin-bottom:20px}
+  .admin-side .brand{font-family:var(--serif);font-size:18px;margin-bottom:6px}
+  .admin-side .op-tag{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:18px;display:block}
   .admin-side a{display:block;color:rgba(255,255,255,.7);font-size:13px;font-weight:600;padding:9px 12px;border-radius:9px;margin-bottom:4px}
   .admin-side a.on,.admin-side a:hover{background:rgba(255,255,255,.12);color:#fff;text-decoration:none}
   .admin-main{padding:22px 26px;overflow-y:auto;background:var(--paper)}
   .admin-main h2{font-family:var(--serif);font-size:22px;margin-bottom:4px}
+  .op-banner{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;background:var(--ink);color:#fff;padding:5px 11px;border-radius:7px;margin-bottom:10px}
   .admin-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
   .kpi{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:13px}
   .kpi .v{font-size:24px;font-weight:800;font-family:var(--serif)}
@@ -458,15 +503,15 @@
   .mini-btn.archive{border-color:var(--red);color:var(--red)}
   .mini-btn.archive:hover{background:var(--red);color:#fff}
 
-  /* bottom tab bar (mobile app) */
+  /* bottom tab bar (mobile app) — now just TWO surfaces */
   .tabbar{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.92);backdrop-filter:blur(10px);padding:8px 6px 10px}
   .device.desktop .tabbar{display:none}
-  .tabbar button{flex:1;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:inherit;font-size:10px;font-weight:700;padding:4px 0;transition:color var(--dur) var(--ease)}
-  .tabbar button .ti{font-size:21px;line-height:1}
+  .tabbar button{flex:1;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:inherit;font-size:11px;font-weight:700;padding:6px 0;transition:color var(--dur) var(--ease)}
+  .tabbar button .ti{font-size:22px;line-height:1}
   .tabbar button[aria-pressed="true"]{color:var(--teal-700)}
   .tabbar button[aria-pressed="true"] .ti{transform:translateY(-1px)}
 
-  /* desktop web nav (top) */
+  /* desktop web nav (top) — two surfaces */
   .web-nav{display:none}
   .device.desktop .web-nav{display:flex;align-items:center;gap:8px;padding:14px 26px;border-bottom:1px solid var(--border);background:var(--panel)}
   .web-nav .brand{font-family:var(--serif);font-weight:700;font-size:17px;margin-right:14px}
@@ -477,11 +522,10 @@
   .web-nav .spacer{flex:1}
 
   /* desktop spreads content wider */
-  .device.desktop .app-pad{max-width:880px;margin:0 auto;padding:24px 26px 40px}
-  .device.desktop .streak{max-width:880px;margin:14px auto 0}
+  .device.desktop .app-pad{max-width:760px;margin:0 auto;padding:24px 26px 40px}
+  .device.desktop .coach-strip{max-width:760px;margin:18px auto 6px}
+  .device.desktop .streak{max-width:760px;margin:14px auto 0}
   .device.desktop .app-top{display:none}
-  .device.desktop .cat-bento{grid-template-columns:repeat(4,1fr)}
-  .device.desktop .desktop-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
 
   .hint{font-size:var(--t-xs);color:var(--muted);text-align:center;margin-top:10px}
 
@@ -498,14 +542,22 @@
 
 <header class="hero">
   <div class="wrap">
-    <span class="eyebrow"><span class="dot"></span> Design Document · Gate 1 Artifact</span>
-    <h1>Practice English that <em>sounds like you</em> mean it.</h1>
-    <p class="lede">The design system, information architecture, screen specs, and a clickable prototype for the AI Scenario English Trainer — one warm, editorial identity carried across a responsive web client, a native iOS client, and an operator admin.</p>
+    <span class="eyebrow"><span class="dot"></span> Design Document v2 · AI-native pivot · Gate 1 (re-review)</span>
+    <h1>The app decides. <em>You just practice.</em></h1>
+    <p class="lede">After the PM's IA pivot, the learner product collapses from a five-tab library-and-modes app into <strong>two surfaces</strong>: an adaptive <strong>Study</strong> feed where the whole learning loop happens inline, and <strong>You</strong>, the look-back mirror. Same warm editorial identity, same full P0+P1 feature set — now an engine, not a menu.</p>
     <div class="hero-meta">
       <span class="chip"><b>Direction</b> · Warm editorial coaching</span>
-      <span class="chip"><b>Surfaces</b> · Web · iOS · Admin</span>
-      <span class="chip"><b>Scope</b> · All P0 + P1</span>
-      <span class="chip"><b>Signature</b> · 3-tier feedback diff</span>
+      <span class="chip"><b>Learner surfaces</b> · Study · You</span>
+      <span class="chip"><b>Operator</b> · Admin (separate)</span>
+      <span class="chip"><b>Scope</b> · All P0 + P1 (re-homed)</span>
+      <span class="chip"><b>Signature</b> · Inline 3-tier diff</span>
+    </div>
+    <div class="pivot">
+      <span class="bi">🔁</span>
+      <div>
+        <b>What changed in v2</b>
+        <p>Only the information architecture. Every feature in the PRD survives. Practice + Report became <em>inline states of the Study feed</em>; the scenario library + 3 modes became <em>item types behind the feed</em>; the Expression bank + ability profile moved to <em>You</em>. Onboarding stays a transient flow; Admin stays a separate operator tool outside the learner app.</p>
+      </div>
     </div>
   </div>
 </header>
@@ -514,8 +566,8 @@
   <div class="inner">
     <a href="#rationale">1 · Rationale</a>
     <a href="#ia">2 · Information Architecture</a>
-    <a href="#categories">8 Categories</a>
-    <a href="#screens">3 · Screen Specs</a>
+    <a href="#taxonomy">Engine &amp; Taxonomy</a>
+    <a href="#screens">3 · Surface Specs</a>
     <a href="#flows">4 · Signature Flows</a>
     <a href="#mockup">5 · Interactive Mockup</a>
   </div>
@@ -528,21 +580,23 @@
 <!-- ====================================================== -->
 <section class="block" id="rationale">
   <span class="kicker"><span class="num">01</span> · Design Rationale</span>
-  <h2>Warm editorial coaching, not another gamified tutor</h2>
+  <h2>Warm editorial coaching, now AI-native</h2>
   <p class="section-lede">The product is corrective and adaptive — it should feel like a sharp, encouraging editor sitting beside you, not a cartoon classroom. The visual language is warm paper, confident serif headlines against rounded sans body, and color used as <em>meaning</em>: teal acts, coral corrects, violet measures growth. The existing iOS warm palette is the anchor so web and iOS are visibly the same product.</p>
+
+  <p class="section-lede"><strong>The AI-native principle: the app decides, you just practice.</strong> A learner shouldn't have to browse a library, pick a category, then pick a mode before they can begin. On open, the coach hands them the <em>next best item</em> and the whole loop — practice → correction → score → save → review — unfolds inline in one continuous feed. The library, the three modes, scoring, the expression bank, and spaced review are all still here; they have simply moved from being <em>pages the user navigates</em> to being an <em>engine the coach drives</em>. Fewer decisions, less chrome, more reps.</p>
 
   <div class="bento cols-3">
     <div class="card lead-card">
       <h3>The point of view</h3>
-      <p>Real situations over abstract lessons. Focused correction over error dumps. Retained expression over forgotten vocab. The whole UI is built around one loop — practice, correct, save, review — and every screen earns its place in that loop.</p>
+      <p>Real situations over abstract lessons. Focused correction over error dumps. Retained expression over forgotten vocab. The whole product is one loop — practice, correct, save, review — and in v2 that loop is a single scrollable feed, not a route map.</p>
     </div>
     <div class="card">
       <h3>📰 Editorial, not template</h3>
-      <p>Serif display headlines, asymmetric rhythm, a feature-sized "today" card next to smaller tiles. We deliberately avoid the uniform card grid and the centered-hero-with-gradient-blob default.</p>
+      <p>Serif display headlines, asymmetric rhythm, a feed of distinct item cards each carrying its own badge and treatment. We deliberately avoid the uniform card grid and the centered-hero-with-gradient-blob default.</p>
     </div>
     <div class="card">
       <h3>🧭 Mascots with a job</h3>
-      <p>The existing mascots become scenario-category guides and empty/celebration moments — character, not childishness. They never carry primary navigation.</p>
+      <p>The existing mascots become the Study coach voice and empty/celebration moments — character, not childishness. They never carry navigation, because there is barely any navigation left to carry.</p>
     </div>
   </div>
 
@@ -561,11 +615,11 @@
   <div class="callout"><strong>Contrast note:</strong> iOS <code>appTeal</code> is the brighter <code>#14B8A6</code> (fine on white fills); web/text teal is the deeper <code>#0D9488</code> to clear AA on warm paper. Both ship as the same token name in each platform's token layer, so components stay portable.</div>
 
   <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Type scale &amp; pairing</h3>
-  <p class="section-lede">A two-family strategy: a humanist <strong>serif</strong> for display/headlines (editorial voice, the "coaching" warmth) paired with the platform <strong>rounded sans</strong> (SF Pro Rounded on Apple, system-ui elsewhere) for UI and body — matching the existing app's SF Rounded. Hierarchy comes from real scale contrast, not weight alone.</p>
+  <p class="section-lede">A two-family strategy: a humanist <strong>serif</strong> for display/headlines (editorial voice, the "coaching" warmth) paired with the platform <strong>rounded sans</strong> (SF Pro Rounded on Apple, system-ui elsewhere) for UI and body — matching the existing app's SF Rounded. Hierarchy comes from real scale contrast, not weight alone. No web font is loaded; this is a system-only stack.</p>
   <div class="card specimen">
     <div class="spec-row"><span class="tag">Display / serif</span><span class="spec-serif" style="font-size:var(--t-display);font-weight:700;line-height:1">Sound natural.</span></div>
-    <div class="spec-row"><span class="tag">H1 / serif</span><span class="spec-serif" style="font-size:var(--t-h1)">Ordering at a coffee shop</span></div>
-    <div class="spec-row"><span class="tag">H2 / serif</span><span class="spec-serif" style="font-size:var(--t-h2)">Your session report</span></div>
+    <div class="spec-row"><span class="tag">H1 / serif</span><span class="spec-serif" style="font-size:var(--t-h1)">Your next item is ready</span></div>
+    <div class="spec-row"><span class="tag">H2 / serif</span><span class="spec-serif" style="font-size:var(--t-h2)">Today on Study</span></div>
     <div class="spec-row"><span class="tag">H3 / sans 600</span><span style="font-size:var(--t-h3);font-weight:600">Save these expressions</span></div>
     <div class="spec-row"><span class="tag">Body / sans</span><span style="font-size:var(--t-body)">I'd like an iced Americano with no sugar. Could you make it with less ice?</span></div>
     <div class="spec-row"><span class="tag">Caption / sans 700</span><span style="font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--muted)">EST. CEFR · B1−</span></div>
@@ -574,8 +628,8 @@
   <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Core components</h3>
   <div class="bento cols-2">
     <div class="card">
-      <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Signature — 3-tier feedback diff</h4>
-      <p style="margin-bottom:12px">Never a flat error list. Correction is always a vertical stack: your original (struck, coral) → corrected (neutral, teal label) → natural version (violet). One glance shows the climb from "understood" to "native".</p>
+      <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Signature — 3-tier feedback diff (now inline)</h4>
+      <p style="margin-bottom:12px">Never a flat error list. Correction is always a vertical stack: your original (struck, coral) → corrected (neutral, teal label) → natural version (violet). In v2 it appears <em>inline in the Study feed</em>, right under the item you just answered — no navigation to a separate report.</p>
       <div class="diff">
         <div class="tier t1"><div class="lbl">● Your version</div><div class="txt">I want check in early.</div></div>
         <div class="tier t2"><span class="connector"></span><div class="lbl">✓ Corrected</div><div class="txt">I'd like to check in early.</div></div>
@@ -585,22 +639,22 @@
     <div class="card">
       <h4 style="color:var(--coral);font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Component inventory</h4>
       <p style="margin-bottom:10px">Shared across web + iOS via the token layer:</p>
-      <span class="pill teal">Scenario card</span><span class="pill teal">Mode picker</span>
+      <span class="pill teal">Feed item card</span><span class="pill teal">Coach strip</span>
       <span class="pill coral">Feedback diff</span><span class="pill coral">ASR retry banner</span>
-      <span class="pill violet">Score ring</span><span class="pill violet">Dimension bars</span>
-      <span class="pill violet">CEFR badge</span><span class="pill paper">Expression chip</span>
-      <span class="pill paper">Filter chip</span><span class="pill paper">Tab bar</span>
-      <span class="pill paper">Save toggle</span><span class="pill paper">Lifecycle pill</span>
-      <p style="margin-top:12px;font-size:var(--t-xs);color:var(--muted)">Surfaces use <code>CardStyle</code> (20px radius, soft shadow) as the base raised surface; recessed surfaces use warm <code>--paper-2</code>.</p>
+      <span class="pill violet">Inline score chip</span><span class="pill violet">Dimension bars</span>
+      <span class="pill violet">CEFR badge</span><span class="pill paper">Save pill</span>
+      <span class="pill paper">Session summary</span><span class="pill paper">Two-surface tab bar</span>
+      <span class="pill paper">Mastery bar</span><span class="pill paper">Lifecycle pill (admin)</span>
+      <p style="margin-top:12px;font-size:var(--t-xs);color:var(--muted)">Surfaces use <code>CardStyle</code> (18–20px radius, soft shadow) as the base raised surface; recessed surfaces use warm <code>--paper-2</code>. The score ring shrinks to an <em>inline mini-ring chip</em> in the feed and to a full hero ring on You.</p>
     </div>
   </div>
 
   <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Motion &amp; interaction principles</h3>
   <div class="bento cols-4">
-    <div class="card"><h3 style="font-size:var(--t-sm)">Clarify, don't decorate</h3><p>Motion shows flow: the diff tiers cascade in, the score ring fills. No motion-for-motion's-sake.</p></div>
+    <div class="card"><h3 style="font-size:var(--t-sm)">Clarify, don't decorate</h3><p>Motion shows flow: the diff tiers cascade in, the inline score chip fills, the next item slides up. No motion-for-motion's-sake.</p></div>
     <div class="card"><h3 style="font-size:var(--t-sm)">Compositor-only</h3><p>Animate <code>transform</code> &amp; <code>opacity</code> exclusively. 240ms, <code>cubic-bezier(.16,1,.3,1)</code>.</p></div>
     <div class="card"><h3 style="font-size:var(--t-sm)">Tactile states</h3><p>Hover lifts/translates; active scales to .97. Every interactive element has a designed press.</p></div>
-    <div class="card"><h3 style="font-size:var(--t-sm)">Honest loading</h3><p>Skeletons mirror final layout so AI latency never shifts the page (CLS &lt; 0.1).</p></div>
+    <div class="card"><h3 style="font-size:var(--t-sm)">Honest loading</h3><p>Coach "thinking" dots + skeletons mirror final layout so AI latency never shifts the feed (CLS &lt; 0.1).</p></div>
   </div>
 
   <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">Accessibility stance (WCAG 2.2 AA)</h3>
@@ -608,13 +662,13 @@
     <table>
       <thead><tr><th>Concern</th><th>Commitment</th></tr></thead>
       <tbody>
-        <tr><td><b>Contrast</b></td><td>All text ≥ 4.5:1 (≥ 3:1 large). Color is never the <em>only</em> signal — the diff uses labels + strikethrough + icons, not just hue, so it reads for color-blind users.</td></tr>
+        <tr><td><b>Contrast</b></td><td>All text ≥ 4.5:1 (≥ 3:1 large). Color is never the <em>only</em> signal — the diff uses labels + strikethrough + icons, item types use a labelled badge plus hue, so it reads for color-blind users.</td></tr>
         <tr><td><b>Focus states</b></td><td>Visible 3px violet focus ring on every interactive element (web). iOS uses system focus + VoiceOver. No focus is ever suppressed.</td></tr>
-        <tr><td><b>Reduced motion</b></td><td><code>prefers-reduced-motion</code> drops all transitions/animations to ~0ms; the ring and diff appear instantly. (Honored live in this very document's mockup.)</td></tr>
-        <tr><td><b>Keyboard nav</b></td><td>Full tab order; mode picker, filters, tabs, and save toggles are real buttons with <code>aria-pressed</code>. Skip-link to main content + to the mockup.</td></tr>
-        <tr><td><b>Non-blocking ASR retry</b></td><td>Low-confidence audio shows an inline, dismissible coral banner with a Retry action — it never modal-traps the user or discards their turn. The user can accept the draft transcript, retry, or switch to typing.</td></tr>
-        <tr><td><b>Voice alternatives</b></td><td>Every voice task has a text fallback. Speaking is never the only path to completing a session (intelligibility scoring is simply skipped).</td></tr>
-        <tr><td><b>Targets &amp; copy</b></td><td>≥ 44×44px touch targets. CEFR is labeled an estimate everywhere it appears (compliance copy verbatim on the report).</td></tr>
+        <tr><td><b>Reduced motion</b></td><td><code>prefers-reduced-motion</code> drops all transitions/animations to ~0ms; the diff, score chip, and thinking dots appear instantly. (Honored live in this very document's mockup.)</td></tr>
+        <tr><td><b>Keyboard nav</b></td><td>Full tab order; the two-surface tab bar, You sub-tabs, save toggles, and the in-feed "Check my answer" are real buttons with <code>aria-pressed</code>. Skip-link to main content + to the mockup.</td></tr>
+        <tr><td><b>Non-blocking ASR retry</b></td><td>Low-confidence audio shows an inline, dismissible coral banner with a Retry action inside the feed item — it never modal-traps the user or discards their turn. Accept the draft, retry, or switch to typing.</td></tr>
+        <tr><td><b>Voice alternatives</b></td><td>Every voice item in the feed has a text fallback. Speaking is never the only path to completing an item (intelligibility scoring is simply skipped).</td></tr>
+        <tr><td><b>Targets &amp; copy</b></td><td>≥ 44×44px touch targets. CEFR is labeled an estimate everywhere it appears — inline chip in the feed and full breakdown on You both carry the verbatim disclaimer.</td></tr>
       </tbody>
     </table>
   </div>
@@ -625,37 +679,73 @@
 <!-- ====================================================== -->
 <section class="block" id="ia">
   <span class="kicker"><span class="num">02</span> · Information Architecture</span>
-  <h2>One product, three navigation models</h2>
-  <p class="section-lede">The existing iOS 6-tab shell (Home · Reading · Writing · Vocabulary · Listening · Me) is <strong>retabbed to 5</strong> around the new loop: <strong>Home · Scenarios · Practice · Expressions · Profile</strong>. Web mirrors the same five as a top nav; the operator Admin is a separate web-only surface behind role auth.</p>
+  <h2>Two surfaces, not a menu</h2>
+  <p class="section-lede">v1 carried a five-tab learner shell (Home · Scenarios · Practice · Expressions · Profile). v2 collapses that to <strong>two learner surfaces</strong> — <strong>Study</strong> (the adaptive feed where everything active happens) and <strong>You</strong> (the look-back mirror) — plus a transient onboarding flow and a separate operator Admin. Web and iOS share the same two-surface model: a two-item bottom tab bar on mobile, a two-item top nav on desktop.</p>
 
   <div class="bento feature">
     <div class="card">
-      <h3>🎓 Learner — shared 5-tab model (web + iOS)</h3>
-      <pre><code>Home          today's pick · continue · weak expressions · quick start
-Scenarios     8 categories → list (level/mode filters) → detail
-Practice      mode picker → [Translation | Dialogue | Description]
-              → live session → AI feedback → Report
-Expressions   Vocabulary · Patterns · Mistakes · Saved · Phrases
-              → daily Review flow
-Profile       long-term CEFR · 6-dimension trends · settings · account</code></pre>
-      <p style="margin-top:10px">Practice is reachable from Home (quick start), Scenarios (detail → start), and its own tab — the loop never dead-ends. <strong>Report</strong> is a result of Practice, not a tab; <strong>Review</strong> lives inside Expressions.</p>
+      <h3>🎯 Learner — two surfaces (web + iOS)</h3>
+      <pre><code>STUDY  (the app, really)
+   One adaptive session feed. On open, the coach hands the
+   user the NEXT BEST item. The whole loop happens inline:
+     item → respond (voice/text) → 3-tier correction
+          → inline score chip → save-to-bank → next item
+   Item types (all from the old "modes" + library):
+     · scenario translation    (instant correction)
+     · scenario dialogue turn   (voice, light correction)
+     · topic description        (record → post review)
+     · resurfaced review item   (your past weak points)
+   No library browse. No mode picker. No separate report.
+
+YOU  (the mirror)
+   Long-term CEFR profile + 6-dimension trends · the
+   expression bank (Vocabulary · Patterns · Mistakes ·
+   Saved · Scenario phrases) · review status &amp; mastery ·
+   settings &amp; account. Nothing active happens here.</code></pre>
+      <p style="margin-top:10px">Everything that was a verb (practice, score, save, review) lives in <strong>Study</strong>. Everything that is a noun (your profile, your bank, your history) lives in <strong>You</strong>.</p>
     </div>
     <div class="card" style="background:var(--paper-2)">
-      <h3>🛠️ Operator — Admin (web only)</h3>
-      <pre><code>Dashboard    bank health · queue size · complaint spikes
-Question Bank table: items × lifecycle × quality metrics
-             filters: category · level · status · source
-             row → detail drawer → approve / archive / re-level
-Scenarios    category & scenario coverage map
-Sources      content sources + license metadata</code></pre>
-      <p style="margin-top:10px">Distinct chrome (dark sidebar, dense data tables) signals "back office". Never exposed to learners. Role-gated route segment.</p>
+      <h3>🛠️ Operator — Admin (web only, outside the app)</h3>
+      <pre><code>Question Bank  items × lifecycle × quality metrics
+               filters: category · level · status · source
+               row → drawer → approve / archive / re-level
+Dashboard      bank health · queue size · complaint spikes
+Scenarios      category &amp; scenario coverage map
+Sources        content sources + license metadata</code></pre>
+      <p style="margin-top:10px">Distinct chrome (dark sidebar, dense data tables, "Operator tool" banner) signals "back office". It is <strong>not a learner surface</strong> — it lives behind role auth on a separate route segment and never appears in the learner tab bar.</p>
     </div>
   </div>
 
-  <div class="callout violet"><strong>Navigation parity:</strong> identical tab labels and order on web + iOS keeps muscle memory portable. The only platform difference is placement — bottom tab bar on iOS/mobile-web, top nav on desktop-web. Filters and the active scenario/tab live in the <strong>URL</strong> on web (shareable, back-button-correct).</p></div>
+  <div class="callout violet"><strong>Navigation parity:</strong> identical two-surface model on web + iOS keeps muscle memory portable. The only platform difference is placement — bottom tab bar on iOS/mobile-web, top nav on desktop-web. On web the active surface and the active You sub-tab live in the <strong>URL</strong> (shareable, back-button-correct); the Study feed itself is a stream, so "back" returns to You rather than rewinding items.</div>
 
-  <h3 id="categories" style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">The 8 scenario categories (finalized)</h3>
-  <p class="section-lede">The PRD names four (Daily Life, Travel, Social, Work). We finalize the remaining four below, chosen for <strong>high real-world frequency</strong>, <strong>clear goal/role/phrase structure</strong>, and <strong>coverage of the four user types</strong> without overlapping the first four. Topic Description is treated as a <em>practice mode available within categories</em> plus a dedicated "Express Yourself" pack — not its own category — so categories stay situational.</p>
+  <h3 style="margin-top:2rem;font-family:var(--serif);font-size:var(--t-h2)">How every old screen is re-homed</h3>
+  <p class="section-lede">Nothing was deleted. Each v1 screen became either an inline state of the Study feed, a slice of the engine behind it, or a section of You.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>v1 screen</th><th>v2 home</th><th>How it survives</th></tr></thead>
+      <tbody>
+        <tr><td><b>Home</b></td><td><span class="pill teal">Study</span></td><td>Replaced by the feed's first card: coach strip + "today's next item". The streak and review nudge become the coach greeting and resurfaced review items.</td></tr>
+        <tr><td><b>Scenarios</b> (library + filters + detail)</td><td><span class="pill paper">Engine</span></td><td>The 8 categories &amp; 60–80 scenarios become a <em>content taxonomy</em> the coach selects from. Goal / roles / key-phrases ride along on each feed item's context strip. No browsable list.</td></tr>
+        <tr><td><b>Practice</b> (Translation / Dialogue / Description)</td><td><span class="pill teal">Study</span></td><td>The three modes become three <em>item types</em> in the feed. The user answers inline; the mode is chosen by the coach, not a picker.</td></tr>
+        <tr><td><b>Score Report</b></td><td><span class="pill teal">Study</span></td><td>Becomes the inline <em>score chip</em> after each item + an end-of-session <em>summary card</em>. Full 6-dimension breakdown lives on You.</td></tr>
+        <tr><td><b>Expressions + Review</b></td><td><span class="pill violet">You</span> (bank) + <span class="pill teal">Study</span> (review)</td><td>The bank (5 sub-tabs) becomes a You section. <em>Doing</em> review moves into Study as resurfaced review items; You shows review <em>status</em> &amp; mastery.</td></tr>
+        <tr><td><b>Profile</b></td><td><span class="pill violet">You</span></td><td>CEFR hero, 6-dimension trends, weaknesses, account &amp; settings — all become You. Disclaimer repeated here.</td></tr>
+        <tr><td><b>Onboarding</b></td><td><span class="pill paper">Transient</span></td><td>Unchanged in spirit: anonymous start + optional magic-link upgrade. A flow, not a standing tab.</td></tr>
+        <tr><td><b>Admin</b></td><td><span class="pill paper">Operator</span></td><td>Unchanged. Separate web-only operator surface outside the learner app.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout"><strong>Feature audit — all P0+P1 survive as engine:</strong> 8 categories (taxonomy behind the feed) · 3 modes (item types) · voice + server-side ASR + non-blocking low-confidence retry (in-feed voice items) · 6-dimension scoring + CEFR estimate (inline chip in Study + full breakdown on You) · expression bank auto-save (inline save pill → You bank) · spaced review (resurfaced review items in Study; status on You) · ability profile + trends (You).</div>
+</section>
+
+<!-- ====================================================== -->
+<!-- 2b. ENGINE & TAXONOMY -->
+<!-- ====================================================== -->
+<section class="block" id="taxonomy">
+  <span class="kicker"><span class="num">02b</span> · Engine &amp; Content Taxonomy</span>
+  <h2>The library is now an engine</h2>
+  <p class="section-lede">The 8 scenario categories still exist — finalized below — but learners never browse them. They are the taxonomy the coach draws from when choosing each next item. Each category still carries its guide mascot, sample scenarios, and goal/role/phrase structure; that metadata now rides on the feed item's context strip instead of a detail page. <strong>Express Yourself</strong> remains the home for Topic Description prompts.</p>
   <div class="tablewrap">
     <table>
       <thead><tr><th>#</th><th>Category</th><th>Guide mascot</th><th>Sample scenarios</th><th>Why it earns a slot</th></tr></thead>
@@ -667,29 +757,38 @@ Sources      content sources + license metadata</code></pre>
         <tr><td>5</td><td><b>Shopping &amp; Money</b> <span class="pill coral">NEW</span></td><td>🐝 Buzz</td><td>Retail · Returns &amp; refunds · Bank · Bargaining · Online orders</td><td>Distinct transactional language (numbers, complaints, negotiation) not covered by "ordering". Universal, high-frequency.</td></tr>
         <tr><td>6</td><td><b>Health &amp; Services</b> <span class="pill coral">NEW</span></td><td>🐱 Cleo</td><td>Doctor / pharmacy · Dentist · Repairs · Hairdresser · Calling support</td><td>High-anxiety, high-value situations where precise, polite phrasing matters most; service-call patterns are reusable.</td></tr>
         <tr><td>7</td><td><b>Education &amp; Growth</b> <span class="pill coral">NEW</span></td><td>🦉 Ollie</td><td>Classroom · Office hours · Group project · Library · Asking to clarify</td><td>Serves students &amp; intermediate learners; teaches clarification/confirmation language that transfers everywhere.</td></tr>
-        <tr><td>8</td><td><b>Express Yourself</b> <span class="pill coral">NEW</span></td><td>🦊 Fenn</td><td>Describe a photo · Tell a story · Give an opinion · Explain a process · Compare options</td><td>Home for Topic Description &amp; long-form coherence — the only category built around monologue rather than a counterpart. Drives the Coherence dimension.</td></tr>
+        <tr><td>8</td><td><b>Express Yourself</b> <span class="pill coral">NEW</span></td><td>🦊 Fenn</td><td>Describe a photo · Tell a story · Give an opinion · Explain a process · Compare options</td><td>Home for Topic Description &amp; long-form coherence — the only category built around monologue. Drives the Coherence dimension.</td></tr>
       </tbody>
     </table>
   </div>
-  <div class="callout coral"><strong>Rationale for not making "Topic Description" a category by itself:</strong> it is a <em>mode</em> (record + post-session review) that applies inside any category, but learners also want a place to just practice speaking at length. "Express Yourself" satisfies both — it surfaces description-style prompts while keeping the other seven categories cleanly situational/dialogic.</div>
+
+  <h3 style="margin-top:1.6rem;font-family:var(--serif);font-size:var(--t-h2)">The four feed item types</h3>
+  <p class="section-lede">Everything the coach can serve. The first three are the PRD's three practice modes; the fourth is the spaced-review engine surfacing past weak points.</p>
+  <div class="itemtypes">
+    <div class="itype translation"><div class="ic">✍️</div><div><b>Scenario translation</b><small>Translate a CN prompt to natural English. <em>Instant correction</em> — the 3-tier diff appears the moment you submit.</small><span class="tag2">Vocab · patterns · phrasing</span></div></div>
+    <div class="itype dialogue"><div class="ic">💬</div><div><b>Scenario dialogue turn</b><small>Role-play one turn with the AI counterpart (voice-first, text fallback). <em>Light correction</em> — only key issues flagged inline.</small><span class="tag2">Interaction · fluency</span></div></div>
+    <div class="itype description"><div class="ic">🎙️</div><div><b>Topic description</b><small>Speak 30s–2min on a prompt (Express Yourself). <em>Post-item review</em> — whole-performance analysis when you finish.</small><span class="tag2">Coherence · long-form</span></div></div>
+    <div class="itype review"><div class="ic">🔁</div><div><b>Resurfaced review item</b><small>A past mistake or saved expression, scheduled by spaced repetition, dropped back into the feed at the right time.</small><span class="tag2">Retention · mastery</span></div></div>
+  </div>
+  <div class="callout coral"><strong>Why the coach picks, not the user:</strong> the adaptive next-item selector weighs recency, weak dimensions, due review items, and category coverage — the same logic that used to power Home's "today's pick" and the review scheduler, now driving the entire feed. The user keeps agency through "skip / something else" on any item, but the default is always one tap to the next rep.</div>
 </section>
 
 <!-- ====================================================== -->
-<!-- 3. SCREEN-BY-SCREEN SPECS -->
+<!-- 3. SURFACE-BY-SURFACE SPECS -->
 <!-- ====================================================== -->
 <section class="block" id="screens">
-  <span class="kicker"><span class="num">03</span> · Screen-by-Screen Specs</span>
-  <h2>Every screen, every state</h2>
-  <p class="section-lede">Each screen lists purpose, layout, key components, and <strong>all states</strong> — default, empty, loading, error, low-ASR-confidence (where voice applies), and success/celebration. Expand any screen. The live prototype in §5 renders the default state of the starred screens.</p>
+  <span class="kicker"><span class="num">03</span> · Surface-by-Surface Specs</span>
+  <h2>Two surfaces, every state</h2>
+  <p class="section-lede">Study is specced as a feed with many inline states and item types; You as a profile + bank with sub-sections; Admin as the operator tool. Each lists purpose, layout, key components, and <strong>all states</strong>. The live prototype in §5 renders the starred surfaces.</p>
 
   <!-- Onboarding -->
   <details class="screen-spec" open>
-    <summary>🚪 Onboarding &amp; Auth <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+    <summary>🚪 Onboarding &amp; Auth — transient flow <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
     <div class="body">
       <div class="spec-grid">
-        <div class="spec-block"><h4>Purpose</h4><ul><li>Zero-friction entry: anonymous device account created on first launch — straight into the loop.</li><li>Optional magic-link upgrade later to sync across devices (merges the anonymous record).</li></ul></div>
-        <div class="spec-block"><h4>Layout</h4><ul><li>Single warm panel, mascot greeting, one serif promise line, one primary CTA "Start practicing".</li><li>"Sync my progress" is a secondary, deferrable action (email field → magic link).</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Mascot hero · primary CTA · magic-link input · "Maybe later" ghost.</li><li>3-dot first-run value carousel (skippable).</li></ul></div>
+        <div class="spec-block"><h4>Purpose</h4><ul><li>Zero-friction entry: anonymous device account on first launch — straight into the Study feed.</li><li>Optional magic-link upgrade later to sync across devices (merges the anonymous record).</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Single warm panel, mascot greeting, one serif promise line, one primary CTA "Start practicing" → lands directly on the first feed item.</li><li>"Sync my progress" is a secondary, deferrable action (email field → magic link).</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Mascot hero · primary CTA · magic-link input · "Maybe later" ghost.</li><li>Not a standing page — never appears in the tab bar after first run; re-reachable only from You → account.</li></ul></div>
         <div class="spec-block"><h4>States</h4>
           <div class="states-row">
             <span class="state-pill default"><span class="d"></span>Default (anon CTA)</span>
@@ -702,171 +801,56 @@ Sources      content sources + license metadata</code></pre>
     </div>
   </details>
 
-  <!-- Home -->
-  <details class="screen-spec">
-    <summary>🏠 Home ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+  <!-- STUDY -->
+  <details class="screen-spec" open>
+    <summary>🎯 Study — the adaptive session feed ★ <span class="surface-tag study">web · iOS · the app</span><span class="caret">▸</span></summary>
     <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>The heart of the app.</b> A single scrollable feed. The coach serves the next best item; the user responds (voice/text); correction, score, and save all happen inline; then it rolls into the next item. No browse, no mode picker, no separate report.</p>
       <div class="spec-grid">
-        <div class="spec-block"><h4>Purpose</h4><ul><li>One-tap re-entry to the loop and a visible reason to come back today.</li></ul></div>
-        <div class="spec-block"><h4>Layout (editorial bento)</h4><ul><li>Greeting + streak strip.</li><li>Large feature card: "Today's scenario" (continue-or-start).</li><li>Quick-start mode row (3 modes).</li><li>"Weak expressions to review" horizontal rail.</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Streak chip · hero scenario card · mode quick-start · expression rail · review nudge.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill default"><span class="d"></span>Returning user</span>
-            <span class="state-pill empty"><span class="d"></span>New (no history → "pick your first scenario")</span>
-            <span class="state-pill loading"><span class="d"></span>Skeleton cards</span>
-            <span class="state-pill error"><span class="d"></span>Offline (cached pick + retry)</span>
-            <span class="state-pill success"><span class="d"></span>Streak milestone toast</span>
-          </div>
-        </div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Sticky coach strip up top: mascot avatar + one-line "what's next &amp; why" + session progress.</li><li>Active item card (one of four types) with a collapsible context strip (scenario · goal · your role / AI role).</li><li>Inline response affordance (text box and/or voice bar).</li><li>On submit: inline 3-tier diff (or light flag for dialogue) → inline score chip → save pills → "Next".</li><li>Completed items condense above; the active item stays in focus.</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Coach strip · feed item card · item-type badge · context strip · input box / voice bar · feedback diff · score chip · save pill · ASR retry banner · thinking dots · session summary.</li></ul></div>
       </div>
+      <h4 style="font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;color:var(--coral);margin:14px 0 6px">Item types served in the feed</h4>
+      <div class="states-row">
+        <span class="state-pill default"><span class="d"></span>(a) Scenario-practice item (next best)</span>
+        <span class="state-pill default"><span class="d"></span>(b) Translation item → instant correction</span>
+        <span class="state-pill default"><span class="d"></span>(c) Dialogue turn (voice, light correction)</span>
+        <span class="state-pill default"><span class="d"></span>(d) Topic-description item (record → review)</span>
+        <span class="state-pill asr"><span class="d"></span>(e) Review / weak-point item (resurfaced)</span>
+      </div>
+      <h4 style="font-size:var(--t-sm);text-transform:uppercase;letter-spacing:.07em;color:var(--coral);margin:14px 0 6px">Inline states within an item</h4>
+      <div class="states-row">
+        <span class="state-pill default"><span class="d"></span>(f) 3-tier correction reveal</span>
+        <span class="state-pill success"><span class="d"></span>(g) Inline score chip (total + CEFR)</span>
+        <span class="state-pill success"><span class="d"></span>(h) Save-to-bank pill (toggles green)</span>
+        <span class="state-pill asr"><span class="d"></span>(i) Low-ASR retry (non-blocking, in-item)</span>
+        <span class="state-pill empty"><span class="d"></span>(j) Empty / first-run (coach intro)</span>
+        <span class="state-pill loading"><span class="d"></span>(k) Loading / coach thinking</span>
+        <span class="state-pill error"><span class="d"></span>(l) Error (turn preserved, re-try / re-score)</span>
+        <span class="state-pill success"><span class="d"></span>(m) Session summary / celebration</span>
+      </div>
+      <div class="callout amber" style="margin-top:14px"><strong>Verbatim compliance copy (shown on the inline score chip's expand &amp; on You):</strong><br>"Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification."</div>
     </div>
   </details>
 
-  <!-- Scenarios -->
-  <details class="screen-spec">
-    <summary>🗂️ Scenarios — list · filters · detail ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
+  <!-- YOU -->
+  <details class="screen-spec" open>
+    <summary>🪞 You — profile · trends · expression bank · review status ★ <span class="surface-tag">web · iOS · the mirror</span><span class="caret">▸</span></summary>
     <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>The look-back surface.</b> Nothing active happens here — it's reflect-and-review. Organized as sub-tabs so the deep bank and the long-term profile coexist without crowding.</p>
       <div class="spec-grid">
-        <div class="spec-block"><h4>Purpose</h4><ul><li>Browse 8 categories → drill to a scenario → start a mode.</li></ul></div>
-        <div class="spec-block"><h4>Layout</h4><ul><li>Category bento (asymmetric: feature tile + grid).</li><li>List view: sticky filter bar (level A1–C1, mode, completed) + scenario rows.</li><li>Detail: goal · your role / AI role · key phrases · common mistakes · "Choose a mode".</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Category tile · filter chips (URL-bound) · scenario row · detail header · mode picker.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill default"><span class="d"></span>Browsing</span>
-            <span class="state-pill empty"><span class="d"></span>No match for filters (clear-filters)</span>
-            <span class="state-pill loading"><span class="d"></span>Row skeletons</span>
-            <span class="state-pill error"><span class="d"></span>Fetch failed (retry)</span>
-          </div>
-        </div>
+        <div class="spec-block"><h4>Sub-tab: Profile</h4><ul><li>CEFR hero (overall + stable range, labeled AI estimate).</li><li>6-dimension 30-day trend chart.</li><li>"Focus next" weakness chips (article usage, polite requests…).</li><li>Disclaimer repeated verbatim.</li></ul></div>
+        <div class="spec-block"><h4>Sub-tab: Bank</h4><ul><li>Five categories: Vocabulary · Patterns · Mistakes · Saved · Scenario phrases.</li><li>Each item: content, meaning, source scenario, mastery bar.</li><li>Auto-populated by the inline save pill in Study.</li></ul></div>
+        <div class="spec-block"><h4>Sub-tab: Review status</h4><ul><li>How many items are due / scheduled and overall mastery.</li><li>"Doing" review is a Study action — this is the dashboard, with a "Practice these in Study" CTA that drops review items into the feed.</li></ul></div>
+        <div class="spec-block"><h4>Sub-tab: Settings &amp; account</h4><ul><li>Anonymous vs synced account (magic-link upgrade re-entry).</li><li>Voice, notifications, level-targeting preferences.</li></ul></div>
       </div>
-    </div>
-  </details>
-
-  <!-- Practice: Translation -->
-  <details class="screen-spec">
-    <summary>✍️ Practice — Scenario Translation ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
-    <div class="body">
-      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Feedback model:</b> instant correction — each sentence is corrected right after submission, surfaced as the 3-tier diff.</p>
-      <div class="spec-grid">
-        <div class="spec-block"><h4>Layout</h4><ul><li>Scenario context strip (collapsible).</li><li>Chinese prompt card.</li><li>Text input (voice optional) → Submit.</li><li>Instant 3-tier diff + 1–3 issue notes + save-candidate chips.</li><li>"Next prompt" / "Finish &amp; score".</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Prompt card · input box · feedback diff · issue chips · save chips.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill default"><span class="d"></span>Awaiting input</span>
-            <span class="state-pill loading"><span class="d"></span>AI grading (inline spinner on diff)</span>
-            <span class="state-pill error"><span class="d"></span>AI error → repair retry / try again</span>
-            <span class="state-pill success"><span class="d"></span>Correct first try (green badge)</span>
-            <span class="state-pill asr"><span class="d"></span>Low-ASR (voice input) → retry banner</span>
-          </div>
-        </div>
-        <div class="spec-block"><h4>Empty</h4><ul><li>If scenario has no prompts (admin gap) → friendly "more coming" + suggest another.</li></ul></div>
-      </div>
-    </div>
-  </details>
-
-  <!-- Practice: Dialogue -->
-  <details class="screen-spec">
-    <summary>💬 Practice — Scenario Dialogue ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
-    <div class="body">
-      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Feedback model:</b> light correction — flag only key issues without breaking flow; full analysis deferred to the report. Voice-first with text fallback.</p>
-      <div class="spec-grid">
-        <div class="spec-block"><h4>Layout</h4><ul><li>Role banner ("You: Customer · AI: Barista · Goal: …").</li><li>Chat transcript: AI turns + your turns.</li><li>Flagged turns get a subtle coral underline + tap-to-expand mini-diff.</li><li>Voice bar (mic + live waveform) with text-input toggle.</li><li>"End &amp; get report".</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Role banner · chat bubbles · inline flag note · voice bar / mic · text toggle.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill default"><span class="d"></span>AI's turn / your turn</span>
-            <span class="state-pill loading"><span class="d"></span>AI thinking (typing dots)</span>
-            <span class="state-pill asr"><span class="d"></span>Low ASR confidence → non-blocking retry</span>
-            <span class="state-pill error"><span class="d"></span>Network drop mid-turn (turn preserved)</span>
-            <span class="state-pill empty"><span class="d"></span>First turn (AI opens the scene)</span>
-            <span class="state-pill success"><span class="d"></span>Goal met (gentle "objective complete")</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </details>
-
-  <!-- Practice: Description -->
-  <details class="screen-spec">
-    <summary>🎙️ Practice — Topic Description ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
-    <div class="body">
-      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Feedback model:</b> post-session review — record 30s–2min, then whole-performance analysis at the end.</p>
-      <div class="spec-grid">
-        <div class="spec-block"><h4>Layout</h4><ul><li>Topic prompt + optional bullet scaffold.</li><li>Big record button + timer + live waveform; pause/resume.</li><li>Post-record: draft transcript (editable) → "Get my review".</li><li>Review = full report (see Score Report).</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Topic card · record control · timer · waveform · editable transcript · ASR banner.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill default"><span class="d"></span>Ready to record</span>
-            <span class="state-pill default"><span class="d"></span>Recording (timer + wave)</span>
-            <span class="state-pill loading"><span class="d"></span>Uploading + transcribing + scoring</span>
-            <span class="state-pill asr"><span class="d"></span>Low confidence → "re-record this part?" (non-blocking; excluded from long-term)</span>
-            <span class="state-pill error"><span class="d"></span>Mic permission denied → text-describe fallback</span>
-            <span class="state-pill success"><span class="d"></span>Review ready</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </details>
-
-  <!-- Report -->
-  <details class="screen-spec">
-    <summary>📊 Score Report ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
-    <div class="body">
-      <div class="spec-grid">
-        <div class="spec-block"><h4>Purpose</h4><ul><li>Explainable result: total + 6 dimensions + CEFR estimate + what to save + what's next.</li></ul></div>
-        <div class="spec-block"><h4>Layout</h4><ul><li>Score ring (total /100) + CEFR badge.</li><li>6 dimension bars (Vocabulary, Grammar, Fluency, Coherence, Interaction, Pronunciation) — N/A greyed for text-only sessions.</li><li>Weak-point notes + recommended review.</li><li>Save-candidate list (one-tap save) → feeds Expressions.</li><li><strong>Compliance disclaimer (verbatim).</strong></li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Score ring · CEFR badge · dimension bars · save cards · disclaimer · "Practice again" / "Review now".</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill loading"><span class="d"></span>Aggregating (ring spins up)</span>
-            <span class="state-pill success"><span class="d"></span>High score celebration (mascot + confetti, reduced-motion safe)</span>
-            <span class="state-pill default"><span class="d"></span>Standard report</span>
-            <span class="state-pill asr"><span class="d"></span>Partial: speech dims excluded (low ASR), flagged "not counted toward your level"</span>
-            <span class="state-pill error"><span class="d"></span>Scoring failed → keep transcript, offer re-score</span>
-          </div>
-        </div>
-      </div>
-      <div class="callout amber" style="margin-top:14px"><strong>Verbatim compliance copy (always shown on the report &amp; profile):</strong><br>"Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification."</div>
-    </div>
-  </details>
-
-  <!-- Expressions -->
-  <details class="screen-spec">
-    <summary>📚 Expressions bank + Review ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
-    <div class="body">
-      <div class="spec-grid">
-        <div class="spec-block"><h4>Purpose</h4><ul><li>The retention engine: a personal asset built from real practice + a daily spaced-review flow.</li></ul></div>
-        <div class="spec-block"><h4>Layout</h4><ul><li>Daily Review banner up top (N tasks due).</li><li>Sub-tabs: Vocabulary · Patterns · Mistakes · Saved · Scenario phrases.</li><li>Each item shows content, meaning, source scenario, mastery bar.</li><li>Review flow: card-by-card task (recall/produce) → mark known/again → mastery updates.</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Review banner · sub-tab chips · expression item · mastery bar · review card.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill empty"><span class="d"></span>Empty bank ("save expressions from practice")</span>
-            <span class="state-pill default"><span class="d"></span>Populated, nothing due</span>
-            <span class="state-pill default"><span class="d"></span>Review due (banner active)</span>
-            <span class="state-pill loading"><span class="d"></span>Loading items</span>
-            <span class="state-pill success"><span class="d"></span>Review complete (streak + mastery gains)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </details>
-
-  <!-- Profile -->
-  <details class="screen-spec">
-    <summary>👤 Profile — long-term CEFR &amp; trends ★ <span class="surface-tag">web · iOS</span><span class="caret">▸</span></summary>
-    <div class="body">
-      <div class="spec-grid">
-        <div class="spec-block"><h4>Purpose</h4><ul><li>Make progress visible: stable CEFR, per-dimension trends, what to improve next.</li></ul></div>
-        <div class="spec-block"><h4>Layout</h4><ul><li>CEFR hero (overall + stable range).</li><li>6-dimension trend (30-day) chart.</li><li>Weaknesses list ("article usage", "polite requests").</li><li>Account (anon vs synced) + settings.</li><li>Disclaimer repeated.</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>CEFR hero · dimension trend chart · weakness chips · account card · settings rows.</li></ul></div>
-        <div class="spec-block"><h4>States</h4>
-          <div class="states-row">
-            <span class="state-pill empty"><span class="d"></span>Too few sessions ("practice 3 more to unlock your level")</span>
-            <span class="state-pill default"><span class="d"></span>Established profile</span>
-            <span class="state-pill loading"><span class="d"></span>Chart skeleton</span>
-            <span class="state-pill success"><span class="d"></span>Level-up moment</span>
-          </div>
+      <div class="spec-block" style="margin-top:6px"><h4>States</h4>
+        <div class="states-row">
+          <span class="state-pill empty"><span class="d"></span>Too few sessions ("practice 3 more to unlock your level")</span>
+          <span class="state-pill empty"><span class="d"></span>Empty bank ("save expressions from Study")</span>
+          <span class="state-pill default"><span class="d"></span>Established profile · populated bank</span>
+          <span class="state-pill loading"><span class="d"></span>Chart / list skeleton</span>
+          <span class="state-pill success"><span class="d"></span>Level-up moment</span>
         </div>
       </div>
     </div>
@@ -874,12 +858,13 @@ Sources      content sources + license metadata</code></pre>
 
   <!-- Admin -->
   <details class="screen-spec">
-    <summary>🛠️ Operator Admin — question-bank lifecycle ★ <span class="surface-tag">web only</span><span class="caret">▸</span></summary>
+    <summary>🛠️ Operator Admin — question-bank lifecycle ★ <span class="surface-tag op">web only · operator</span><span class="caret">▸</span></summary>
     <div class="body">
+      <p style="font-size:var(--t-sm);color:var(--ink-2)"><b>Not a learner surface.</b> A separate web-only operator tool outside the learner app, behind role auth. Same spec as v1 — kept, just framed clearly as back office.</p>
       <div class="spec-grid">
         <div class="spec-block"><h4>Purpose</h4><ul><li>Run the content lifecycle: draft → generated → auto-checked → review-pending → published → monitored → improved/archived. Spot bad items via quality metrics; approve/archive.</li></ul></div>
-        <div class="spec-block"><h4>Layout</h4><ul><li>Dark sidebar nav.</li><li>KPI strip (queue size, complaint rate, avg score, published count).</li><li>Item table: category · level · status (lifecycle pill) · completion · save rate · complaint · row actions.</li><li>Row → detail drawer: full item, source/license, metric history, approve / archive / re-level / send-to-review.</li></ul></div>
-        <div class="spec-block"><h4>Key components</h4><ul><li>Sidebar · KPI cards · filterable table · lifecycle pill · metric cells · action buttons · detail drawer.</li></ul></div>
+        <div class="spec-block"><h4>Layout</h4><ul><li>Dark sidebar nav + "Operator tool" banner.</li><li>KPI strip (queue size, complaint rate, avg score, published count).</li><li>Item table: category · level · status (lifecycle pill) · completion · save rate · complaint · row actions.</li><li>Row → detail drawer: full item, source/license, metric history, approve / archive / re-level / send-to-review.</li></ul></div>
+        <div class="spec-block"><h4>Key components</h4><ul><li>Sidebar · operator banner · KPI cards · filterable table · lifecycle pill · metric cells · action buttons · detail drawer.</li></ul></div>
         <div class="spec-block"><h4>States</h4>
           <div class="states-row">
             <span class="state-pill default"><span class="d"></span>Queue populated</span>
@@ -903,28 +888,28 @@ Sources      content sources + license metadata</code></pre>
   <span class="kicker"><span class="num">04</span> · Signature Flows</span>
   <h2>Two flows the whole product hangs on</h2>
 
-  <h3 style="font-family:var(--serif);font-size:var(--t-h2);margin-bottom:4px">A · Practice → Report → Save (the core loop)</h3>
-  <p class="section-lede">The user goes from a scenario to a saved expression in one unbroken motion. The 3-tier diff appears at the moment of correction; save-candidates carry straight into the bank.</p>
+  <h3 style="font-family:var(--serif);font-size:var(--t-h2);margin-bottom:4px">A · One loop turn inside the Study feed</h3>
+  <p class="section-lede">The entire learning loop is now one unbroken motion in a single feed — no navigation between practice and report. The coach serves an item; the user answers; correction, score, and save all happen inline; the next item slides up.</p>
   <div class="flow">
-    <div class="step"><strong>Pick scenario</strong><span>Home quick-start or Scenarios → detail → choose mode.</span></div>
-    <div class="step"><strong>Produce</strong><span>Translate / speak a turn / record a description.</span></div>
-    <div class="step coral"><strong>Correct (diff)</strong><span>Original → Corrected → Natural, + 1–3 focused issues.</span></div>
-    <div class="step violet"><strong>Score</strong><span>Total + 6 dimensions + CEFR estimate + disclaimer.</span></div>
-    <div class="step violet"><strong>Save</strong><span>One-tap save-candidates → Expressions bank.</span></div>
-    <div class="step"><strong>Loop</strong><span>"Practice again" or "Review now".</span></div>
+    <div class="step"><strong>Coach serves item</strong><span>Next-best item appears in the feed with its context strip.</span></div>
+    <div class="step"><strong>Respond</strong><span>Type or speak — inline, in the same card.</span></div>
+    <div class="step coral"><strong>Correct (inline diff)</strong><span>Original → Corrected → Natural, + 1–3 focused issues, right under your answer.</span></div>
+    <div class="step violet"><strong>Score (inline chip)</strong><span>Mini-ring total + CEFR estimate + disclaimer on expand.</span></div>
+    <div class="step violet"><strong>Save (inline pill)</strong><span>One-tap save-candidates → You bank (pill turns green).</span></div>
+    <div class="step"><strong>Next item</strong><span>Feed rolls on; session summary when the user stops.</span></div>
   </div>
 
-  <h3 style="font-family:var(--serif);font-size:var(--t-h2);margin:2rem 0 4px">B · Mistake → Review-task generation</h3>
-  <p class="section-lede">A correction isn't just shown — it becomes scheduled, personalized practice. This is the engine behind the P1 review system and the long-term ability profile.</p>
+  <h3 style="font-family:var(--serif);font-size:var(--t-h2);margin:2rem 0 4px">B · Mistake → resurfaced review item later in the feed</h3>
+  <p class="section-lede">A correction isn't just shown — it becomes a scheduled item that the coach drops back into the same feed at the right time. This is the engine behind the P1 review system and the long-term ability profile, now with no separate review screen.</p>
   <div class="flow">
-    <div class="step coral"><strong>Mistake captured</strong><span>"I want check in early." flagged in a session.</span></div>
-    <div class="step"><strong>Stored as pair</strong><span>original → corrected → natural, tagged to scenario + weakness.</span></div>
-    <div class="step violet"><strong>Tasks generated</strong><span>Use "I'd like to…"; ask politely with "Would it be possible to…"; re-enter scenario.</span></div>
-    <div class="step violet"><strong>Scheduled</strong><span>Spaced repetition sets next-review-at + mastery.</span></div>
-    <div class="step"><strong>Surfaced</strong><span>Home rail + Expressions daily Review banner.</span></div>
-    <div class="step"><strong>Mastery updates</strong><span>Known/again adjusts mastery → feeds Profile trends.</span></div>
+    <div class="step coral"><strong>Mistake captured</strong><span>"I want check in early." flagged in a Study item.</span></div>
+    <div class="step"><strong>Stored as pair</strong><span>original → corrected → natural, tagged to scenario + weakness; lands in You bank.</span></div>
+    <div class="step violet"><strong>Scheduled</strong><span>Spaced repetition sets next-review-at + mastery; You shows it as "due".</span></div>
+    <div class="step violet"><strong>Resurfaced</strong><span>Coach drops a review item into the Study feed when it's due.</span></div>
+    <div class="step"><strong>Re-practiced inline</strong><span>Same loop turn (flow A) — answer → correct → score → save.</span></div>
+    <div class="step"><strong>Mastery updates</strong><span>Known/again adjusts mastery → feeds You trends.</span></div>
   </div>
-  <div class="callout coral"><strong>Why coral leads both flows:</strong> the moment of correction is the product's reason to exist. Coral marks it consistently — the struck original, the flagged turn, the retry, the weak-point — so the eye always knows "this is the thing to fix."</div>
+  <div class="callout coral"><strong>Why coral leads both flows:</strong> the moment of correction is the product's reason to exist. Coral marks it consistently — the struck original, the flagged turn, the retry, the resurfaced weak point — so the eye always knows "this is the thing to fix," even as it streams past in a feed.</div>
 </section>
 
 <!-- ====================================================== -->
@@ -933,18 +918,15 @@ Sources      content sources + license metadata</code></pre>
 <section class="block" id="mockup">
   <span class="kicker"><span class="num">05</span> · Interactive Mockup</span>
   <h2>Click through the real thing</h2>
-  <p class="section-lede">A working prototype with the actual palette, type, and components. Use the screen switcher to walk the learner loop, toggle <strong>Mobile (390px / iOS)</strong> vs <strong>Desktop (web)</strong>, and open the Admin screen. Buttons inside the frame also navigate. Honors <code>prefers-reduced-motion</code>.</p>
+  <p class="section-lede">A working prototype with the actual palette, type, and components. Walk the AI-native flow: <strong>Onboarding → Study → You → Admin</strong>. Inside Study, step through its inline states with the row of buttons under the coach strip — a practice item, the 3-tier correction reveal, the inline score, a low-ASR retry, and a resurfaced review item. Toggle <strong>Mobile (390px / iOS)</strong> vs <strong>Desktop (web)</strong>. Honors <code>prefers-reduced-motion</code>.</p>
 
   <div class="mockup-stage">
     <div class="mockup-controls" role="group" aria-label="Mockup controls">
-      <div class="group" role="group" aria-label="Screen">
+      <div class="group" role="group" aria-label="Surface">
+        <span class="glabel">Surface</span>
         <button class="seg" data-screen="onboarding" aria-pressed="false">Onboarding</button>
-        <button class="seg" data-screen="home" aria-pressed="true">Home</button>
-        <button class="seg" data-screen="scenarios" aria-pressed="false">Scenarios</button>
-        <button class="seg" data-screen="practice" aria-pressed="false">Practice</button>
-        <button class="seg" data-screen="report" aria-pressed="false">Report</button>
-        <button class="seg" data-screen="expressions" aria-pressed="false">Expressions</button>
-        <button class="seg" data-screen="profile" aria-pressed="false">Profile</button>
+        <button class="seg" data-screen="study" aria-pressed="true">Study</button>
+        <button class="seg" data-screen="you" aria-pressed="false">You</button>
         <button class="seg" data-screen="admin" aria-pressed="false">Admin</button>
       </div>
       <div class="group" role="group" aria-label="Device">
@@ -961,11 +943,8 @@ Sources      content sources + license metadata</code></pre>
           <!-- DESKTOP WEB TOP NAV -->
           <div class="web-nav" id="webNav">
             <span class="brand">Scenario English<span class="dot">.</span></span>
-            <button data-screen="home" aria-pressed="true">Home</button>
-            <button data-screen="scenarios" aria-pressed="false">Scenarios</button>
-            <button data-screen="practice" aria-pressed="false">Practice</button>
-            <button data-screen="expressions" aria-pressed="false">Expressions</button>
-            <button data-screen="profile" aria-pressed="false">Profile</button>
+            <button data-screen="study" aria-pressed="true">Study</button>
+            <button data-screen="you" aria-pressed="false">You</button>
             <span class="spacer"></span>
             <span class="avatar" style="width:34px;height:34px;font-size:13px">EK</span>
           </div>
@@ -977,8 +956,8 @@ Sources      content sources + license metadata</code></pre>
               <div class="onb">
                 <div class="mascot">🦊</div>
                 <h2>Say it like you mean it.</h2>
-                <p>Practice real situations, get focused corrections, and keep the expressions that work. No account needed to start.</p>
-                <button class="btn btn-primary btn-block" data-goto="home">Start practicing</button>
+                <p>No menus, no setup. Tap start and your coach hands you the first thing to practice. No account needed.</p>
+                <button class="btn btn-primary btn-block" data-goto="study">Start practicing</button>
                 <div style="margin-top:22px;text-align:left">
                   <div class="section-label">Sync across devices (optional)</div>
                   <div class="magic-input">
@@ -990,174 +969,208 @@ Sources      content sources + license metadata</code></pre>
               </div>
             </div>
 
-            <!-- ===== HOME ===== -->
-            <div class="app-screen active" data-pane="home">
+            <!-- ===== STUDY ===== -->
+            <div class="app-screen active" data-pane="study">
               <div class="app-top">
-                <div class="greet"><small>Tuesday · Day 6 streak</small><b>Morning, Erik 👋</b></div>
+                <div class="greet"><small>Day 6 streak · session 1</small><b>Study</b></div>
                 <span class="avatar">EK</span>
               </div>
-              <div class="streak"><span class="fire">🔥</span><div><b>6-day streak</b><small>Practice today to keep it alive</small></div></div>
+              <div class="coach-strip">
+                <div class="av">🦊</div>
+                <div class="cx" id="coachText">
+                  <b>Let's warm up with a quick translation</b>
+                  <small>Coffee shop · you've been shaky on polite requests lately.</small>
+                </div>
+                <span class="prog" id="coachProg">1 / 8</span>
+              </div>
               <div class="app-pad">
-                <div class="desktop-grid">
-                  <div>
-                    <div class="a-card hero-card">
-                      <span class="lbl">Today's scenario · Daily Life</span>
-                      <h3>Ordering at a coffee shop</h3>
-                      <p>A2–B1 · You're the customer. Order a drink and customize it politely.</p>
-                      <button class="btn btn-light" data-goto="scenarios">Continue →</button>
+
+                <!-- In-Study state switcher (lets the PM step through inline states) -->
+                <div class="group" role="group" aria-label="Study item state" style="display:flex;gap:6px;flex-wrap:wrap;background:var(--paper-2);padding:6px;border-radius:14px;border:1px solid var(--border);margin-bottom:14px">
+                  <button class="seg" data-study="item" aria-pressed="true" style="font-size:12px;padding:7px 11px">Practice item</button>
+                  <button class="seg" data-study="correction" aria-pressed="false" style="font-size:12px;padding:7px 11px">Correction</button>
+                  <button class="seg" data-study="score" aria-pressed="false" style="font-size:12px;padding:7px 11px">Score + save</button>
+                  <button class="seg" data-study="asr" aria-pressed="false" style="font-size:12px;padding:7px 11px">Low-ASR retry</button>
+                  <button class="seg" data-study="review" aria-pressed="false" style="font-size:12px;padding:7px 11px">Review item</button>
+                  <button class="seg" data-study="summary" aria-pressed="false" style="font-size:12px;padding:7px 11px">Summary</button>
+                </div>
+
+                <!-- (a/b) PRACTICE ITEM — translation, awaiting input -->
+                <div class="study-state" data-state="item">
+                  <div class="feed-item">
+                    <div class="it-head"><span class="it-badge translation">✍️ Translation</span><span class="it-scn">Daily Life · Coffee shop · A2</span></div>
+                    <div class="prompt-cn"><small>Translate to natural English</small>我想要一杯冰美式，不加糖，可以少放点冰吗？</div>
+                    <div class="input-box"><div class="caret-line">I want an iced Americano, no sugar, can less ice?</div></div>
+                    <div class="input-actions">
+                      <button class="btn btn-ghost" aria-label="Voice input">🎙️</button>
+                      <button class="btn btn-primary" style="flex:1" data-studygoto="correction">Check my answer</button>
                     </div>
-                    <div class="section-label">Quick start</div>
-                    <div class="mode-pick">
-                      <div class="mode translation" data-goto="practice" tabindex="0" role="button"><div class="mi">✍️</div><div><b>Translation</b><small>Instant correction, sentence by sentence</small></div></div>
-                      <div class="mode dialogue" data-goto="practice" tabindex="0" role="button"><div class="mi">💬</div><div><b>Dialogue</b><small>Role-play with voice, light correction</small></div></div>
+                  </div>
+                </div>
+
+                <!-- (f) CORRECTION REVEAL -->
+                <div class="study-state" data-state="correction" style="display:none">
+                  <div class="feed-item">
+                    <div class="it-head"><span class="it-badge translation">✍️ Translation</span><span class="it-scn">Daily Life · Coffee shop · A2</span></div>
+                    <div class="prompt-cn"><small>You translated</small>I want an iced Americano, no sugar, can less ice?</div>
+                    <div class="section-label" style="margin-top:0">Inline correction</div>
+                    <div class="diff">
+                      <div class="tier t1"><div class="lbl">● Your version</div><div class="txt">I want an iced Americano, no sugar, can less ice?</div></div>
+                      <div class="tier t2"><span class="connector"></span><div class="lbl">✓ Corrected</div><div class="txt">I'd like an iced Americano with no sugar. Could you make it with less ice?</div></div>
+                      <div class="tier t3"><span class="connector"></span><div class="lbl">✦ More natural</div><div class="txt">Can I get an iced Americano, no sugar — and easy on the ice?</div></div>
+                    </div>
+                    <div style="margin-top:6px"><span class="flag-note">⚑ "I want" → "I'd like" is more polite when ordering</span></div>
+                    <button class="btn btn-primary btn-block" style="margin-top:14px" data-studygoto="score">See score &amp; save →</button>
+                  </div>
+                </div>
+
+                <!-- (g/h) INLINE SCORE CHIP + SAVE -->
+                <div class="study-state" data-state="score" style="display:none">
+                  <div class="feed-item">
+                    <div class="it-head"><span class="it-badge translation">✍️ Translation</span><span class="it-scn">Daily Life · Coffee shop · A2</span></div>
+                    <div class="score-chip">
+                      <div class="mini-ring"><b>78</b></div>
+                      <div class="sx"><b>Nice — clear and polite</b><small>Grammar &amp; phrasing nudged up</small></div>
+                      <span class="cefr-mini">✦ B1−</span>
+                    </div>
+                    <div class="section-label" style="margin-top:6px">Save to your bank</div>
+                    <div class="save-row">
+                      <span class="save-pill">I'd like…<button class="add" aria-label="Save expression">+</button></span>
+                      <span class="save-pill">with no sugar<button class="add" aria-label="Save expression">+</button></span>
+                      <span class="save-pill">Could you make it with…?<button class="add" aria-label="Save expression">+</button></span>
+                    </div>
+                    <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
+                    <button class="btn btn-primary btn-block" style="margin-top:12px" data-studygoto="review">Next item →</button>
+                  </div>
+                </div>
+
+                <!-- (c/i) DIALOGUE TURN with LOW-ASR RETRY -->
+                <div class="study-state" data-state="asr" style="display:none">
+                  <div class="feed-item">
+                    <div class="it-head"><span class="it-badge dialogue">💬 Dialogue</span><span class="it-scn">Daily Life · Coffee shop · you: Customer</span></div>
+                    <div class="bubble ai"><div class="role">Barista</div>Hi there! What can I get started for you today?</div>
+                    <div class="bubble me"><div class="role">You</div>(voice) …an iced Americano…</div>
+                    <div class="voice-bar">
+                      <button class="mic" aria-label="Record voice">🎙️</button>
+                      <div class="wave"><i style="height:30%"></i><i style="height:70%"></i><i style="height:45%"></i><i style="height:85%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:65%"></i><i style="height:35%"></i></div>
+                    </div>
+                    <div class="asr-banner">
+                      <span class="bi">🎤</span>
+                      <div><b>Hard to hear that</b><small>Low audio confidence. Retry, type instead, or keep the draft — your turn is saved either way, and it won't count against your level.</small>
+                        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-coral btn-sm">Retry</button><button class="btn btn-ghost btn-sm">Type instead</button><button class="btn btn-ghost btn-sm">Keep draft</button></div>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div class="section-label">Weak expressions <span class="more" data-goto="expressions">Review all</span></div>
-                    <div class="expr-item"><div class="en">Would it be possible to…?</div><div class="cn">是否可以……？ · polite request</div><div class="mastery"><i style="width:42%"></i></div></div>
-                    <div class="expr-item"><div class="en">I'd like to…</div><div class="cn">我想要…… · ordering / requests</div><div class="mastery"><i style="width:65%"></i></div></div>
-                    <div class="a-card" style="background:var(--violet-tint);border-color:var(--violet-soft);display:flex;align-items:center;gap:12px;margin-top:6px"><span style="font-size:26px">🦉</span><div style="flex:1"><b style="font-size:14px">3 review tasks due</b><div style="font-size:12px;color:var(--ink-2)">From this week's mistakes</div></div><button class="btn btn-primary" style="padding:9px 14px" data-goto="expressions">Start</button></div>
+                </div>
+
+                <!-- (e) RESURFACED REVIEW ITEM -->
+                <div class="study-state" data-state="review" style="display:none">
+                  <div class="feed-item">
+                    <div class="it-head"><span class="it-badge review">🔁 Review</span><span class="it-scn">Resurfaced · from Hotel check-in · 4 days ago</span></div>
+                    <div class="callout violet" style="margin:0 0 12px"><strong>You missed this before.</strong> Let's lock it in.</div>
+                    <h4 class="it-q">Ask politely to check in early.</h4>
+                    <p style="font-size:13px;color:var(--ink-2);margin:0 0 12px">Use the pattern you saved: <b>"Would it be possible to…?"</b></p>
+                    <div class="input-box" style="border-color:var(--violet);box-shadow:0 0 0 4px var(--violet-tint)"><div class="caret-line">Would it be possible to check in early?</div></div>
+                    <div class="input-actions">
+                      <button class="btn btn-ghost" aria-label="Voice input">🎙️</button>
+                      <button class="btn btn-primary" style="flex:1" data-studygoto="summary">Check &amp; finish →</button>
+                    </div>
+                    <div class="thinking" style="margin-top:10px"><span>Coach is checking your answer</span><span class="dots"><i></i><i></i><i></i></span></div>
                   </div>
                 </div>
+
+                <!-- (m) SESSION SUMMARY / CELEBRATION -->
+                <div class="study-state" data-state="summary" style="display:none">
+                  <div class="feed-item">
+                    <div class="summary-hero">
+                      <div class="mascot">🎉</div>
+                      <h3>Session complete</h3>
+                      <p>8 items · 3 expressions saved · 1 weak point revisited</p>
+                    </div>
+                    <div class="sum-stats">
+                      <div class="sum-stat"><div class="v teal">81</div><div class="l">Avg score</div></div>
+                      <div class="sum-stat"><div class="v violet">B1−</div><div class="l">Est. CEFR</div></div>
+                      <div class="sum-stat"><div class="v coral">+2</div><div class="l">Mastery gains</div></div>
+                    </div>
+                    <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
+                    <div style="display:flex;gap:10px;margin-top:12px">
+                      <button class="btn btn-ghost" style="flex:1" data-goto="you">See my progress</button>
+                      <button class="btn btn-primary" style="flex:1" data-studygoto="item">Keep going →</button>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            <!-- ===== SCENARIOS ===== -->
-            <div class="app-screen" data-pane="scenarios">
-              <div class="app-top"><div class="greet"><small>Browse</small><b>Scenarios</b></div><span class="avatar">EK</span></div>
+            <!-- ===== YOU ===== -->
+            <div class="app-screen" data-pane="you">
+              <div class="app-top"><div class="greet"><small>The mirror</small><b>You</b></div><span class="avatar">EK</span></div>
               <div class="app-pad">
-                <div class="section-label">8 categories</div>
-                <div class="cat-bento">
-                  <div class="cat wide" data-goto="practice" tabindex="0" role="button"><span class="ic">☕</span><div><b>Daily Life</b><small>12 scenarios · Restaurant, Coffee, Directions…</small></div></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">✈️</span><b>Travel</b><small>10 scenarios</small></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🤝</span><b>Social</b><small>9 scenarios</small></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">💼</span><b>Work</b><small>11 scenarios</small></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🛍️</span><b>Shopping &amp; Money</b><small>8 scenarios</small></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🩺</span><b>Health &amp; Services</b><small>8 scenarios</small></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🎓</span><b>Education</b><small>8 scenarios</small></div>
-                  <div class="cat" data-goto="practice" tabindex="0" role="button"><span class="ic">🗣️</span><b>Express Yourself</b><small>10 prompts</small></div>
-                </div>
-                <div class="section-label" style="margin-top:18px">Daily Life</div>
-                <div class="filterbar">
-                  <button class="fchip" aria-pressed="true">All</button>
-                  <button class="fchip" aria-pressed="false">A1–A2</button>
-                  <button class="fchip" aria-pressed="false">B1–B2</button>
-                  <button class="fchip" aria-pressed="false">Translation</button>
-                  <button class="fchip" aria-pressed="false">Dialogue</button>
-                </div>
-                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">☕</div><div class="info"><b>Ordering at a coffee shop</b><small>Customer · Barista · polite ordering</small></div><span class="lvl">A2</span></div>
-                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">🍽️</div><div class="info"><b>Booking a restaurant table</b><small>Caller · Host · reservations</small></div><span class="lvl">A2</span></div>
-                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">🧭</div><div class="info"><b>Asking for directions</b><small>Tourist · Local · navigation</small></div><span class="lvl">A2</span></div>
-                <div class="srow" data-goto="practice" tabindex="0" role="button"><div class="em">🏠</div><div class="info"><b>Reporting a problem to a landlord</b><small>Tenant · Landlord · complaints</small></div><span class="lvl">B1</span></div>
-              </div>
-            </div>
-
-            <!-- ===== PRACTICE (Translation) ===== -->
-            <div class="app-screen" data-pane="practice">
-              <div class="app-top"><div class="greet"><small>Daily Life · Translation</small><b>Coffee shop</b></div><span class="avatar">EK</span></div>
-              <div class="app-pad">
-                <div class="prompt-cn"><small>Translate to natural English</small>我想要一杯冰美式，不加糖，可以少放点冰吗？</div>
-                <div class="input-box"><div class="caret-line">I want an iced Americano, no sugar, can less ice?</div></div>
-                <div class="input-actions">
-                  <button class="btn btn-ghost" aria-label="Voice input">🎙️</button>
-                  <button class="btn btn-primary" style="flex:1" data-feedback="show">Check my answer</button>
+                <div class="you-tabs" id="youTabs">
+                  <button class="ytab" aria-pressed="true" data-you="profile">Profile</button>
+                  <button class="ytab" aria-pressed="false" data-you="bank">Bank</button>
+                  <button class="ytab" aria-pressed="false" data-you="review">Review status</button>
+                  <button class="ytab" aria-pressed="false" data-you="settings">Settings</button>
                 </div>
 
-                <div id="feedbackBlock" style="display:none;margin-top:18px">
-                  <div class="section-label">Feedback</div>
-                  <div class="diff">
-                    <div class="tier t1"><div class="lbl">● Your version</div><div class="txt">I want an iced Americano, no sugar, can less ice?</div></div>
-                    <div class="tier t2"><span class="connector"></span><div class="lbl">✓ Corrected</div><div class="txt">I'd like an iced Americano with no sugar. Could you make it with less ice?</div></div>
-                    <div class="tier t3"><span class="connector"></span><div class="lbl">✦ More natural</div><div class="txt">Can I get an iced Americano, no sugar — and easy on the ice?</div></div>
+                <!-- Profile -->
+                <div class="you-pane active" data-youpane="profile">
+                  <div class="cefr-hero">
+                    <div class="big">A2+</div>
+                    <div class="rng">Stable range A2–B1 · AI estimate</div>
                   </div>
-                  <div style="margin-top:6px">
-                    <span class="flag-note">⚑ "I want" → "I'd like" is more polite when ordering</span>
+                  <div class="section-label">30-day trend</div>
+                  <div class="a-card">
+                    <div class="trend">
+                      <i style="height:40%"></i><i style="height:46%"></i><i style="height:43%"></i><i style="height:52%"></i><i style="height:58%"></i><i style="height:55%"></i><i style="height:64%"></i><i style="height:70%"></i><i style="height:68%"></i><i style="height:78%"></i>
+                    </div>
+                    <div style="font-size:12px;color:var(--muted);text-align:center">Overall ability climbing — strongest in Fluency, weakest in Coherence</div>
                   </div>
-                  <div class="section-label" style="margin-top:14px">Save these</div>
-                  <span class="pill teal">I'd like…</span><span class="pill teal">with no sugar</span><span class="pill teal">Could you make it with…?</span>
-                  <button class="btn btn-primary btn-block" style="margin-top:14px" data-goto="report">Finish &amp; see score →</button>
-                </div>
-
-                <!-- ASR low-confidence example (shown in dialogue note) -->
-                <div class="asr-banner" style="margin-top:18px">
-                  <span class="bi">🎤</span>
-                  <div><b>Hard to hear that</b><small>Low audio confidence. Tap retry, type instead, or keep the draft — your turn is saved either way.</small>
-                    <div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-coral" style="padding:7px 13px">Retry</button><button class="btn btn-ghost" style="padding:7px 13px">Type instead</button></div>
+                  <div class="section-label">Six dimensions</div>
+                  <div class="a-card">
+                    <div class="dim-row"><span class="nm">Vocabulary</span><div class="dim-track"><div class="dim-fill" style="width:74%;background:var(--teal)"></div></div><span class="sc">74</span></div>
+                    <div class="dim-row"><span class="nm">Grammar</span><div class="dim-track"><div class="dim-fill" style="width:68%;background:var(--teal)"></div></div><span class="sc">68</span></div>
+                    <div class="dim-row"><span class="nm">Fluency</span><div class="dim-track"><div class="dim-fill" style="width:81%;background:var(--violet)"></div></div><span class="sc">81</span></div>
+                    <div class="dim-row"><span class="nm">Coherence</span><div class="dim-track"><div class="dim-fill" style="width:62%;background:var(--coral)"></div></div><span class="sc">62</span></div>
+                    <div class="dim-row"><span class="nm">Interaction</span><div class="dim-track"><div class="dim-fill" style="width:79%;background:var(--violet)"></div></div><span class="sc">79</span></div>
+                    <div class="dim-row"><span class="nm">Pronunciation</span><div class="dim-track"><div class="dim-fill" style="width:77%;background:var(--violet)"></div></div><span class="sc">77</span></div>
                   </div>
+                  <div class="section-label">Focus next</div>
+                  <div><span class="pill coral">article usage</span><span class="pill coral">sentence connection</span><span class="pill coral">polite requests</span></div>
+                  <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
                 </div>
-              </div>
-            </div>
 
-            <!-- ===== REPORT ===== -->
-            <div class="app-screen" data-pane="report">
-              <div class="app-top"><div class="greet"><small>Session complete</small><b>Your report</b></div><span class="avatar">EK</span></div>
-              <div class="app-pad">
-                <div class="score-hero">
-                  <div class="score-ring"><div class="v">78<small>/100</small></div></div>
-                  <div class="cefr-badge">✦ Est. CEFR · B1−</div>
-                </div>
-                <div class="section-label" style="margin-top:8px">Six dimensions</div>
-                <div class="a-card">
-                  <div class="dim-row"><span class="nm">Vocabulary</span><div class="dim-track"><div class="dim-fill" style="width:74%;background:var(--teal)"></div></div><span class="sc">74</span></div>
-                  <div class="dim-row"><span class="nm">Grammar</span><div class="dim-track"><div class="dim-fill" style="width:68%;background:var(--teal)"></div></div><span class="sc">68</span></div>
-                  <div class="dim-row"><span class="nm">Fluency</span><div class="dim-track"><div class="dim-fill" style="width:81%;background:var(--violet)"></div></div><span class="sc">81</span></div>
-                  <div class="dim-row"><span class="nm">Coherence</span><div class="dim-track"><div class="dim-fill" style="width:62%;background:var(--coral)"></div></div><span class="sc">62</span></div>
-                  <div class="dim-row"><span class="nm">Interaction</span><div class="dim-track"><div class="dim-fill" style="width:79%;background:var(--violet)"></div></div><span class="sc">79</span></div>
-                  <div class="dim-row"><span class="nm">Pronunciation</span><div class="dim-track"><div class="dim-fill" style="width:77%;background:var(--violet)"></div></div><span class="sc">77</span></div>
-                </div>
-                <div class="section-label">Save to your bank</div>
-                <div class="save-card"><div class="txt"><b>Could you make it with…?</b>polite request pattern</div><button class="save-btn" aria-label="Save expression">+</button></div>
-                <div class="save-card"><div class="txt"><b>with no sugar</b>natural collocation</div><button class="save-btn saved" aria-label="Saved">✓</button></div>
-                <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
-                <div style="display:flex;gap:10px;margin-top:14px">
-                  <button class="btn btn-ghost" style="flex:1" data-goto="practice">Practice again</button>
-                  <button class="btn btn-primary" style="flex:1" data-goto="expressions">Review now</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- ===== EXPRESSIONS ===== -->
-            <div class="app-screen" data-pane="expressions">
-              <div class="app-top"><div class="greet"><small>Your bank</small><b>Expressions</b></div><span class="avatar">EK</span></div>
-              <div class="app-pad">
-                <div class="review-banner">
-                  <h3>3 review tasks due today</h3>
-                  <p>Spaced repetition from your recent mistakes &amp; saves.</p>
-                  <button class="btn btn-light">Start review →</button>
-                </div>
-                <div class="expr-tabs">
-                  <button class="etab" aria-pressed="true">Patterns</button>
-                  <button class="etab" aria-pressed="false">Vocabulary</button>
-                  <button class="etab" aria-pressed="false">Mistakes</button>
-                  <button class="etab" aria-pressed="false">Saved</button>
-                  <button class="etab" aria-pressed="false">Phrases</button>
-                </div>
-                <div class="expr-item"><div class="en">Would it be possible to…?</div><div class="cn">是否可以……？ · from Hotel check-in</div><div class="mastery"><i style="width:42%"></i></div></div>
-                <div class="expr-item"><div class="en">Could you make it with…?</div><div class="cn">可以做成……吗？ · from Coffee shop</div><div class="mastery"><i style="width:55%"></i></div></div>
-                <div class="expr-item"><div class="en">I'd rather not, but thanks.</div><div class="cn">我还是不要了，谢谢 · from Polite refusal</div><div class="mastery"><i style="width:30%"></i></div></div>
-                <div class="expr-item"><div class="en">Do you mind if I…?</div><div class="cn">你介意我……吗？ · from Small talk</div><div class="mastery"><i style="width:70%"></i></div></div>
-              </div>
-            </div>
-
-            <!-- ===== PROFILE ===== -->
-            <div class="app-screen" data-pane="profile">
-              <div class="app-top"><div class="greet"><small>Your progress</small><b>Profile</b></div><span class="avatar">EK</span></div>
-              <div class="app-pad">
-                <div class="cefr-hero">
-                  <div class="big">A2+</div>
-                  <div class="rng">Stable range A2–B1 · AI estimate</div>
-                </div>
-                <div class="section-label">30-day trend</div>
-                <div class="a-card">
-                  <div class="trend">
-                    <i style="height:40%"></i><i style="height:46%"></i><i style="height:43%"></i><i style="height:52%"></i><i style="height:58%"></i><i style="height:55%"></i><i style="height:64%"></i><i style="height:70%"></i><i style="height:68%"></i><i style="height:78%"></i>
+                <!-- Bank -->
+                <div class="you-pane" data-youpane="bank">
+                  <div class="expr-subtabs">
+                    <button class="etab" aria-pressed="true">Patterns</button>
+                    <button class="etab" aria-pressed="false">Vocabulary</button>
+                    <button class="etab" aria-pressed="false">Mistakes</button>
+                    <button class="etab" aria-pressed="false">Saved</button>
+                    <button class="etab" aria-pressed="false">Phrases</button>
                   </div>
-                  <div style="font-size:12px;color:var(--muted);text-align:center">Overall ability climbing — strongest in Fluency, weakest in Coherence</div>
+                  <div class="expr-item"><div class="en">Would it be possible to…?</div><div class="cn">是否可以……？ · from Hotel check-in</div><div class="mastery"><i style="width:42%"></i></div></div>
+                  <div class="expr-item"><div class="en">Could you make it with…?</div><div class="cn">可以做成……吗？ · from Coffee shop</div><div class="mastery"><i style="width:55%"></i></div></div>
+                  <div class="expr-item"><div class="en">I'd rather not, but thanks.</div><div class="cn">我还是不要了，谢谢 · from Polite refusal</div><div class="mastery"><i style="width:30%"></i></div></div>
+                  <div class="expr-item"><div class="en">Do you mind if I…?</div><div class="cn">你介意我……吗？ · from Small talk</div><div class="mastery"><i style="width:70%"></i></div></div>
                 </div>
-                <div class="section-label">Focus next</div>
-                <div><span class="pill coral">article usage</span><span class="pill coral">sentence connection</span><span class="pill coral">polite requests</span></div>
-                <div class="a-card" style="margin-top:14px;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🐱</span><div style="flex:1"><b style="font-size:14px">Anonymous account</b><div style="font-size:12px;color:var(--ink-2)">Sync to keep your progress safe</div></div><button class="btn btn-ghost" style="padding:9px 13px" data-goto="onboarding">Sync</button></div>
-                <div class="disclaimer">Your current CEFR level is an AI estimate for learning reference only. It is not an official language test score or certification.</div>
+
+                <!-- Review status -->
+                <div class="you-pane" data-youpane="review">
+                  <div class="review-status"><span class="rs-ic">🔁</span><div><b>3 review items due</b><small>Scheduled from this week's mistakes &amp; saves</small></div></div>
+                  <div class="review-status" style="background:var(--teal-tint);border-color:var(--teal-soft)"><span class="rs-ic">📈</span><div><b>Overall mastery 58%</b><small>Up 6 points this week</small></div></div>
+                  <p style="font-size:13px;color:var(--ink-2);margin:10px 0 12px">Reviewing happens in Study — we'll drop these items into your feed.</p>
+                  <button class="btn btn-primary btn-block" data-goto="study">Practice these in Study →</button>
+                </div>
+
+                <!-- Settings -->
+                <div class="you-pane" data-youpane="settings">
+                  <div class="setting-row"><span class="si">🐱</span><div class="st"><b>Anonymous account</b><small>Sync to keep your progress safe</small></div><button class="btn btn-ghost btn-sm" data-goto="onboarding">Sync</button></div>
+                  <div class="setting-row"><span class="si">🎙️</span><div class="st"><b>Voice input</b><small>On · server-side transcription</small></div><span class="pill teal" style="margin:0">On</span></div>
+                  <div class="setting-row"><span class="si">🎯</span><div class="st"><b>Level target</b><small>Adaptive · currently aiming B1</small></div><span class="pill violet" style="margin:0">B1</span></div>
+                  <div class="setting-row"><span class="si">🔔</span><div class="st"><b>Daily reminder</b><small>09:00 · keep your streak</small></div><span class="pill paper" style="margin:0">On</span></div>
+                </div>
               </div>
             </div>
 
@@ -1166,6 +1179,7 @@ Sources      content sources + license metadata</code></pre>
               <div class="admin">
                 <div class="admin-side">
                   <div class="brand">Bank Ops</div>
+                  <span class="op-tag">Operator tool</span>
                   <a class="on">Question Bank</a>
                   <a>Dashboard</a>
                   <a>Scenarios</a>
@@ -1173,6 +1187,7 @@ Sources      content sources + license metadata</code></pre>
                   <a>Quality</a>
                 </div>
                 <div class="admin-main">
+                  <div class="op-banner">🔒 Operator surface · outside the learner app</div>
                   <h2>Question Bank</h2>
                   <div style="font-size:13px;color:var(--muted)">Lifecycle &amp; quality across 64 scenarios</div>
                   <div class="admin-kpis">
@@ -1201,24 +1216,21 @@ Sources      content sources + license metadata</code></pre>
 
           </div><!-- /viewport -->
 
-          <!-- MOBILE BOTTOM TAB BAR -->
-          <nav class="tabbar" id="tabbar" aria-label="App tabs">
-            <button data-screen="home" aria-pressed="true"><span class="ti">🏠</span>Home</button>
-            <button data-screen="scenarios" aria-pressed="false"><span class="ti">🗂️</span>Scenarios</button>
-            <button data-screen="practice" aria-pressed="false"><span class="ti">🎯</span>Practice</button>
-            <button data-screen="expressions" aria-pressed="false"><span class="ti">📚</span>Expressions</button>
-            <button data-screen="profile" aria-pressed="false"><span class="ti">👤</span>Profile</button>
+          <!-- MOBILE BOTTOM TAB BAR — TWO surfaces -->
+          <nav class="tabbar" id="tabbar" aria-label="App surfaces">
+            <button data-screen="study" aria-pressed="true"><span class="ti">🎯</span>Study</button>
+            <button data-screen="you" aria-pressed="false"><span class="ti">🪞</span>You</button>
           </nav>
 
         </div><!-- /screen -->
       </div><!-- /device -->
     </div><!-- /device-frame -->
-    <p class="hint">Tip: the switcher above, the in-app tab bar / top nav, and most cards &amp; buttons inside the frame all navigate. "Check my answer" reveals the live feedback diff.</p>
+    <p class="hint">Tip: the Surface switcher, the two-item tab bar / top nav, and the in-Study state buttons all navigate. "Check my answer" reveals the inline correction; "See score &amp; save" reveals the inline score chip + save pills.</p>
   </div>
 </section>
 
 <footer class="doc-foot">
-  Design Document · AI Scenario English Trainer · Gate 1 artifact · "Warm editorial coaching" · CEFR shown is an AI estimate, not an official certification.
+  Design Document v2 · AI Scenario English Trainer · AI-native two-surface pivot · Gate 1 re-review artifact · "Warm editorial coaching" · CEFR shown is an AI estimate, not an official certification.
 </footer>
 
 </main>
@@ -1234,7 +1246,36 @@ Sources      content sources + license metadata</code></pre>
   var frame = document.getElementById('deviceFrame');
   var device = document.getElementById('device');
   var viewport = document.getElementById('viewport');
-  var feedbackBlock = document.getElementById('feedbackBlock');
+
+  // Study inline-state machinery
+  var studySegs = Array.prototype.slice.call(document.querySelectorAll('.seg[data-study]'));
+  var studyStates = Array.prototype.slice.call(document.querySelectorAll('.study-state'));
+  var coachText = document.getElementById('coachText');
+  var coachProg = document.getElementById('coachProg');
+  var coachCopy = {
+    item:       ['Let’s warm up with a quick translation','Coffee shop · you’ve been shaky on polite requests lately.','1 / 8'],
+    correction: ['Here’s how to make it land','Original → corrected → the natural version.','1 / 8'],
+    score:      ['Scored — keep what works','Save the patterns into your bank with one tap.','1 / 8'],
+    asr:        ['Couldn’t quite catch that','No stress — retry, type, or keep the draft.','3 / 8'],
+    review:     ['Time to revisit a weak point','Resurfaced from Hotel check-in, 4 days ago.','7 / 8'],
+    summary:    ['Great session','8 items done — here’s the recap.','8 / 8']
+  };
+  function setStudy(state){
+    studyStates.forEach(function(s){ s.style.display = (s.getAttribute('data-state') === state) ? 'block' : 'none'; });
+    studySegs.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-study') === state)); });
+    var c = coachCopy[state];
+    if (c && coachText){ coachText.innerHTML = '<b>'+c[0]+'</b><small>'+c[1]+'</small>'; }
+    if (c && coachProg){ coachProg.textContent = c[2]; }
+    if (viewport) viewport.scrollTop = 0;
+  }
+
+  // You sub-tab machinery
+  var youTabs = Array.prototype.slice.call(document.querySelectorAll('.ytab'));
+  var youPanes = Array.prototype.slice.call(document.querySelectorAll('.you-pane'));
+  function setYou(name){
+    youPanes.forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-youpane') === name); });
+    youTabs.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-you') === name)); });
+  }
 
   function setScreen(name){
     panes.forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-pane') === name); });
@@ -1242,8 +1283,8 @@ Sources      content sources + license metadata</code></pre>
     tabbarBtns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === name)); });
     webnavBtns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === name)); });
     if (viewport) viewport.scrollTop = 0;
-    // reset feedback reveal when leaving practice
-    if (name !== 'practice' && feedbackBlock) feedbackBlock.style.display = 'none';
+    // reset Study to the first item state when entering Study fresh
+    if (name === 'study') setStudy('item');
   }
 
   function setDevice(kind){
@@ -1253,13 +1294,22 @@ Sources      content sources + license metadata</code></pre>
     deviceSegs.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-device') === kind)); });
   }
 
-  // top switcher
+  // surface switcher
   topSegs.forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-screen')); }); });
   deviceSegs.forEach(function(b){ b.addEventListener('click', function(){ setDevice(b.getAttribute('data-device')); }); });
   tabbarBtns.forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-screen')); }); });
   webnavBtns.forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-screen')); }); });
 
-  // in-frame nav (data-goto) on buttons + role=button divs
+  // Study state buttons + in-feed advance buttons
+  studySegs.forEach(function(b){ b.addEventListener('click', function(){ setStudy(b.getAttribute('data-study')); }); });
+  document.querySelectorAll('[data-studygoto]').forEach(function(el){
+    el.addEventListener('click', function(){ setStudy(el.getAttribute('data-studygoto')); });
+  });
+
+  // You sub-tabs
+  youTabs.forEach(function(b){ b.addEventListener('click', function(){ setYou(b.getAttribute('data-you')); }); });
+
+  // in-frame cross-surface nav (data-goto) on buttons + role=button divs
   document.querySelectorAll('[data-goto]').forEach(function(el){
     el.addEventListener('click', function(){ setScreen(el.getAttribute('data-goto')); });
     if (el.getAttribute('role') === 'button') {
@@ -1269,13 +1319,8 @@ Sources      content sources + license metadata</code></pre>
     }
   });
 
-  // feedback reveal
-  document.querySelectorAll('[data-feedback="show"]').forEach(function(el){
-    el.addEventListener('click', function(){ if (feedbackBlock){ feedbackBlock.style.display = 'block'; feedbackBlock.scrollIntoView({block:'nearest'}); } });
-  });
-
-  // toggle aria-pressed for pure toggle chips (filters, expr tabs) without screen change
-  document.querySelectorAll('.filterbar, .expr-tabs').forEach(function(bar){
+  // toggle aria-pressed for pure toggle chips (expr sub-tabs) without pane change
+  document.querySelectorAll('.expr-subtabs').forEach(function(bar){
     bar.addEventListener('click', function(e){
       var btn = e.target.closest('button'); if (!btn) return;
       Array.prototype.forEach.call(bar.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed','false'); });
@@ -1283,8 +1328,8 @@ Sources      content sources + license metadata</code></pre>
     });
   });
 
-  // save toggle demo
-  document.querySelectorAll('.save-btn').forEach(function(b){
+  // save toggle demo (inline save pills)
+  document.querySelectorAll('.save-pill .add').forEach(function(b){
     b.addEventListener('click', function(){
       var on = b.classList.toggle('saved');
       b.textContent = on ? '✓' : '+';
@@ -1293,7 +1338,8 @@ Sources      content sources + license metadata</code></pre>
   });
 
   setDevice('mobile');
-  setScreen('home');
+  setScreen('study');
+  setStudy('item');
 })();
 </script>
 </body>

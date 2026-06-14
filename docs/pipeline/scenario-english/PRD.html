@@ -438,17 +438,27 @@ Generated review tasks:
     </tbody>
   </table>
   </div>
-  <h3>Pages / surfaces</h3>
-  <pre><code>Learner app (web + iOS):
-  Home        — today's recommended scenario, continue last, weak expressions, quick start
-  Scenarios   — categories, level filter, scenario detail, start practice
-  Practice    — scenario context, AI prompt/dialogue, voice/text input, feedback, complete
-  Report      — session score, CEFR estimate, dimension scores, error analysis, save expressions
-  Expressions — vocabulary, sentence patterns, mistakes, daily review
-  Profile     — long-term CEFR, dimension trends, settings
+  <h3>Surfaces (AI-native — two pages, not a menu)</h3>
+  <div class="callout"><strong>Design principle:</strong> the app decides what to study; the user just shows up and practices. The whole learning loop collapses into ONE adaptive session feed. The scenario library, 3 practice modes, scoring, expression bank, and review still all exist — they are <em>engine, not pages</em>. Same features as the P0+P1 list above; far fewer screens.</div>
+  <pre><code>Learner app (web + iOS) — TWO surfaces:
 
-Operator (web only):
-  Admin       — question-bank items, lifecycle states, quality metrics, review/approve/archive</code></pre>
+  STUDY  (the app, really)
+    A single AI-driven session feed. On open, the coach hands the user the next
+    best item — a scenario to practice, a sentence to translate, a dialogue turn,
+    or a resurfaced weak point. The user responds (voice or text); correction,
+    score, and "save to your bank" all happen INLINE; then it rolls into the next
+    item. Adaptive next-item (no menu, no mode picker, no library browse).
+
+  YOU  (the mirror)
+    Long-term CEFR profile + dimension trends, the expression bank
+    (vocab / patterns / mistakes / saved / scenario phrases), review status,
+    and settings. Reflect-and-look-back surface; everything active lives in Study.
+
+  (Onboarding is a transient flow — anonymous start + optional magic-link upgrade —
+   not a standing page.)
+
+Operator (web only, OUTSIDE the learner app):
+  Admin — question-bank items, lifecycle states, quality metrics, review/approve/archive</code></pre>
 </section>
 
 <section id="architecture">
@@ -541,7 +551,7 @@ user_ability_profiles · content_sources · question_quality_metrics</code></pre
       <tr><td>3</td><td>Scoring + CEFR estimation engine</td><td>Session report with 6 dimensions + CEFR; ASR-confidence gate.</td></tr>
       <tr><td>4</td><td>Expression bank + auto-save</td><td>Save candidates persist and are viewable.</td></tr>
       <tr><td>5</td><td>Dialogue mode + voice input/transcription</td><td>Role-play turns; STT into the flow on both clients.</td></tr>
-      <tr><td>6</td><td>Web learner client (Home/Scenarios/Practice/Report/Expressions/Profile)</td><td>Full loop usable in browser.</td></tr>
+      <tr><td>6</td><td>Web learner client — two surfaces (Study feed + You)</td><td>Full adaptive loop usable in browser; inline feedback/score/save.</td></tr>
       <tr><td>7</td><td>Question-bank management + admin workflow</td><td>Lifecycle states + quality metrics + approve/archive.</td></tr>
       <tr><td>8</td><td>Review task generator (P1, spaced repetition)</td><td>Daily review tasks from weak points.</td></tr>
       <tr><td>9</td><td>Ability profile (P1)</td><td>Long-term CEFR + dimension trends.</td></tr>
