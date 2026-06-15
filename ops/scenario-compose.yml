@@ -21,6 +21,20 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
+  web:
+    container_name: scenario-english-web
+    build:
+      context: ../web
+    ports:
+      - "127.0.0.1:8102:3000"
+    networks:
+      - relay
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 networks:
   relay:
     external: true

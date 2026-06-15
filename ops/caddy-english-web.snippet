@@ -1,0 +1,20 @@
+# AI Scenario English Trainer — learner web app vhost.
+# Append to /opt/9relay/Caddyfile (additive), then `docker restart 9relay-caddy`
+# (single-file bind mount is stale to `caddy reload`). Mirrors the billmind block.
+
+english.daichenlab.com {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy scenario-english-web:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+	log {
+		output file /var/log/caddy/english.web.access.log
+	}
+}
