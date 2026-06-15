@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Model Eval v2 — Quality + Error-Rate Benchmark · AI Scenario English Trainer</title>
+<style>
+  :root{--bg:#FAF8F5;--panel:#fff;--ink:#1C1917;--muted:#78716C;--teal:#0D9488;--teal-soft:#CCFBF1;--coral:#EA580C;--violet:#7C3AED;--green:#16A34A;--amber:#D97706;--red:#DC2626;--border:#E7E2DB;--radius:16px;--shadow:0 8px 26px rgba(28,25,23,.06)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px 70px}
+  header.hero{background:linear-gradient(135deg,#B45309,#7C3AED 90%);color:#fff;padding:42px 36px;border-radius:0 0 26px 26px;box-shadow:var(--shadow)}
+  .hero .eyebrow{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:6px 13px;border-radius:999px;font-size:13px;margin-bottom:14px}
+  .hero h1{margin:0 0 10px;font-size:30px;letter-spacing:-.02em}
+  .hero p{margin:0;font-size:15.5px;color:rgba(255,255,255,.94);max-width:820px}
+  section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px 30px;margin:18px 0;box-shadow:var(--shadow);min-width:0}
+  section h2{margin:0 0 10px;font-size:22px;letter-spacing:-.01em}
+  section h3{margin:20px 0 8px;font-size:16px}
+  .lead{font-size:15.5px;color:#44403C}
+  .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin:12px 0;min-width:0}
+  table{width:100%;border-collapse:collapse;min-width:600px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-size:13.5px}
+  th{background:#F6F3EF;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:#57534E}
+  tr:last-child td{border-bottom:none}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+  .pass{background:#ECFDF3;color:#047857}.partial{background:#FEF3E2;color:#B45309}.bad{background:#FEF2F2;color:#B91C1C}.win{background:#F3E8FF;color:#6D28D9}.neutral{background:#F1ECE5;color:#57534E}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .card{border:1px solid var(--border);border-radius:14px;padding:16px;background:#fff;min-width:0}
+  .card h3{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:#78716C}
+  .card .big{font-size:25px;font-weight:800;letter-spacing:-.01em}.card p{margin:5px 0 0;color:#57534E;font-size:12.5px}
+  .card.accent{background:linear-gradient(135deg,#FFF7ED,#FAF5FF);border-color:#FED7AA}
+  .callout{border-left:5px solid var(--green);background:#ECFDF3;padding:13px 15px;border-radius:11px;margin:14px 0;font-size:14px}
+  .callout.warn{border-left-color:var(--amber);background:#FEF3E2}
+  .callout.info{border-left-color:var(--violet);background:#F3E8FF}
+  .callout.bad{border-left-color:var(--red);background:#FEF2F2}
+  code{background:#F1ECE5;border:1px solid var(--border);padding:1px 6px;border-radius:6px;font-size:.88em;overflow-wrap:anywhere}
+  pre{background:#1C1917;color:#E7E5E4;border-radius:12px;padding:14px 16px;overflow-x:auto;font-size:12px;line-height:1.55;margin:10px 0;white-space:pre-wrap;word-break:break-word}
+  pre code{background:none;border:none;color:inherit;padding:0}
+  .cap{display:block;text-align:center;font-size:12.5px;color:var(--muted);font-style:italic;margin:6px 0 2px}
+  .diagram{max-width:100%;height:auto;display:block}
+  .barchart{display:grid;grid-template-columns:minmax(120px,1.1fr) 2fr 64px;gap:8px 10px;align-items:center;margin:10px 0}
+  .barchart .lbl{font-size:13px;font-weight:600}
+  .barchart .val{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:#57534E}
+  .barwrap{background:#F1ECE5;border-radius:7px;overflow:hidden;width:100%;min-width:50px;height:15px}
+  .bar{height:15px;border-radius:7px}
+  .b-teal{background:linear-gradient(90deg,#0D9488,#14B8A6)}
+  .b-violet{background:linear-gradient(90deg,#7C3AED,#A855F7)}
+  .b-coral{background:linear-gradient(90deg,#EA580C,#F97316)}
+  .b-green{background:linear-gradient(90deg,#16A34A,#22C55E)}
+  .b-amber{background:linear-gradient(90deg,#D97706,#F59E0B)}
+  .b-red{background:linear-gradient(90deg,#DC2626,#EF4444)}
+  ul{margin:8px 0 0;padding-left:20px}li{margin:5px 0;font-size:14px}
+  .tag{font-size:11px;color:var(--muted);font-weight:600}
+  .mono{font-variant-numeric:tabular-nums}
+  .foot{color:var(--muted);font-size:12.5px;margin-top:10px}
+  @media(max-width:780px){.grid3,.grid2,.grid4{grid-template-columns:1fr}section{padding:20px 16px}.hero{padding:32px 20px}.barchart{grid-template-columns:minmax(96px,1fr) 1.6fr 50px}}
+  @media(max-width:400px){.barwrap{min-width:34px}.hero h1{font-size:25px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="eyebrow">Model Eval v2 · rigorous quality + error-rate benchmark · real measured data</div>
+  <h1>Quality &amp; Error-Rate Benchmark — AI Scenario English Trainer</h1>
+  <p>Four candidate LLMs run through the app's three production AI tasks at scale — <strong>16 instant-feedback inputs, 8 rubric inputs × 3 repeats, 6 item-gen combos</strong> — using the live prompts and Zod contracts. Outputs are graded by a fixed, blind <strong>LLM-as-judge</strong> (gemini-3.1-pro). 184 generation calls + ~88 judge calls, all live on 2026-06-15. Every number is measured; only preview prices are estimated and labelled.</p>
+</header>
+
+<div class="wrap">
+
+<!-- ============ AT A GLANCE ============ -->
+<section id="glance">
+  <h2>★ At a glance — PASS / FAIL verdict</h2>
+  <p class="lead">All four models are <strong>quality-excellent</strong> (judge ≥ 4.88/5 on every task) and <strong>order answers correctly 100%</strong> of the time. The benchmark separates them on two axes the PM cares about most: <strong>reliability</strong> (hard-fail %) and <strong>scoring stability</strong> (run-to-run variance). One model — <strong>gemini-3.1-pro</strong> — clears every bar on every task; the others each trip one strict gate.</p>
+
+  <div class="tablewrap">
+  <svg class="diagram" viewBox="0 0 960 318" role="img" aria-label="Verdict matrix: gemini-3.1-pro passes all three tasks. gpt-5.4-mini and gpt-5.5 pass feedback and item-gen but fail the strict rubric-stability bar. gemini-3-flash fails all three on a 2.2% hard-fail rate from a 503.">
+    <text x="20" y="26" font-size="14" font-weight="800" fill="#B45309">PASS / FAIL PER MODEL × TASK  (against explicit bars)</text>
+    <!-- column headers -->
+    <text x="250" y="58" font-size="12" font-weight="700" fill="#57534E" text-anchor="middle">INSTANT FEEDBACK</text>
+    <text x="500" y="58" font-size="12" font-weight="700" fill="#57534E" text-anchor="middle">RUBRIC SCORING</text>
+    <text x="750" y="58" font-size="12" font-weight="700" fill="#57534E" text-anchor="middle">ITEM GENERATION</text>
+    <!-- rows -->
+    <!-- row helper coordinates: y per row -->
+    <!-- gpt-5.5 -->
+    <text x="20" y="98" font-size="13" font-weight="700" fill="#1C1917">gpt-5.5</text>
+    <rect x="150" y="80" width="200" height="28" rx="8" fill="#ECFDF3" stroke="#047857"/><text x="250" y="99" font-size="12.5" font-weight="700" fill="#047857" text-anchor="middle">PASS</text>
+    <rect x="400" y="80" width="200" height="28" rx="8" fill="#FEF2F2" stroke="#B91C1C"/><text x="500" y="99" font-size="12.5" font-weight="700" fill="#B91C1C" text-anchor="middle">FAIL · stdev 7.97</text>
+    <rect x="650" y="80" width="200" height="28" rx="8" fill="#ECFDF3" stroke="#047857"/><text x="750" y="99" font-size="12.5" font-weight="700" fill="#047857" text-anchor="middle">PASS</text>
+    <!-- gpt-5.4-mini -->
+    <text x="20" y="138" font-size="13" font-weight="700" fill="#1C1917">gpt-5.4-mini</text>
+    <rect x="150" y="120" width="200" height="28" rx="8" fill="#ECFDF3" stroke="#047857"/><text x="250" y="139" font-size="12.5" font-weight="700" fill="#047857" text-anchor="middle">PASS</text>
+    <rect x="400" y="120" width="200" height="28" rx="8" fill="#FEF2F2" stroke="#B91C1C"/><text x="500" y="139" font-size="12.5" font-weight="700" fill="#B91C1C" text-anchor="middle">FAIL · stdev 5.03</text>
+    <rect x="650" y="120" width="200" height="28" rx="8" fill="#ECFDF3" stroke="#047857"/><text x="750" y="139" font-size="12.5" font-weight="700" fill="#047857" text-anchor="middle">PASS</text>
+    <!-- gemini-3-flash -->
+    <text x="20" y="178" font-size="13" font-weight="700" fill="#1C1917">gemini-3-flash</text>
+    <rect x="150" y="160" width="200" height="28" rx="8" fill="#FEF2F2" stroke="#B91C1C"/><text x="250" y="179" font-size="12" font-weight="700" fill="#B91C1C" text-anchor="middle">FAIL · 2.2% hard-fail</text>
+    <rect x="400" y="160" width="200" height="28" rx="8" fill="#FEF2F2" stroke="#B91C1C"/><text x="500" y="179" font-size="12" font-weight="700" fill="#B91C1C" text-anchor="middle">FAIL · 2.2% + stdev</text>
+    <rect x="650" y="160" width="200" height="28" rx="8" fill="#FEF2F2" stroke="#B91C1C"/><text x="750" y="179" font-size="12" font-weight="700" fill="#B91C1C" text-anchor="middle">FAIL · 2.2% hard-fail</text>
+    <!-- gemini-3.1-pro -->
+    <text x="20" y="218" font-size="13" font-weight="800" fill="#6D28D9">gemini-3.1-pro ★</text>
+    <rect x="150" y="200" width="200" height="28" rx="8" fill="#F3E8FF" stroke="#6D28D9"/><text x="250" y="219" font-size="12.5" font-weight="800" fill="#6D28D9" text-anchor="middle">PASS</text>
+    <rect x="400" y="200" width="200" height="28" rx="8" fill="#F3E8FF" stroke="#6D28D9"/><text x="500" y="219" font-size="12.5" font-weight="800" fill="#6D28D9" text-anchor="middle">PASS · stdev 1.96</text>
+    <rect x="650" y="200" width="200" height="28" rx="8" fill="#F3E8FF" stroke="#6D28D9"/><text x="750" y="219" font-size="12.5" font-weight="800" fill="#6D28D9" text-anchor="middle">PASS</text>
+    <!-- bars legend -->
+    <line x1="20" y1="248" x2="940" y2="248" stroke="#E7E2DB"/>
+    <text x="20" y="274" font-size="12" fill="#57534E"><tspan font-weight="700">Bars:</tspan>  hard-fail &lt; 2%  ·  judge quality ≥ 4.0/5  ·  worst-case rubric stdev ≤ 3.0  ·  ordering ≥ 90%</text>
+    <text x="20" y="298" font-size="12" fill="#78716C">Note: the rubric bar uses <tspan font-style="italic">worst-case</tspan> per-input stdev — a single high-variance input fails the gate even when mean stability is good.</text>
+  </svg>
+  <span class="cap">Figure 1 — Verdict matrix. gemini-3.1-pro is the only model that clears every gate on every task.</span>
+  </div>
+
+  <div class="grid4" style="margin-top:6px">
+    <div class="card accent"><h3>Lowest error rate</h3><div class="big" style="color:#6D28D9">0.0%</div><p>gpt-5.5, gpt-5.4-mini &amp; gemini-3.1-pro — zero hard-fails over 46 calls each</p></div>
+    <div class="card"><h3>Best stability</h3><div class="big" style="color:#0D9488">σ 1.96</div><p>gemini-3.1-pro worst-case; mean σ 0.49 across 8 inputs</p></div>
+    <div class="card"><h3>Fastest &amp; cheapest</h3><div class="big" style="color:#EA580C">2.0s</div><p>gpt-5.4-mini p50 · $0.0004/call · quality still 5.0/4.94</p></div>
+    <div class="card"><h3>Only universal PASS</h3><div class="big" style="color:#6D28D9">gemini-3.1-pro</div><p>passes all 3 tasks; pay for it in latency (p50 10.7s)</p></div>
+  </div>
+</section>
+
+<!-- ============ METHOD ============ -->
+<section id="method">
+  <h2>How this was measured</h2>
+  <p class="lead">The harness (<code>server/eval/run-v2.ts</code> + <code>dataset-v2.ts</code>) imports the <em>production</em> prompt builders and Zod schemas — nothing is re-authored — and POSTs straight to each provider's <code>/chat/completions</code> with strict <code>response_format: json_schema</code>.</p>
+  <div class="grid3">
+    <div class="card"><h3>Coverage (N)</h3><p><strong>Feedback:</strong> 16 inputs (CEFR A1–C1; tense, articles, prepositions, word-order, register, naturalness).<br><strong>Rubric:</strong> 8 inputs (weak→strong) × 3 repeats = 24.<br><strong>Item-gen:</strong> 6 scenario×level combos.<br><strong>= 46 generation calls / model.</strong></p></div>
+    <div class="card"><h3>Error-rate logic</h3><p>Each call → <code>valid_first_try</code>, <code>repaired</code> (1 retry feeding the Zod error back), or <strong>hard-fail</strong> (<code>failed</code> = invalid even after repair, or <code>call_failed</code> = API error after backoff). <strong>Error rate = hard-fail %.</strong></p></div>
+    <div class="card"><h3>Blind LLM-judge</h3><p>One fixed judge (<code>gemini-3.1-pro</code>, temp 0) scores each output 1–5, <em>blind</em> to which model produced it. Feedback: fixes-errors / naturalness / focus. Item-gen: prompt_cn / references / difficulty. Plus deterministic checks (echo, ≥1 save_candidate, ≤3 issues, phrase coverage).</p></div>
+  </div>
+  <div class="callout info"><strong>Provider quirk confirmed live:</strong> <code>gpt-5.5</code> rejects any custom <code>temperature</code> (<em>"Only the default (1) value is supported"</em>), so the harness calls it <strong>without</strong> the field — the production client must do the same. <code>gpt-5.4-mini</code> and both Gemini models accept custom temperatures normally.</div>
+  <div class="callout warn"><strong>Pass bars (explicit):</strong> hard-fail <code>&lt; 2%</code> · mean judge quality <code>≥ 4.0/5</code> · worst-case rubric stdev <code>≤ 3.0</code> (app-total, 0–100) · ordering-correctness <code>≥ 90%</code>.</div>
+</section>
+
+<!-- ============ ERROR RATE ============ -->
+<section id="errorrate">
+  <h2>① Error rate — the headline reliability metric</h2>
+  <p class="lead">Over all 46 calls per model. <strong>Hard-fail % is the single "error rate."</strong> Repair rate shows how often the one-shot Zod-repair retry was needed (a soft signal — still a successful, schema-valid output, but a wasted round-trip).</p>
+
+  <h3>Hard-fail rate (lower is better · bar &lt; 2%)</h3>
+  <div class="barchart" aria-label="Hard-fail rate by model">
+    <span class="lbl">gpt-5.5</span><div class="barwrap"><div class="bar b-green" style="width:1%"></div></div><span class="val">0.0%</span>
+    <span class="lbl">gpt-5.4-mini</span><div class="barwrap"><div class="bar b-green" style="width:1%"></div></div><span class="val">0.0%</span>
+    <span class="lbl">gemini-3-flash</span><div class="barwrap"><div class="bar b-red" style="width:18%"></div></div><span class="val">2.2%</span>
+    <span class="lbl">gemini-3.1-pro</span><div class="barwrap"><div class="bar b-green" style="width:1%"></div></div><span class="val">0.0%</span>
+  </div>
+
+  <h3>Repair rate (1 wasted retry · informational)</h3>
+  <div class="barchart" aria-label="Repair rate by model">
+    <span class="lbl">gpt-5.5</span><div class="barwrap"><div class="bar b-amber" style="width:18%"></div></div><span class="val">2.2%</span>
+    <span class="lbl">gpt-5.4-mini</span><div class="barwrap"><div class="bar b-teal" style="width:1%"></div></div><span class="val">0.0%</span>
+    <span class="lbl">gemini-3-flash</span><div class="barwrap"><div class="bar b-teal" style="width:1%"></div></div><span class="val">0.0%</span>
+    <span class="lbl">gemini-3.1-pro</span><div class="barwrap"><div class="bar b-amber" style="width:18%"></div></div><span class="val">2.2%</span>
+  </div>
+
+  <div class="callout bad"><strong>The one hard-fail in the whole run:</strong> gemini-3-flash returned <code>HTTP 503 "This model is currently experiencing high demand"</code> on <code>ru-2-weak-run3</code>, and it persisted through both backoff retries → <code>call_failed</code>. This is a <em>capacity/availability</em> failure on a preview model, not a schema or prompt problem — but it is exactly the kind of error that breaks a learner's session, so it counts.</div>
+  <div class="callout"><strong>Schema handling:</strong> every model used strict <code>json_schema</code> successfully — <strong>no provider choked on the JSON contract</strong> (<code>schemaUnsupported: false</code> for all). The flagships needed exactly one repair each (a transient malformed first attempt that the retry fixed); the minis/flash needed none.</div>
+</section>
+
+<!-- ============ QUALITY ============ -->
+<section id="quality">
+  <h2>② Quality — blind LLM-judge (1–5)</h2>
+  <p class="lead">Mean of the judge's per-dimension scores across all judged outputs. Bar = <strong>≥ 4.0</strong>. Every model clears it comfortably; the field is genuinely strong on quality.</p>
+
+  <h3>Instant feedback quality (16 inputs × 3 dims)</h3>
+  <div class="barchart" aria-label="Feedback quality by model">
+    <span class="lbl">gpt-5.5</span><div class="barwrap"><div class="bar b-violet" style="width:100%"></div></div><span class="val">5.00</span>
+    <span class="lbl">gpt-5.4-mini</span><div class="barwrap"><div class="bar b-violet" style="width:100%"></div></div><span class="val">5.00</span>
+    <span class="lbl">gemini-3-flash</span><div class="barwrap"><div class="bar b-violet" style="width:100%"></div></div><span class="val">5.00</span>
+    <span class="lbl">gemini-3.1-pro</span><div class="barwrap"><div class="bar b-violet" style="width:97.5%"></div></div><span class="val">4.88</span>
+  </div>
+
+  <h3>Item generation quality (6 combos × 3 dims)</h3>
+  <div class="barchart" aria-label="Item-gen quality by model">
+    <span class="lbl">gpt-5.5</span><div class="barwrap"><div class="bar b-teal" style="width:100%"></div></div><span class="val">5.00</span>
+    <span class="lbl">gpt-5.4-mini</span><div class="barwrap"><div class="bar b-teal" style="width:98.8%"></div></div><span class="val">4.94</span>
+    <span class="lbl">gemini-3-flash</span><div class="barwrap"><div class="bar b-teal" style="width:100%"></div></div><span class="val">5.00</span>
+    <span class="lbl">gemini-3.1-pro</span><div class="barwrap"><div class="bar b-teal" style="width:100%"></div></div><span class="val">5.00</span>
+  </div>
+
+  <div class="callout"><strong>Why gemini-3.1-pro scored 4.88 on feedback while cheaper models hit 5.00:</strong> the judge is blind and strict. On <code>fb-a2-directions</code> it docked pro for a minor self-consistency slip — the <code>corrected</code> text dropped a redundant clause while an <code>issues</code> explanation still referenced it. That is the judge being demanding, not a real defect; all four models produce shippable feedback.</div>
+</section>
+
+<!-- ============ STABILITY + ORDERING ============ -->
+<section id="stability">
+  <h2>③ Scoring stability &amp; ordering correctness</h2>
+  <p class="lead">Rubric scoring drives the learner's CEFR estimate, so run-to-run consistency matters. Each of 8 inputs ran 3× at temp 0; we report the <strong>worst-case</strong> per-input stdev of the app-total (0–100) — the strict bar — alongside the mean. Ordering = does a clearly-better answer score higher than a clearly-worse one within the same scenario?</p>
+
+  <h3>Worst-case run-to-run stdev (lower is better · bar ≤ 3.0)</h3>
+  <div class="barchart" aria-label="Worst-case rubric stdev by model">
+    <span class="lbl">gpt-5.5</span><div class="barwrap"><div class="bar b-red" style="width:80%"></div></div><span class="val">7.97</span>
+    <span class="lbl">gpt-5.4-mini</span><div class="barwrap"><div class="bar b-red" style="width:50%"></div></div><span class="val">5.03</span>
+    <span class="lbl">gemini-3-flash</span><div class="barwrap"><div class="bar b-amber" style="width:43%"></div></div><span class="val">4.32</span>
+    <span class="lbl">gemini-3.1-pro</span><div class="barwrap"><div class="bar b-green" style="width:20%"></div></div><span class="val">1.96</span>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Model</th><th class="num">Worst-case σ</th><th class="num">Mean σ (8 inputs)</th><th class="num">Ordering</th><th>Stability verdict</th></tr></thead>
+      <tbody>
+        <tr><td>gpt-5.5</td><td class="num">7.97</td><td class="num">2.10</td><td class="num">100% (4/4)</td><td><span class="pill bad">FAIL bar</span></td></tr>
+        <tr><td>gpt-5.4-mini</td><td class="num">5.03</td><td class="num">2.46</td><td class="num">100% (4/4)</td><td><span class="pill bad">FAIL bar</span></td></tr>
+        <tr><td>gemini-3-flash</td><td class="num">4.32</td><td class="num">1.12</td><td class="num">100% (4/4)</td><td><span class="pill bad">FAIL bar</span></td></tr>
+        <tr><td><strong>gemini-3.1-pro</strong></td><td class="num">1.96</td><td class="num">0.49</td><td class="num">100% (4/4)</td><td><span class="pill win">PASS</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout info"><strong>Ordering is perfect across the board:</strong> all four models scored every "better" answer above its "worse" pair-mate in all 4 ordering pairs (hometown weak→mid, mid→strong; job weak→strong; complaint weak→mid). <strong>Relative judgement is trustworthy on every model</strong> — the differentiator is absolute repeatability.</div>
+  <div class="callout warn"><strong>Reading the stdev honestly:</strong> by <em>mean</em> stdev all models are decent (0.49–2.46 points on a 100-point scale). They fail the strict <em>worst-case</em> bar because of a single jittery input each — typically a borderline/ambiguous answer (e.g. <code>ru-6-job-strong</code> for gpt-5.5 swung ±8). gemini-3.1-pro is the only model with no such jittery input, which is why it alone passes. If the app only needs stable <em>relative</em> ranking (it does for adaptive selection), the cheaper models remain viable.</div>
+</section>
+
+<!-- ============ LATENCY + COST ============ -->
+<section id="latcost">
+  <h2>④ Latency &amp; cost</h2>
+  <p class="lead">Latency from live calls (p50/p95 over all successful calls, includes any repair round-trips). Cost from real token usage × a list-price table; all preview prices are <span class="tag">EST.</span> and labelled.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Model</th><th class="num">p50</th><th class="num">p95</th><th class="num">$/call</th><th class="num">$ / 46-call run</th><th>Price basis</th></tr></thead>
+      <tbody>
+        <tr><td>gpt-5.5</td><td class="num">6.7s</td><td class="num">15.0s</td><td class="num">$0.0039</td><td class="num">$0.178</td><td>$1.25 / $10 per 1M <span class="tag">EST.</span></td></tr>
+        <tr><td><strong>gpt-5.4-mini</strong></td><td class="num">2.0s</td><td class="num">3.9s</td><td class="num">$0.0004</td><td class="num">$0.020</td><td>$0.25 / $2 per 1M <span class="tag">EST.</span></td></tr>
+        <tr><td>gemini-3-flash</td><td class="num">6.1s</td><td class="num"><span class="pill bad">156.7s</span></td><td class="num">$0.0005</td><td class="num">$0.023</td><td>$0.30 / $2.50 per 1M <span class="tag">EST.</span></td></tr>
+        <tr><td>gemini-3.1-pro</td><td class="num">10.7s</td><td class="num">16.7s</td><td class="num">$0.0025</td><td class="num">$0.113</td><td>$2.00 / $12 per 1M <span class="tag">EST.</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout bad"><strong>gemini-3-flash tail latency is a red flag:</strong> p50 is a fine 6.1s, but p95 hit <strong>156.7 seconds</strong> — two feedback calls also took 29–35s. Combined with the 503, the preview-Flash endpoint shows real capacity instability under this load. Median is fast; the tail is not safe for a live "instant feedback" experience.</div>
+  <div class="callout"><strong>Cost takeaway:</strong> gpt-5.4-mini is ~9× cheaper than gpt-5.5 and ~6× cheaper than gemini-3.1-pro per call, at effectively identical quality. For the high-volume instant-feedback path, the mini is the obvious economic choice.</div>
+</section>
+
+<!-- ============ SAMPLES ============ -->
+<section id="samples">
+  <h2>Sample outputs (real, untouched)</h2>
+  <h3>gpt-5.4-mini — instant feedback (<code>fb-b1-hotel</code>) · judge 5/5/5</h3>
+  <p class="tag">Learner: "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me."</p>
+  <pre><code>{
+  "corrected": "Hello, there seems to be a problem with my bill. I was charged twice
+                for the minibar. Could you please fix it?",
+  "natural_version": "Hi, there seems to be a mistake on my bill — I was charged twice
+                      for the minibar. Could you please fix it?",
+  "issues": [
+    { "type": "grammar", "explanation": "‘my bill has a problem’… ‘you charge me’ should be past passive: ‘I was charged’." },
+    { "type": "vocabulary", "explanation": "‘Two times’ is fine, but ‘twice’ is more natural." },
+    { "type": "naturalness", "explanation": "‘Please fix it for me’ is a bit direct; ‘Could you please fix it?’ is more polite." }
+  ],
+  "save_candidates": ["there seems to be a problem with...", "I was charged twice", ...]
+}</code></pre>
+  <p class="foot">Judge: "perfectly identifies the grammatical errors… natural alternatives… polite and highly appropriate for a B1 learner."</p>
+
+  <h3>gemini-3.1-pro — item generation (<code>ig-shopping-b1</code>) · judge 5/5/5</h3>
+  <pre><code>{
+  "prompt_cn": "我昨天买了这副耳机，但是左边没有声音。我想退款或者换一个新的。",
+  "reference_answers": [
+    "I bought these headphones yesterday, but the left side doesn't work. I'd like a refund or a replacement.",
+    "I got these headphones here yesterday, but there is no sound in the left ear. Can I get a refund or exchange them?"
+  ],
+  "target_phrases": ["doesn't work", "get a refund", "a replacement", "exchange them for"],
+  "common_mistakes": [ { "wrong": "The left side has no voice.",
+                         "explanation": "Use 'sound' instead of 'voice'…" } ],
+  "difficulty_score": 45
+}</code></pre>
+  <p class="foot">Judge: "Chinese prompt highly natural… reference answers idiomatic… common mistakes addresses L1 interference ('voice' vs 'sound')… difficulty 45 very appropriate for B1."</p>
+
+  <h3 style="color:#B91C1C">gemini-3-flash — the hard-fail (<code>ru-2-weak-run3</code>)</h3>
+  <pre><code>HTTP 503: { "error": { "code": 503,
+    "message": "This model is currently experiencing high demand.
+                Spikes in demand are usually temporary. Please try again later.",
+    "status": "UNAVAILABLE" } }   // persisted through 2 backoff retries → call_failed</code></pre>
+  <p class="foot">A capacity error, not a content error — but it ends a learner's scoring attempt, so it is counted as a hard-fail.</p>
+</section>
+
+<!-- ============ RECOMMENDATION ============ -->
+<section id="reco">
+  <h2>★ Quality-first recommendation, per task</h2>
+  <p class="lead">Quality is essentially tied across the field, so the decision is driven by <strong>error rate, stability, and the latency/cost the task can tolerate</strong>. Recommendations below lead with quality and justify with the measured error rates.</p>
+
+  <div class="grid3">
+    <div class="card accent">
+      <h3 style="color:#EA580C">① Instant feedback</h3>
+      <div class="big" style="font-size:20px;color:#1C1917">gpt-5.4-mini</div>
+      <p><strong>0.0% hard-fail · 0.0% repair · judge 5.00/5.</strong> Fastest (p50 2.0s, p95 3.9s) and cheapest ($0.0004/call) — exactly what a live, high-volume feedback path needs. Quality is indistinguishable from the flagships.</p>
+      <p class="tag" style="margin-top:8px">Avoid gemini-3-flash here: its 2.2% hard-fail and 156s p95 tail directly harm the "instant" promise.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:#7C3AED">② Rubric scoring</h3>
+      <div class="big" style="font-size:20px;color:#6D28D9">gemini-3.1-pro</div>
+      <p><strong>0.0% hard-fail · worst-case σ 1.96 (only model under the ≤3 bar) · mean σ 0.49 · 100% ordering · judge 5.00 item / strong feedback.</strong> Scoring feeds the CEFR estimate, so repeatability outweighs latency/cost here. Pro is the only model a learner can re-run and trust to get the same grade.</p>
+      <p class="tag" style="margin-top:8px">Budget alt: gpt-5.4-mini — 0% hard-fail, mean σ 2.46, 100% ordering, 5× cheaper/faster — fine if only <em>relative</em> ranking matters (it does for adaptive selection).</p>
+    </div>
+    <div class="card accent">
+      <h3 style="color:#0D9488">③ Item generation</h3>
+      <div class="big" style="font-size:20px;color:#1C1917">gemini-3-flash <span class="tag">(quality)</span></div>
+      <p>Judge 5.00/5 on prompt_cn, references &amp; difficulty — top-tier content at $0.0005/call. <strong>But</strong> item-gen is an <em>offline admin pipeline with human review</em>, so its 2.2% availability blip and slow tail are tolerable here (retry/queue).</p>
+      <p class="tag" style="margin-top:8px">Reliability-first pick: gpt-5.4-mini — judge 4.94, 0% hard-fail, fast/cheap. Use it if the pipeline must run unattended.</p>
+    </div>
+  </div>
+
+  <div class="callout"><strong>If forced to one model for everything:</strong> <span class="pill win">gemini-3.1-pro</span> — it is the only candidate that PASSES every gate on every task (0% error, σ 1.96, 100% ordering, quality ≥ 4.88). The price is latency (p50 10.7s) and ~6× the per-call cost of the mini. For a two-model split that optimizes the product: <strong>gpt-5.4-mini for instant feedback + item-gen, gemini-3.1-pro for rubric scoring.</strong></div>
+  <div class="callout bad"><strong>Reliability finding to flag to the PM:</strong> the only model that produced a hard error in 184 generation calls was <strong>gemini-3-flash-preview</strong> (one 503 + multi-second tail spikes). It is a "preview" endpoint and behaved like one under load. Do not put it on a latency-sensitive, user-facing path without a fallback model.</div>
+
+  <p class="foot">Raw data: <code>server/eval/results-v2.json</code> · harness: <code>server/eval/run-v2.ts</code> + <code>server/eval/dataset-v2.ts</code>. Generated 2026-06-15 from live OpenAI + Gemini calls. 46 generation calls × 4 models + ~88 blind-judge calls. Prices marked <span class="tag">EST.</span> are preview/unconfirmed list estimates; all other figures are measured.</p>
+</section>
+
+</div>
+</body>
+</html>
