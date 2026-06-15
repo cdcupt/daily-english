@@ -1,0 +1,1581 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-15T16:55:12.009Z",
+    "ranFrom": "local (macOS) — both providers reachable; OpenAI key sourced from BWH box via SSH into env only",
+    "prices": {
+      "gpt-5.5": {
+        "in": 1.25,
+        "out": 10,
+        "est": true
+      },
+      "gpt-5.4": {
+        "in": 1.25,
+        "out": 10
+      },
+      "gpt-5.4-mini": {
+        "in": 0.25,
+        "out": 2,
+        "est": true
+      },
+      "gpt-5-mini": {
+        "in": 0.25,
+        "out": 2
+      },
+      "gemini-3-flash-preview": {
+        "in": 0.3,
+        "out": 2.5,
+        "est": true
+      },
+      "gemini-3.1-pro-preview": {
+        "in": 2,
+        "out": 12,
+        "est": true
+      }
+    },
+    "candidates": [
+      {
+        "key": "openai-flagship",
+        "provider": "OpenAI",
+        "model": "gpt-5.5",
+        "note": "spec model id"
+      },
+      {
+        "key": "openai-flagship-real",
+        "provider": "OpenAI",
+        "model": "gpt-5.4",
+        "note": "closest shipping flagship"
+      },
+      {
+        "key": "openai-mini",
+        "provider": "OpenAI",
+        "model": "gpt-5.4-mini",
+        "note": "spec model id"
+      },
+      {
+        "key": "openai-mini-real",
+        "provider": "OpenAI",
+        "model": "gpt-5-mini",
+        "note": "closest shipping mini"
+      },
+      {
+        "key": "gemini-flash",
+        "provider": "Gemini",
+        "model": "gemini-3-flash-preview"
+      },
+      {
+        "key": "gemini-pro",
+        "provider": "Gemini",
+        "model": "gemini-3.1-pro-preview"
+      }
+    ],
+    "rubricRuns": 3
+  },
+  "models": {
+    "openai-flagship": {
+      "key": "openai-flagship",
+      "provider": "OpenAI",
+      "model": "gpt-5.5",
+      "note": "spec model id",
+      "instantFeedback": [
+        {
+          "caseId": "fb-a2-cafe",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": true,
+          "latencyMs": 22828,
+          "promptTokens": 324,
+          "completionTokens": 196,
+          "costUsd": 0.002365,
+          "sample": "{\"corrected\":\"I want a latte, please, and what is the wifi password?\",\"issues\":[{\"explanation\":\"Use “a latte,” not “one latte,” when ordering normally.\",\"type\":\"grammar\"},{\"explanation\":\"Word order: “the wifi password,” not “wifi the password.”\",\"type\":\"grammar\"}],\"natural_version\":\"Could I get a latte, please? And what’s the wifi password?\",\"original\":\"I want one latte please, and what is wifi the password?\",\"save_candidates\":[\"Could I get a latte, please?\",\"What’s the wifi password?\",\"a latte\"]}",
+          "parsed": {
+            "original": "I want one latte please, and what is wifi the password?",
+            "corrected": "I want a latte, please, and what is the wifi password?",
+            "natural_version": "Could I get a latte, please? And what’s the wifi password?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "Use “a latte,” not “one latte,” when ordering normally."
+              },
+              {
+                "type": "grammar",
+                "explanation": "Word order: “the wifi password,” not “wifi the password.”"
+              }
+            ],
+            "save_candidates": [
+              "Could I get a latte, please?",
+              "What’s the wifi password?",
+              "a latte"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-b1-hotel",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": true,
+          "latencyMs": 8328,
+          "promptTokens": 347,
+          "completionTokens": 240,
+          "costUsd": 0.0028337500000000003,
+          "sample": "{\"corrected\":\"Hello, my bill has a problem. You charged me twice for the minibar. Could you please fix it for me?\",\"issues\":[{\"explanation\":\"Use “has” with singular “my bill,” not “have.”\",\"type\":\"grammar\"},{\"explanation\":\"“I was charged twice” is more natural and polite than “you charge me two times.”\",\"type\":\"naturalness\"},{\"explanation\":\"For a hotel reception, “Could you please…” sounds more polite than “please fix it for me.”\",\"type\":\"register\"}],\"natural_version\":\"Hello, there seems to be a mistake on my bill. I was charged twice for the minibar. Could you please check it?\",\"original\":\"He",
+          "parsed": {
+            "original": "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.",
+            "corrected": "Hello, my bill has a problem. You charged me twice for the minibar. Could you please fix it for me?",
+            "natural_version": "Hello, there seems to be a mistake on my bill. I was charged twice for the minibar. Could you please check it?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "Use “has” with singular “my bill,” not “have.”"
+              },
+              {
+                "type": "naturalness",
+                "explanation": "“I was charged twice” is more natural and polite than “you charge me two times.”"
+              },
+              {
+                "type": "register",
+                "explanation": "For a hotel reception, “Could you please…” sounds more polite than “please fix it for me.”"
+              }
+            ],
+            "save_candidates": [
+              "There seems to be a mistake on my bill.",
+              "I was charged twice for the minibar.",
+              "Could you please check it?"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-c1-meeting",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": true,
+          "latencyMs": 7039,
+          "promptTokens": 345,
+          "completionTokens": 258,
+          "costUsd": 0.00301125,
+          "sample": "{\"corrected\":\"I know it’s urgent, but I think we need a more realistic timeline to maintain quality and avoid mistakes.\",\"issues\":[{\"explanation\":\"“I know” and “honestly I feel” can sound a bit too direct or subjective in a work meeting. “I appreciate the urgency” is more diplomatic.\",\"type\":\"register\"},{\"explanation\":\"“Keep the quality good” is understandable but not idiomatic. Use “maintain quality” or “ensure quality.”\",\"type\":\"naturalness\"},{\"explanation\":\"The sentence is slightly wordy. A more concise version sounds more confident and professional.\",\"type\":\"coherence\"}],\"natural_version\":",
+          "parsed": {
+            "original": "I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.",
+            "corrected": "I know it’s urgent, but I think we need a more realistic timeline to maintain quality and avoid mistakes.",
+            "natural_version": "I appreciate the urgency, but I think we need a more realistic timeline to maintain quality and avoid unnecessary mistakes.",
+            "issues": [
+              {
+                "type": "register",
+                "explanation": "“I know” and “honestly I feel” can sound a bit too direct or subjective in a work meeting. “I appreciate the urgency” is more diplomatic."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "“Keep the quality good” is understandable but not idiomatic. Use “maintain quality” or “ensure quality.”"
+              },
+              {
+                "type": "coherence",
+                "explanation": "The sentence is slightly wordy. A more concise version sounds more confident and professional."
+              }
+            ],
+            "save_candidates": [
+              "I appreciate the urgency, but…",
+              "a more realistic timeline",
+              "maintain quality",
+              "avoid unnecessary mistakes"
+            ]
+          }
+        }
+      ],
+      "rubric": {
+        "runs": [
+          {
+            "caseId": "rubric-run-1",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": true,
+            "latencyMs": 9204,
+            "promptTokens": 319,
+            "completionTokens": 448,
+            "costUsd": 0.004878749999999999,
+            "sample": "{\"coherence\":78,\"fluency\":72,\"grammar\":66,\"interaction\":76,\"pronunciation\":70,\"summary\":\"The learner gives a clear B1-level description of their hometown with relevant reasons, despite several noticeable but non-blocking grammar errors.\",\"vocabulary\":72,\"weak_points\":[\"Use object pronouns correctly: say “I like it very much” instead of “I like there very much.”\",\"Avoid subject repetition: say “the people are friendly” instead of “the people they are friendly.”\",\"Use natural time expressions: say “on the weekend” or “at weekends” instead of “in the weekend.”\",\"Vocabulary is appropriate but fair",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 66,
+              "coherence": 78,
+              "interaction": 76,
+              "fluency": 72,
+              "pronunciation": 70,
+              "summary": "The learner gives a clear B1-level description of their hometown with relevant reasons, despite several noticeable but non-blocking grammar errors.",
+              "weak_points": [
+                "Use object pronouns correctly: say “I like it very much” instead of “I like there very much.”",
+                "Avoid subject repetition: say “the people are friendly” instead of “the people they are friendly.”",
+                "Use natural time expressions: say “on the weekend” or “at weekends” instead of “in the weekend.”",
+                "Vocabulary is appropriate but fairly simple and could include more descriptive detail."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-2",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": true,
+            "latencyMs": 8639,
+            "promptTokens": 319,
+            "completionTokens": 350,
+            "costUsd": 0.0038987500000000003,
+            "sample": "{\"coherence\":82,\"fluency\":75,\"grammar\":68,\"interaction\":80,\"pronunciation\":70,\"summary\":\"The response clearly describes the hometown and gives relevant reasons for liking it, with generally B1-level language and a few noticeable grammar errors.\",\"vocabulary\":72,\"weak_points\":[\"Use object/reference forms correctly: say \\\"I like it there\\\" rather than \\\"I like there.\\\"\",\"Avoid unnecessary subject repetition: say \\\"the people are friendly\\\" rather than \\\"the people they are friendly.\\\"\",\"Use the correct preposition for time: \\\"on the weekend\\\" or \\\"at the weekend\\\" instead of \\\"in the weekend.\\\"\"",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 68,
+              "coherence": 82,
+              "interaction": 80,
+              "fluency": 75,
+              "pronunciation": 70,
+              "summary": "The response clearly describes the hometown and gives relevant reasons for liking it, with generally B1-level language and a few noticeable grammar errors.",
+              "weak_points": [
+                "Use object/reference forms correctly: say \"I like it there\" rather than \"I like there.\"",
+                "Avoid unnecessary subject repetition: say \"the people are friendly\" rather than \"the people they are friendly.\"",
+                "Use the correct preposition for time: \"on the weekend\" or \"at the weekend\" instead of \"in the weekend.\"",
+                "Vocabulary is clear but fairly simple; adding a few more descriptive words would make the answer richer."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-3",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": true,
+            "latencyMs": 8678,
+            "promptTokens": 319,
+            "completionTokens": 411,
+            "costUsd": 0.00450875,
+            "sample": "{\"coherence\":78,\"fluency\":72,\"grammar\":66,\"interaction\":76,\"pronunciation\":70,\"summary\":\"The learner gives a clear and relevant B1-level description of their hometown with understandable speech and some noticeable but non-blocking grammar errors.\",\"vocabulary\":72,\"weak_points\":[\"Uses incorrect place reference: \\\"I like there very much\\\" should be \\\"I like it there very much\\\" or \\\"I like my city very much.\\\"\",\"Has unnecessary subject repetition: \\\"the people they are friendly\\\" should be \\\"the people are friendly.\\\"\",\"Uses some unnatural collocations/prepositions, such as \\\"The life is not too",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 66,
+              "coherence": 78,
+              "interaction": 76,
+              "fluency": 72,
+              "pronunciation": 70,
+              "summary": "The learner gives a clear and relevant B1-level description of their hometown with understandable speech and some noticeable but non-blocking grammar errors.",
+              "weak_points": [
+                "Uses incorrect place reference: \"I like there very much\" should be \"I like it there very much\" or \"I like my city very much.\"",
+                "Has unnecessary subject repetition: \"the people they are friendly\" should be \"the people are friendly.\"",
+                "Uses some unnatural collocations/prepositions, such as \"The life is not too fast\" and \"in the weekend\" instead of \"Life is not too fast\" and \"on the weekend.\"",
+                "Pronunciation cannot be fully judged from the transcript alone."
+              ]
+            }
+          }
+        ],
+        "stability": {
+          "validRuns": 3,
+          "totals": [
+            72.33333333333333,
+            74.5,
+            72.33333333333333
+          ],
+          "totalStdev": 1.021376461713904,
+          "perDimStdev": {
+            "vocabulary": 0,
+            "grammar": 0.9428090415820634,
+            "coherence": 1.8856180831641267,
+            "interaction": 1.8856180831641267,
+            "fluency": 1.4142135623730951,
+            "pronunciation": 0
+          },
+          "maxDimStdev": 1.8856180831641267
+        }
+      },
+      "itemGen": {
+        "caseId": "Returning a faulty product at an electronics store",
+        "validity": "valid_first_try",
+        "jsonSchema": "used",
+        "temperatureDropped": true,
+        "latencyMs": 6211,
+        "promptTokens": 232,
+        "completionTokens": 325,
+        "costUsd": 0.0035399999999999997,
+        "sample": "{\"common_mistakes\":[{\"explanation\":\"Use “return” for taking an item back to the store; “refund” is the money you get back.\",\"wrong\":\"I want to refund these headphones.\"},{\"explanation\":\"Say “don’t work properly” or “are faulty,” not “are broken well.”\",\"wrong\":\"These headphones are broken well.\"},{\"explanation\":\"Use “either...or...” to offer two possible solutions.\",\"wrong\":\"Could I get a refund and a replacement?\"}],\"difficulty_score\":48,\"prompt_cn\":\"你好，我上周买了这副耳机，但是它们不能正常工作。我可以退货并退款，或者换一副新的吗？\",\"reference_answers\":[\"Hi, I bought these headphones last week, but they don’t work properly. Could I",
+        "parsed": {
+          "prompt_cn": "你好，我上周买了这副耳机，但是它们不能正常工作。我可以退货并退款，或者换一副新的吗？",
+          "reference_answers": [
+            "Hi, I bought these headphones last week, but they don’t work properly. Could I return them for a refund or get a replacement?",
+            "Hello, I bought this pair of headphones last week, but they seem to be faulty. Can I return them and get a refund or a replacement?",
+            "Hi, these headphones I bought last week aren’t working properly. Could I get a refund or exchange them for a new pair?"
+          ],
+          "target_phrases": [
+            "I bought these headphones last week",
+            "don’t work properly",
+            "return them for a refund",
+            "get a replacement",
+            "exchange them for a new pair"
+          ],
+          "common_mistakes": [
+            {
+              "wrong": "I want to refund these headphones.",
+              "explanation": "Use “return” for taking an item back to the store; “refund” is the money you get back."
+            },
+            {
+              "wrong": "These headphones are broken well.",
+              "explanation": "Say “don’t work properly” or “are faulty,” not “are broken well.”"
+            },
+            {
+              "wrong": "Could I get a refund and a replacement?",
+              "explanation": "Use “either...or...” to offer two possible solutions."
+            }
+          ],
+          "difficulty_score": 48
+        }
+      }
+    },
+    "openai-flagship-real": {
+      "key": "openai-flagship-real",
+      "provider": "OpenAI",
+      "model": "gpt-5.4",
+      "note": "closest shipping flagship",
+      "instantFeedback": [
+        {
+          "caseId": "fb-a2-cafe",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 5350,
+          "promptTokens": 321,
+          "completionTokens": 137,
+          "costUsd": 0.0017712499999999998,
+          "sample": "{\"original\":\"I want one latte please, and what is wifi the password?\",\"corrected\":\"I want one latte, please. And what is the wifi password?\",\"natural_version\":\"Could I get a latte, please? And what's the wifi password?\",\"issues\":[{\"type\":\"grammar\",\"explanation\":\"Use \\\"the wifi password,\\\" not \\\"wifi the password.\\\"\"},{\"type\":\"naturalness\",\"explanation\":\"For ordering, \\\"Could I get...\\\" sounds more polite and natural than \\\"I want...\\\".\"}],\"save_candidates\":[\"Could I get a latte, please?\",\"What's the wifi password?\",\"the wifi password\"]}",
+          "parsed": {
+            "original": "I want one latte please, and what is wifi the password?",
+            "corrected": "I want one latte, please. And what is the wifi password?",
+            "natural_version": "Could I get a latte, please? And what's the wifi password?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "Use \"the wifi password,\" not \"wifi the password.\""
+              },
+              {
+                "type": "naturalness",
+                "explanation": "For ordering, \"Could I get...\" sounds more polite and natural than \"I want...\"."
+              }
+            ],
+            "save_candidates": [
+              "Could I get a latte, please?",
+              "What's the wifi password?",
+              "the wifi password"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-b1-hotel",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 2600,
+          "promptTokens": 344,
+          "completionTokens": 226,
+          "costUsd": 0.0026899999999999997,
+          "sample": "{\"original\":\"Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.\",\"corrected\":\"Hello, there seems to be a problem with my bill. You charged me twice for the minibar. Please fix it for me.\",\"natural_version\":\"Hello, there seems to be a mistake on my bill — I was charged twice for the minibar. Could you fix it, please?\",\"issues\":[{\"type\":\"grammar\",\"explanation\":\"Use \\\"my bill has a problem\\\" or more naturally \\\"there seems to be a problem with my bill,\\\" not \\\"my bill have a problem.\\\"\"},{\"type\":\"vocabulary\",\"explanation\":\"Say \\\"charged me twice\\\" instea",
+          "parsed": {
+            "original": "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.",
+            "corrected": "Hello, there seems to be a problem with my bill. You charged me twice for the minibar. Please fix it for me.",
+            "natural_version": "Hello, there seems to be a mistake on my bill — I was charged twice for the minibar. Could you fix it, please?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "Use \"my bill has a problem\" or more naturally \"there seems to be a problem with my bill,\" not \"my bill have a problem.\""
+              },
+              {
+                "type": "vocabulary",
+                "explanation": "Say \"charged me twice\" instead of \"charge me two times\" for billing problems."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "\"Could you fix it, please?\" sounds more polite and natural at hotel reception than \"please fix it for me.\""
+              }
+            ],
+            "save_candidates": [
+              "There seems to be a mistake on my bill.",
+              "I was charged twice for the minibar.",
+              "Could you fix it, please?"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-c1-meeting",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 3069,
+          "promptTokens": 342,
+          "completionTokens": 204,
+          "costUsd": 0.0024675,
+          "sample": "{\"original\":\"I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.\",\"corrected\":\"I know it's urgent, but I think we need a more realistic timeline to maintain quality and avoid mistakes.\",\"natural_version\":\"I appreciate the urgency, but I think we need a more realistic timeline to maintain quality and avoid mistakes.\",\"issues\":[{\"type\":\"register\",\"explanation\":\"\\\"I appreciate the urgency\\\" sounds more diplomatic and meeting-appropriate than \\\"I know it is very urgent.\\\"\"},{\"type\":\"naturalness\",\"expla",
+          "parsed": {
+            "original": "I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.",
+            "corrected": "I know it's urgent, but I think we need a more realistic timeline to maintain quality and avoid mistakes.",
+            "natural_version": "I appreciate the urgency, but I think we need a more realistic timeline to maintain quality and avoid mistakes.",
+            "issues": [
+              {
+                "type": "register",
+                "explanation": "\"I appreciate the urgency\" sounds more diplomatic and meeting-appropriate than \"I know it is very urgent.\""
+              },
+              {
+                "type": "naturalness",
+                "explanation": "\"keep the quality good\" is unnatural; use \"maintain quality\" instead."
+              },
+              {
+                "type": "coherence",
+                "explanation": "\"make the timeline more realistic\" is less direct than \"we need a more realistic timeline,\" which is clearer and stronger."
+              }
+            ],
+            "save_candidates": [
+              "I appreciate the urgency",
+              "a more realistic timeline",
+              "maintain quality",
+              "avoid mistakes"
+            ]
+          }
+        }
+      ],
+      "rubric": {
+        "runs": [
+          {
+            "caseId": "rubric-run-1",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 2481,
+            "promptTokens": 318,
+            "completionTokens": 141,
+            "costUsd": 0.0018075,
+            "sample": "{\"vocabulary\":68,\"grammar\":60,\"coherence\":72,\"interaction\":58,\"fluency\":62,\"pronunciation\":50,\"summary\":\"Clear B1-level description of hometown with relevant details, but with noticeable grammar errors and some hesitation.\",\"weak_points\":[\"Incorrect phrase: say \\\"I like it there\\\" instead of \\\"I like there\\\".\",\"Unnecessary subject repetition: \\\"the people are friendly,\\\" not \\\"the people they are friendly.\\\"\",\"Use the natural time expression \\\"on the weekend\\\" or \\\"at the weekend,\\\" not \\\"in the weekend.\\\"\",\"Limited interactional language; it describes well but does not actively engage the lis",
+            "parsed": {
+              "vocabulary": 68,
+              "grammar": 60,
+              "coherence": 72,
+              "interaction": 58,
+              "fluency": 62,
+              "pronunciation": 50,
+              "summary": "Clear B1-level description of hometown with relevant details, but with noticeable grammar errors and some hesitation.",
+              "weak_points": [
+                "Incorrect phrase: say \"I like it there\" instead of \"I like there\".",
+                "Unnecessary subject repetition: \"the people are friendly,\" not \"the people they are friendly.\"",
+                "Use the natural time expression \"on the weekend\" or \"at the weekend,\" not \"in the weekend.\"",
+                "Limited interactional language; it describes well but does not actively engage the listener."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-2",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 4306,
+            "promptTokens": 318,
+            "completionTokens": 150,
+            "costUsd": 0.0018974999999999999,
+            "sample": "{\"vocabulary\":72,\"grammar\":62,\"coherence\":74,\"interaction\":58,\"fluency\":64,\"pronunciation\":50,\"summary\":\"Clear B1-level description of hometown with relevant details, but with noticeable grammar errors and limited evidence for interaction and pronunciation in the transcript.\",\"weak_points\":[\"Incorrect phrase: say \\\"I like it very much,\\\" not \\\"I like there very much.\\\"\",\"Unnecessary subject repetition: \\\"the people are friendly,\\\" not \\\"the people they are friendly.\\\"\",\"Use the natural time expression \\\"on the weekend\\\" or \\\"at the weekend,\\\" not \\\"in the weekend.\\\"\",\"The response is short and",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 62,
+              "coherence": 74,
+              "interaction": 58,
+              "fluency": 64,
+              "pronunciation": 50,
+              "summary": "Clear B1-level description of hometown with relevant details, but with noticeable grammar errors and limited evidence for interaction and pronunciation in the transcript.",
+              "weak_points": [
+                "Incorrect phrase: say \"I like it very much,\" not \"I like there very much.\"",
+                "Unnecessary subject repetition: \"the people are friendly,\" not \"the people they are friendly.\"",
+                "Use the natural time expression \"on the weekend\" or \"at the weekend,\" not \"in the weekend.\"",
+                "The response is short and gives limited evidence of interactive ability beyond a basic description."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-3",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 2342,
+            "promptTokens": 318,
+            "completionTokens": 141,
+            "costUsd": 0.0018075,
+            "sample": "{\"vocabulary\":68,\"grammar\":60,\"coherence\":72,\"interaction\":58,\"fluency\":62,\"pronunciation\":50,\"summary\":\"Clear B1-level description of hometown with relevant details, but with noticeable grammar errors and some hesitation.\",\"weak_points\":[\"Incorrect phrase: say \\\"I like it there\\\" instead of \\\"I like there\\\".\",\"Unnecessary subject repetition: \\\"the people are friendly,\\\" not \\\"the people they are friendly.\\\"\",\"Use the natural time expression \\\"on the weekend\\\" or \\\"at the weekend,\\\" not \\\"in the weekend.\\\"\",\"Limited interactional language; it describes well but does not actively engage the lis",
+            "parsed": {
+              "vocabulary": 68,
+              "grammar": 60,
+              "coherence": 72,
+              "interaction": 58,
+              "fluency": 62,
+              "pronunciation": 50,
+              "summary": "Clear B1-level description of hometown with relevant details, but with noticeable grammar errors and some hesitation.",
+              "weak_points": [
+                "Incorrect phrase: say \"I like it there\" instead of \"I like there\".",
+                "Unnecessary subject repetition: \"the people are friendly,\" not \"the people they are friendly.\"",
+                "Use the natural time expression \"on the weekend\" or \"at the weekend,\" not \"in the weekend.\"",
+                "Limited interactional language; it describes well but does not actively engage the listener."
+              ]
+            }
+          }
+        ],
+        "stability": {
+          "validRuns": 3,
+          "totals": [
+            61.666666666666664,
+            63.333333333333336,
+            61.666666666666664
+          ],
+          "totalStdev": 0.7856742013183884,
+          "perDimStdev": {
+            "vocabulary": 1.8856180831641267,
+            "grammar": 0.9428090415820634,
+            "coherence": 0.9428090415820634,
+            "interaction": 0,
+            "fluency": 0.9428090415820634,
+            "pronunciation": 0
+          },
+          "maxDimStdev": 1.8856180831641267
+        }
+      },
+      "itemGen": {
+        "caseId": "Returning a faulty product at an electronics store",
+        "validity": "valid_first_try",
+        "jsonSchema": "used",
+        "temperatureDropped": false,
+        "latencyMs": 4757,
+        "promptTokens": 229,
+        "completionTokens": 351,
+        "costUsd": 0.00379625,
+        "sample": "{\"prompt_cn\":\"你好，我上周在这里买了这副耳机，但它有问题。左边没有声音了。我可以退货并退款，或者换一副新的吗？\",\"reference_answers\":[\"Hi, I bought these headphones here last week, but there's something wrong with them. The left side has stopped working. Could I return them for a refund, or get a new pair instead?\",\"Hello, I bought this pair of headphones here last week, but it's faulty. There's no sound on the left side. Can I return it for a refund or exchange it for a new one?\",\"Hi, I got these headphones here last week, but they don't work properly. The left side doesn't have any sound. Could I get a refund or a replacement?\"],\"target_ph",
+        "parsed": {
+          "prompt_cn": "你好，我上周在这里买了这副耳机，但它有问题。左边没有声音了。我可以退货并退款，或者换一副新的吗？",
+          "reference_answers": [
+            "Hi, I bought these headphones here last week, but there's something wrong with them. The left side has stopped working. Could I return them for a refund, or get a new pair instead?",
+            "Hello, I bought this pair of headphones here last week, but it's faulty. There's no sound on the left side. Can I return it for a refund or exchange it for a new one?",
+            "Hi, I got these headphones here last week, but they don't work properly. The left side doesn't have any sound. Could I get a refund or a replacement?"
+          ],
+          "target_phrases": [
+            "I bought ... here last week",
+            "there's something wrong with ...",
+            "The left side has stopped working",
+            "return ... for a refund",
+            "exchange it for a new one",
+            "Could I get a refund or a replacement?"
+          ],
+          "common_mistakes": [
+            {
+              "wrong": "I bought this headphones here last week.",
+              "explanation": "Use 'these headphones' or 'this pair of headphones' because 'headphones' is plural."
+            },
+            {
+              "wrong": "The left side no sound.",
+              "explanation": "Add a verb: say 'The left side has no sound' or 'There's no sound on the left side.'"
+            },
+            {
+              "wrong": "Can I return it and refund?",
+              "explanation": "Use 'get a refund' or 'return it for a refund.'"
+            },
+            {
+              "wrong": "I want change a new one.",
+              "explanation": "Say 'exchange it for a new one' or 'get a replacement.'"
+            }
+          ],
+          "difficulty_score": 46
+        }
+      }
+    },
+    "openai-mini": {
+      "key": "openai-mini",
+      "provider": "OpenAI",
+      "model": "gpt-5.4-mini",
+      "note": "spec model id",
+      "instantFeedback": [
+        {
+          "caseId": "fb-a2-cafe",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 1872,
+          "promptTokens": 321,
+          "completionTokens": 166,
+          "costUsd": 0.00041224999999999996,
+          "sample": "{\"original\":\"I want one latte please, and what is wifi the password?\",\"corrected\":\"Could I get a latte, please? And what's the wifi password?\",\"natural_version\":\"Could I get a latte, please? And what's the wifi password?\",\"issues\":[{\"type\":\"register\",\"explanation\":\"“I want” sounds too direct in a café. “Could I get” is more polite.\"},{\"type\":\"grammar\",\"explanation\":\"“what is wifi the password” has the wrong word order. Say “what’s the wifi password?”\"},{\"type\":\"naturalness\",\"explanation\":\"“one latte” is understandable, but “a latte” sounds more natural.\"}],\"save_candidates\":[\"Could I get... pl",
+          "parsed": {
+            "original": "I want one latte please, and what is wifi the password?",
+            "corrected": "Could I get a latte, please? And what's the wifi password?",
+            "natural_version": "Could I get a latte, please? And what's the wifi password?",
+            "issues": [
+              {
+                "type": "register",
+                "explanation": "“I want” sounds too direct in a café. “Could I get” is more polite."
+              },
+              {
+                "type": "grammar",
+                "explanation": "“what is wifi the password” has the wrong word order. Say “what’s the wifi password?”"
+              },
+              {
+                "type": "naturalness",
+                "explanation": "“one latte” is understandable, but “a latte” sounds more natural."
+              }
+            ],
+            "save_candidates": [
+              "Could I get... please?",
+              "What's the wifi password?",
+              "a latte"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-b1-hotel",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 2774,
+          "promptTokens": 344,
+          "completionTokens": 225,
+          "costUsd": 0.000536,
+          "sample": "{\"original\":\"Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.\",\"corrected\":\"Hello, there seems to be a problem with my bill. I was charged twice for the minibar. Could you please fix it?\",\"natural_version\":\"Hello, there seems to be a mistake on my bill — I was charged twice for the minibar. Could you please fix it?\",\"issues\":[{\"type\":\"grammar\",\"explanation\":\"“My bill have” should be “my bill has” or, more naturally, “there seems to be a problem with my bill.”\"},{\"type\":\"vocabulary\",\"explanation\":\"“You charge me two times” is not natural here. Use “I",
+          "parsed": {
+            "original": "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.",
+            "corrected": "Hello, there seems to be a problem with my bill. I was charged twice for the minibar. Could you please fix it?",
+            "natural_version": "Hello, there seems to be a mistake on my bill — I was charged twice for the minibar. Could you please fix it?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "“My bill have” should be “my bill has” or, more naturally, “there seems to be a problem with my bill.”"
+              },
+              {
+                "type": "vocabulary",
+                "explanation": "“You charge me two times” is not natural here. Use “I was charged twice.”"
+              },
+              {
+                "type": "naturalness",
+                "explanation": "“Please fix it for me” is understandable, but a more natural polite request is “Could you please fix it?”"
+              }
+            ],
+            "save_candidates": [
+              "there seems to be a problem with...",
+              "I was charged twice",
+              "Could you please fix it?",
+              "charged twice for the minibar"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-c1-meeting",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 2029,
+          "promptTokens": 342,
+          "completionTokens": 208,
+          "costUsd": 0.0005015,
+          "sample": "{\"original\":\"I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.\",\"corrected\":\"I appreciate the urgency, but I think we need a more realistic timeline to maintain quality.\",\"natural_version\":\"I appreciate the urgency, but I think we need a more realistic timeline to maintain quality.\",\"issues\":[{\"type\":\"naturalness\",\"explanation\":\"“I know it is very urgent” is understandable, but “I appreciate the urgency” sounds more polished and diplomatic in a work meeting.\"},{\"type\":\"vocabulary\",\"explanation\":\"",
+          "parsed": {
+            "original": "I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.",
+            "corrected": "I appreciate the urgency, but I think we need a more realistic timeline to maintain quality.",
+            "natural_version": "I appreciate the urgency, but I think we need a more realistic timeline to maintain quality.",
+            "issues": [
+              {
+                "type": "naturalness",
+                "explanation": "“I know it is very urgent” is understandable, but “I appreciate the urgency” sounds more polished and diplomatic in a work meeting."
+              },
+              {
+                "type": "vocabulary",
+                "explanation": "“Keep the quality good” is awkward; “maintain quality” is more natural and concise."
+              },
+              {
+                "type": "coherence",
+                "explanation": "The sentence is a bit wordy and repetitive. A shorter, more direct pushback sounds more professional."
+              }
+            ],
+            "save_candidates": [
+              "I appreciate the urgency",
+              "a more realistic timeline",
+              "maintain quality",
+              "I think we need to..."
+            ]
+          }
+        }
+      ],
+      "rubric": {
+        "runs": [
+          {
+            "caseId": "rubric-run-1",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 2953,
+            "promptTokens": 318,
+            "completionTokens": 144,
+            "costUsd": 0.0003675,
+            "sample": "{\"vocabulary\":72,\"grammar\":62,\"coherence\":74,\"interaction\":58,\"fluency\":68,\"pronunciation\":50,\"summary\":\"The response is understandable and relevant for B1, with clear reasons for liking the hometown, but it contains several grammar and phrasing errors.\",\"weak_points\":[\"Grammar errors such as 'I like there' and 'the people they are friendly' reduce accuracy.\",\"Some phrasing is unnatural or repetitive, especially in spoken style.\",\"Pronunciation cannot be directly assessed from a transcript, so the score is only an estimate.\",\"A few collocations are awkward, for example 'in the weekend' instead",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 62,
+              "coherence": 74,
+              "interaction": 58,
+              "fluency": 68,
+              "pronunciation": 50,
+              "summary": "The response is understandable and relevant for B1, with clear reasons for liking the hometown, but it contains several grammar and phrasing errors.",
+              "weak_points": [
+                "Grammar errors such as 'I like there' and 'the people they are friendly' reduce accuracy.",
+                "Some phrasing is unnatural or repetitive, especially in spoken style.",
+                "Pronunciation cannot be directly assessed from a transcript, so the score is only an estimate.",
+                "A few collocations are awkward, for example 'in the weekend' instead of 'at the weekend'."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-2",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 3263,
+            "promptTokens": 318,
+            "completionTokens": 159,
+            "costUsd": 0.00039749999999999996,
+            "sample": "{\"vocabulary\":72,\"grammar\":60,\"coherence\":74,\"interaction\":58,\"fluency\":68,\"pronunciation\":50,\"summary\":\"The response is understandable and relevant for B1, with good basic vocabulary and clear reasons for liking the hometown, but it contains several grammar and phrasing errors.\",\"weak_points\":[\"Incorrect phrasing such as \\\"I like there\\\" and \\\"the people they are friendly\\\".\",\"Some grammar issues with articles and sentence structure, especially in \\\"in the weekend\\\" and repeated pronouns.\",\"A few unnatural collocations, for example \\\"small city near the sea\\\" instead of a more natural descrip",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 60,
+              "coherence": 74,
+              "interaction": 58,
+              "fluency": 68,
+              "pronunciation": 50,
+              "summary": "The response is understandable and relevant for B1, with good basic vocabulary and clear reasons for liking the hometown, but it contains several grammar and phrasing errors.",
+              "weak_points": [
+                "Incorrect phrasing such as \"I like there\" and \"the people they are friendly\".",
+                "Some grammar issues with articles and sentence structure, especially in \"in the weekend\" and repeated pronouns.",
+                "A few unnatural collocations, for example \"small city near the sea\" instead of a more natural description.",
+                "Pronunciation cannot be assessed from transcription, so the score is only an estimate based on spoken-style delivery."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-3",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 2391,
+            "promptTokens": 318,
+            "completionTokens": 157,
+            "costUsd": 0.00039349999999999997,
+            "sample": "{\"vocabulary\":72,\"grammar\":62,\"coherence\":74,\"interaction\":58,\"fluency\":68,\"pronunciation\":50,\"summary\":\"The response is understandable and relevant for B1, with clear reasons for liking the hometown, but it contains several grammatical errors and some spoken-style hesitation.\",\"weak_points\":[\"Grammar errors such as \\\"I like there\\\" and \\\"the people they are friendly\\\" reduce accuracy.\",\"Some phrasing is unnatural or repetitive, for example \\\"small city near the sea\\\" instead of a smoother description.\",\"Fluency is affected by fillers like \\\"So, um,\\\" and limited linking between ideas.\",\"Pronu",
+            "parsed": {
+              "vocabulary": 72,
+              "grammar": 62,
+              "coherence": 74,
+              "interaction": 58,
+              "fluency": 68,
+              "pronunciation": 50,
+              "summary": "The response is understandable and relevant for B1, with clear reasons for liking the hometown, but it contains several grammatical errors and some spoken-style hesitation.",
+              "weak_points": [
+                "Grammar errors such as \"I like there\" and \"the people they are friendly\" reduce accuracy.",
+                "Some phrasing is unnatural or repetitive, for example \"small city near the sea\" instead of a smoother description.",
+                "Fluency is affected by fillers like \"So, um,\" and limited linking between ideas.",
+                "Pronunciation cannot be judged from text alone, so this score is only an estimate based on the transcript."
+              ]
+            }
+          }
+        ],
+        "stability": {
+          "validRuns": 3,
+          "totals": [
+            64,
+            63.666666666666664,
+            64
+          ],
+          "totalStdev": 0.15713484026367833,
+          "perDimStdev": {
+            "vocabulary": 0,
+            "grammar": 0.9428090415820634,
+            "coherence": 0,
+            "interaction": 0,
+            "fluency": 0,
+            "pronunciation": 0
+          },
+          "maxDimStdev": 0.9428090415820634
+        }
+      },
+      "itemGen": {
+        "caseId": "Returning a faulty product at an electronics store",
+        "validity": "valid_first_try",
+        "jsonSchema": "used",
+        "temperatureDropped": false,
+        "latencyMs": 2775,
+        "promptTokens": 229,
+        "completionTokens": 293,
+        "costUsd": 0.00064325,
+        "sample": "{\"prompt_cn\":\"你好，这副耳机有问题，左边没有声音。我想退货，或者换一副新的。\",\"reference_answers\":[\"Hi, there’s something wrong with these headphones. The left side doesn’t have any sound. I’d like to return them, or exchange them for a new pair.\",\"Hello, these headphones are defective. There’s no sound from the left side. Could I get a refund or a replacement?\",\"Excuse me, these headphones aren’t working properly. The left ear has no sound. I want to return them or get a replacement.\"],\"target_phrases\":[\"There’s something wrong with…\",\"The left side doesn’t have any sound.\",\"I’d like to return them.\",\"Could I get a refund ",
+        "parsed": {
+          "prompt_cn": "你好，这副耳机有问题，左边没有声音。我想退货，或者换一副新的。",
+          "reference_answers": [
+            "Hi, there’s something wrong with these headphones. The left side doesn’t have any sound. I’d like to return them, or exchange them for a new pair.",
+            "Hello, these headphones are defective. There’s no sound from the left side. Could I get a refund or a replacement?",
+            "Excuse me, these headphones aren’t working properly. The left ear has no sound. I want to return them or get a replacement."
+          ],
+          "target_phrases": [
+            "There’s something wrong with…",
+            "The left side doesn’t have any sound.",
+            "I’d like to return them.",
+            "Could I get a refund or a replacement?",
+            "exchange them for a new pair"
+          ],
+          "common_mistakes": [
+            {
+              "wrong": "These earphones have problem.",
+              "explanation": "Use plural agreement and a natural phrase: “have a problem” or “There’s something wrong with these headphones.”"
+            },
+            {
+              "wrong": "The left side no sound.",
+              "explanation": "English needs a verb: “The left side doesn’t have any sound” or “There’s no sound from the left side.”"
+            },
+            {
+              "wrong": "I want refund or change.",
+              "explanation": "Use “a refund” and “replacement” or “exchange”: “Could I get a refund or a replacement?”"
+            }
+          ],
+          "difficulty_score": 34
+        }
+      }
+    },
+    "openai-mini-real": {
+      "key": "openai-mini-real",
+      "provider": "OpenAI",
+      "model": "gpt-5-mini",
+      "note": "closest shipping mini",
+      "instantFeedback": [
+        {
+          "caseId": "fb-a2-cafe",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": true,
+          "latencyMs": 12212,
+          "promptTokens": 321,
+          "completionTokens": 1213,
+          "costUsd": 0.0025062500000000002,
+          "sample": "{\n  \"original\": \"I want one latte please, and what is wifi the password?\",\n  \"corrected\": \"I want a latte, please. What is the wifi password?\",\n  \"natural_version\": \"Could I get a latte, please? What's the wifi password?\",\n  \"issues\": [\n    {\n      \"type\": \"grammar\",\n      \"explanation\": \"Question word order: say 'What is the wifi password?' not 'what is wifi the password?'.\"\n    },\n    {\n      \"type\": \"register\",\n      \"explanation\": \"Politeness: in a café, 'Could I get...' or 'I'd like...' is more natural than 'I want'.\"\n    }\n  ],\n  \"save_candidates\": [\n    \"What's the wifi password?\",\n    ",
+          "parsed": {
+            "original": "I want one latte please, and what is wifi the password?",
+            "corrected": "I want a latte, please. What is the wifi password?",
+            "natural_version": "Could I get a latte, please? What's the wifi password?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "Question word order: say 'What is the wifi password?' not 'what is wifi the password?'."
+              },
+              {
+                "type": "register",
+                "explanation": "Politeness: in a café, 'Could I get...' or 'I'd like...' is more natural than 'I want'."
+              }
+            ],
+            "save_candidates": [
+              "What's the wifi password?",
+              "a latte, please",
+              "Could I get..."
+            ]
+          }
+        },
+        {
+          "caseId": "fb-b1-hotel",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": true,
+          "latencyMs": 9785,
+          "promptTokens": 344,
+          "completionTokens": 894,
+          "costUsd": 0.001874,
+          "sample": "{\n  \"original\": \"Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.\",\n  \"corrected\": \"Hello, my bill has a problem. I was charged twice for the minibar. Please fix it.\",\n  \"natural_version\": \"Hello — there seems to be a mistake on my bill. I was charged twice for the minibar. Could you please check and correct it?\",\n  \"issues\": [\n    {\n      \"type\": \"grammar\",\n      \"explanation\": \"'my bill have' is wrong — use 'my bill has'. Also use past passive for the charge: 'I was charged twice' (not 'you charge me two times').\"\n    },\n    {\n      \"type\": \"natur",
+          "parsed": {
+            "original": "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.",
+            "corrected": "Hello, my bill has a problem. I was charged twice for the minibar. Please fix it.",
+            "natural_version": "Hello — there seems to be a mistake on my bill. I was charged twice for the minibar. Could you please check and correct it?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "'my bill have' is wrong — use 'my bill has'. Also use past passive for the charge: 'I was charged twice' (not 'you charge me two times')."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "The phrasing is a bit direct. Native speakers often say 'there seems to be a mistake on my bill' and use 'Could you please check and correct it?' to be polite."
+              }
+            ],
+            "save_candidates": [
+              "There seems to be a mistake",
+              "I was charged twice",
+              "Could you please check and correct it?"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-c1-meeting",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": true,
+          "latencyMs": 9667,
+          "promptTokens": 342,
+          "completionTokens": 842,
+          "costUsd": 0.0017695,
+          "sample": "{\n  \"original\": \"I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.\",\n  \"corrected\": \"I know it is very urgent, but I think we should set a more realistic timeline to maintain quality and avoid mistakes.\",\n  \"natural_version\": \"I appreciate the urgency, but I think we need a more realistic timeline to maintain quality.\",\n  \"issues\": [\n    {\n      \"type\": \"register\",\n      \"explanation\": \"\\\"I know it is very urgent\\\" and \\\"honestly\\\" sound informal or conversational for a work meeting; use \\\"I appr",
+          "parsed": {
+            "original": "I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.",
+            "corrected": "I know it is very urgent, but I think we should set a more realistic timeline to maintain quality and avoid mistakes.",
+            "natural_version": "I appreciate the urgency, but I think we need a more realistic timeline to maintain quality.",
+            "issues": [
+              {
+                "type": "register",
+                "explanation": "\"I know it is very urgent\" and \"honestly\" sound informal or conversational for a work meeting; use \"I appreciate the urgency\" and omit \"honestly\" for a professional tone."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "\"make the timeline more realistic\" and \"keep the quality good and not make mistakes\" are clumsy — use \"set/need a more realistic timeline\" and \"maintain quality\" or \"avoid mistakes\" for clarity and precision."
+              }
+            ],
+            "save_candidates": [
+              "I appreciate the urgency",
+              "a more realistic timeline",
+              "maintain quality",
+              "avoid mistakes"
+            ]
+          }
+        }
+      ],
+      "rubric": {
+        "runs": [
+          {
+            "caseId": "rubric-run-1",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": true,
+            "latencyMs": 13638,
+            "promptTokens": 318,
+            "completionTokens": 1181,
+            "costUsd": 0.0024415,
+            "sample": "{\n  \"vocabulary\": 68,\n  \"grammar\": 60,\n  \"coherence\": 75,\n  \"interaction\": 70,\n  \"fluency\": 70,\n  \"pronunciation\": 80,\n  \"summary\": \"A clear, simple spoken description that successfully communicates main ideas but contains several basic grammar and phrasing errors.\",\n  \"weak_points\": [\n    \"Incorrect object/pronoun: 'I like there very much' → should be 'I like it very much' or 'I like living there'.\",\n    \"Redundant subject pronoun: 'the people they are friendly' → should be 'the people are friendly' or 'they are friendly'.\",\n    \"Awkward noun phrase: 'The life is not too fast' → better: 'Life",
+            "parsed": {
+              "vocabulary": 68,
+              "grammar": 60,
+              "coherence": 75,
+              "interaction": 70,
+              "fluency": 70,
+              "pronunciation": 80,
+              "summary": "A clear, simple spoken description that successfully communicates main ideas but contains several basic grammar and phrasing errors.",
+              "weak_points": [
+                "Incorrect object/pronoun: 'I like there very much' → should be 'I like it very much' or 'I like living there'.",
+                "Redundant subject pronoun: 'the people they are friendly' → should be 'the people are friendly' or 'they are friendly'.",
+                "Awkward noun phrase: 'The life is not too fast' → better: 'Life is not too fast' or 'The pace of life is relaxed'.",
+                "Wrong preposition: 'in the weekend' → use 'at/on the weekend' or 'on weekends'."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-2",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": true,
+            "latencyMs": 12668,
+            "promptTokens": 318,
+            "completionTokens": 1090,
+            "costUsd": 0.0022595000000000002,
+            "sample": "{\"vocabulary\":70,\"grammar\":60,\"coherence\":75,\"interaction\":75,\"fluency\":70,\"pronunciation\":75,\"summary\":\"A clear B1-level spoken description that communicates reasons for liking the hometown but shows recurring grammatical and collocation errors.\",\"weak_points\":[\"Incorrect object/pronoun use: \\\"I like there\\\" should be \\\"I like it\\\" or \\\"I like living there.\\\"\",\"Redundant subject in clause: \\\"the people they are friendly\\\" — remove \\\"they\\\" (\\\"the people are friendly\\\").\",\"Awkward collocations: use \\\"life\\\" without article or say \\\"the pace of life\\\"; say \\\"on the weekend\\\" (US) or \\\"at the we",
+            "parsed": {
+              "vocabulary": 70,
+              "grammar": 60,
+              "coherence": 75,
+              "interaction": 75,
+              "fluency": 70,
+              "pronunciation": 75,
+              "summary": "A clear B1-level spoken description that communicates reasons for liking the hometown but shows recurring grammatical and collocation errors.",
+              "weak_points": [
+                "Incorrect object/pronoun use: \"I like there\" should be \"I like it\" or \"I like living there.\"",
+                "Redundant subject in clause: \"the people they are friendly\" — remove \"they\" (\"the people are friendly\").",
+                "Awkward collocations: use \"life\" without article or say \"the pace of life\"; say \"on the weekend\" (US) or \"at the weekend\" (UK), not \"in the weekend.\"",
+                "Frequent filler (\"um\") and minor hesitations reduce fluency; practice smoother linking between ideas."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-3",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": true,
+            "latencyMs": 26728,
+            "promptTokens": 318,
+            "completionTokens": 1108,
+            "costUsd": 0.0022955000000000002,
+            "sample": "{\n  \"vocabulary\": 70,\n  \"grammar\": 60,\n  \"coherence\": 75,\n  \"interaction\": 70,\n  \"fluency\": 70,\n  \"pronunciation\": 75,\n  \"summary\": \"A clear B1-level spoken description that gives reasons for liking the hometown but shows repeated grammar and collocation/preposition errors.\",\n  \"weak_points\": [\n    \"\\\"I like there very much\\\" — wrong pronoun; say \\\"I like it very much\\\" or \\\"I like living there.\\\"\",\n    \"\\\"the people they are friendly\\\" — redundant subject; say \\\"the people are friendly\\\" or \\\"they are friendly.\\\"\",\n    \"Collocation/preposition errors: use \\\"the pace of life\\\" instead of \\\"the",
+            "parsed": {
+              "vocabulary": 70,
+              "grammar": 60,
+              "coherence": 75,
+              "interaction": 70,
+              "fluency": 70,
+              "pronunciation": 75,
+              "summary": "A clear B1-level spoken description that gives reasons for liking the hometown but shows repeated grammar and collocation/preposition errors.",
+              "weak_points": [
+                "\"I like there very much\" — wrong pronoun; say \"I like it very much\" or \"I like living there.\"",
+                "\"the people they are friendly\" — redundant subject; say \"the people are friendly\" or \"they are friendly.\"",
+                "Collocation/preposition errors: use \"the pace of life\" instead of \"the life,\" and \"at/on the weekend\" instead of \"in the weekend.\"",
+                "Filled hesitations (\"um\") and minor phrasing issues reduce fluency and naturalness."
+              ]
+            }
+          }
+        ],
+        "stability": {
+          "validRuns": 3,
+          "totals": [
+            70.5,
+            70.83333333333333,
+            70
+          ],
+          "totalStdev": 0.34246744460938583,
+          "perDimStdev": {
+            "vocabulary": 0.9428090415820634,
+            "grammar": 0,
+            "coherence": 0,
+            "interaction": 2.357022603955158,
+            "fluency": 0,
+            "pronunciation": 2.357022603955158
+          },
+          "maxDimStdev": 2.357022603955158
+        }
+      },
+      "itemGen": {
+        "caseId": "Returning a faulty product at an electronics store",
+        "validity": "repaired",
+        "jsonSchema": "used",
+        "temperatureDropped": true,
+        "latencyMs": 22663,
+        "promptTokens": 852,
+        "completionTokens": 1899,
+        "costUsd": 0.004011,
+        "sample": "{\"prompt_cn\":\"这副耳机有问题，我想退货。可以给我退款或者换一副吗？这是收据。\",\"reference_answers\":[\"These headphones are faulty. I'd like to return them. Could I get a refund or a replacement? Here's the receipt.\",\"The headphones I bought are defective. I'd like to return them and either get a refund or exchange them for a new pair. I have the receipt.\"],\"target_phrases\":[\"I'd like to return these headphones.\",\"They're faulty / defective.\",\"Could I get a refund?\",\"Could I get a replacement / exchange them for a new pair?\",\"Here's the receipt.\",\"I have the receipt.\"],\"common_mistakes\":[{\"wrong\":\"I want return this headphones",
+        "parsed": {
+          "prompt_cn": "这副耳机有问题，我想退货。可以给我退款或者换一副吗？这是收据。",
+          "reference_answers": [
+            "These headphones are faulty. I'd like to return them. Could I get a refund or a replacement? Here's the receipt.",
+            "The headphones I bought are defective. I'd like to return them and either get a refund or exchange them for a new pair. I have the receipt."
+          ],
+          "target_phrases": [
+            "I'd like to return these headphones.",
+            "They're faulty / defective.",
+            "Could I get a refund?",
+            "Could I get a replacement / exchange them for a new pair?",
+            "Here's the receipt.",
+            "I have the receipt."
+          ],
+          "common_mistakes": [
+            {
+              "wrong": "I want return this headphones.",
+              "explanation": "Missing 'to' after 'want' and wrong demonstrative/plural. Say 'I want to return these headphones.' or 'I'd like to return these headphones.'"
+            },
+            {
+              "wrong": "It broken.",
+              "explanation": "Incorrect verb form and pronoun. Use 'It's broken.' or for headphones (plural) 'They're broken.'"
+            },
+            {
+              "wrong": "Can I getting refund?",
+              "explanation": "Wrong verb form after modal. Use 'Can I get a refund?' or more politely 'Could I get a refund?'"
+            },
+            {
+              "wrong": "This earphone have problem.",
+              "explanation": "Wrong noun form and subject-verb agreement. Use 'These headphones have a problem.' or 'This pair of headphones has a problem.'"
+            }
+          ],
+          "difficulty_score": 50
+        }
+      }
+    },
+    "gemini-flash": {
+      "key": "gemini-flash",
+      "provider": "Gemini",
+      "model": "gemini-3-flash-preview",
+      "instantFeedback": [
+        {
+          "caseId": "fb-a2-cafe",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 4320,
+          "promptTokens": 218,
+          "completionTokens": 182,
+          "costUsd": 0.0005204,
+          "sample": "{\n  \"original\": \"I want one latte please, and what is wifi the password?\",\n  \"corrected\": \"I want a latte please, and what is the wifi password?\",\n  \"natural_version\": \"Could I get a latte, please? And what's the wifi password?\",\n  \"issues\": [\n    {\n      \"type\": \"grammar\",\n      \"explanation\": \"The word order should be 'the wifi password' instead of 'wifi the password'.\"\n    },\n    {\n      \"type\": \"naturalness\",\n      \"explanation\": \"In English, we usually say 'a latte' instead of 'one latte' when ordering.\"\n    }\n  ],\n  \"save_candidates\": [\n    \"Could I get...\",\n    \"the wifi password\",\n    ",
+          "parsed": {
+            "original": "I want one latte please, and what is wifi the password?",
+            "corrected": "I want a latte please, and what is the wifi password?",
+            "natural_version": "Could I get a latte, please? And what's the wifi password?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "The word order should be 'the wifi password' instead of 'wifi the password'."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "In English, we usually say 'a latte' instead of 'one latte' when ordering."
+              }
+            ],
+            "save_candidates": [
+              "Could I get...",
+              "the wifi password",
+              "a latte"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-b1-hotel",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 5247,
+          "promptTokens": 237,
+          "completionTokens": 278,
+          "costUsd": 0.0007661,
+          "sample": "{\n  \"original\": \"Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.\",\n  \"corrected\": \"Hello, my bill has a problem. I was charged twice for the minibar. Could you please fix it?\",\n  \"natural_version\": \"There seems to be a mistake on my bill—I was charged twice for the minibar. Could you look into that?\",\n  \"issues\": [\n    {\n      \"type\": \"grammar\",\n      \"explanation\": \"The subject 'bill' is singular, so it should be 'my bill has' instead of 'have'.\"\n    },\n    {\n      \"type\": \"grammar\",\n      \"explanation\": \"Since the billing already happened, use th",
+          "parsed": {
+            "original": "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.",
+            "corrected": "Hello, my bill has a problem. I was charged twice for the minibar. Could you please fix it?",
+            "natural_version": "There seems to be a mistake on my bill—I was charged twice for the minibar. Could you look into that?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "The subject 'bill' is singular, so it should be 'my bill has' instead of 'have'."
+              },
+              {
+                "type": "grammar",
+                "explanation": "Since the billing already happened, use the past tense 'charged' or the passive 'I was charged'."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "Using 'There seems to be a mistake' is a more polite and professional way to address an error than 'my bill has a problem'."
+              }
+            ],
+            "save_candidates": [
+              "There seems to be a mistake",
+              "I was charged twice",
+              "Look into something",
+              "Minibar"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-c1-meeting",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 5739,
+          "promptTokens": 233,
+          "completionTokens": 296,
+          "costUsd": 0.0008099,
+          "sample": "{\n  \"original\": \"I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.\",\n  \"corrected\": \"I appreciate the urgency, but I feel we need a more realistic timeline to maintain quality and avoid errors.\",\n  \"natural_version\": \"I appreciate the urgency, but I think we need a more realistic timeline to ensure we don't compromise on quality.\",\n  \"issues\": [\n    {\n      \"type\": \"register\",\n      \"explanation\": \"'I appreciate the urgency' is more professional and diplomatic than 'I know it is very urgent' in a",
+          "parsed": {
+            "original": "I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.",
+            "corrected": "I appreciate the urgency, but I feel we need a more realistic timeline to maintain quality and avoid errors.",
+            "natural_version": "I appreciate the urgency, but I think we need a more realistic timeline to ensure we don't compromise on quality.",
+            "issues": [
+              {
+                "type": "register",
+                "explanation": "'I appreciate the urgency' is more professional and diplomatic than 'I know it is very urgent' in a corporate setting."
+              },
+              {
+                "type": "vocabulary",
+                "explanation": "'Keep the quality good' is slightly basic for C1; 'maintain quality' or 'ensure quality' is more precise."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "The phrase 'and not make mistakes' is redundant when you've already mentioned quality; it's better to use a single, stronger verb like 'ensure' or 'maintain'."
+              }
+            ],
+            "save_candidates": [
+              "I appreciate the urgency",
+              "a more realistic timeline",
+              "maintain quality",
+              "compromise on quality"
+            ]
+          }
+        }
+      ],
+      "rubric": {
+        "runs": [
+          {
+            "caseId": "rubric-run-1",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 4460,
+            "promptTokens": 233,
+            "completionTokens": 152,
+            "costUsd": 0.00044990000000000004,
+            "sample": "{\n  \"vocabulary\": 70,\n  \"grammar\": 65,\n  \"coherence\": 75,\n  \"interaction\": 70,\n  \"fluency\": 70,\n  \"pronunciation\": 70,\n  \"summary\": \"The learner provides a clear and relevant description of their hometown with minor grammatical errors that do not impede understanding.\",\n  \"weak_points\": [\n    \"Incorrect use of 'like there' instead of 'like it there'\",\n    \"Redundant pronoun usage in 'the people they are'\",\n    \"Incorrect article usage in 'The life'\",\n    \"Preposition error in 'in the weekend'\"\n  ]\n}",
+            "parsed": {
+              "vocabulary": 70,
+              "grammar": 65,
+              "coherence": 75,
+              "interaction": 70,
+              "fluency": 70,
+              "pronunciation": 70,
+              "summary": "The learner provides a clear and relevant description of their hometown with minor grammatical errors that do not impede understanding.",
+              "weak_points": [
+                "Incorrect use of 'like there' instead of 'like it there'",
+                "Redundant pronoun usage in 'the people they are'",
+                "Incorrect article usage in 'The life'",
+                "Preposition error in 'in the weekend'"
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-2",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 7317,
+            "promptTokens": 233,
+            "completionTokens": 161,
+            "costUsd": 0.0004724,
+            "sample": "{\n  \"vocabulary\": 65,\n  \"grammar\": 58,\n  \"coherence\": 72,\n  \"interaction\": 70,\n  \"fluency\": 68,\n  \"pronunciation\": 70,\n  \"summary\": \"The learner provides a clear and understandable description of their hometown with logical reasons, though minor grammatical errors and filler words are present.\",\n  \"weak_points\": [\n    \"Incorrect object pronoun usage in the phrase 'I like there'.\",\n    \"Redundant subject pronoun in 'the people they are'.\",\n    \"Incorrect preposition usage with 'in the weekend'.\",\n    \"Unnecessary use of the definite article in 'The life'.\"\n  ]\n}",
+            "parsed": {
+              "vocabulary": 65,
+              "grammar": 58,
+              "coherence": 72,
+              "interaction": 70,
+              "fluency": 68,
+              "pronunciation": 70,
+              "summary": "The learner provides a clear and understandable description of their hometown with logical reasons, though minor grammatical errors and filler words are present.",
+              "weak_points": [
+                "Incorrect object pronoun usage in the phrase 'I like there'.",
+                "Redundant subject pronoun in 'the people they are'.",
+                "Incorrect preposition usage with 'in the weekend'.",
+                "Unnecessary use of the definite article in 'The life'."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-3",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 4534,
+            "promptTokens": 233,
+            "completionTokens": 161,
+            "costUsd": 0.0004724,
+            "sample": "{\n  \"vocabulary\": 65,\n  \"grammar\": 58,\n  \"coherence\": 72,\n  \"interaction\": 70,\n  \"fluency\": 68,\n  \"pronunciation\": 70,\n  \"summary\": \"The learner provides a clear and understandable description of their hometown with logical reasons, though minor grammatical errors and filler words are present.\",\n  \"weak_points\": [\n    \"Incorrect object pronoun usage in the phrase 'I like there'.\",\n    \"Redundant subject pronoun in 'the people they are'.\",\n    \"Incorrect preposition usage with 'in the weekend'.\",\n    \"Unnecessary use of the definite article in 'The life'.\"\n  ]\n}",
+            "parsed": {
+              "vocabulary": 65,
+              "grammar": 58,
+              "coherence": 72,
+              "interaction": 70,
+              "fluency": 68,
+              "pronunciation": 70,
+              "summary": "The learner provides a clear and understandable description of their hometown with logical reasons, though minor grammatical errors and filler words are present.",
+              "weak_points": [
+                "Incorrect object pronoun usage in the phrase 'I like there'.",
+                "Redundant subject pronoun in 'the people they are'.",
+                "Incorrect preposition usage with 'in the weekend'.",
+                "Unnecessary use of the definite article in 'The life'."
+              ]
+            }
+          }
+        ],
+        "stability": {
+          "validRuns": 3,
+          "totals": [
+            70,
+            67.16666666666667,
+            67.16666666666667
+          ],
+          "totalStdev": 1.3356461422412542,
+          "perDimStdev": {
+            "vocabulary": 2.357022603955158,
+            "grammar": 3.299831645537222,
+            "coherence": 1.4142135623730951,
+            "interaction": 0,
+            "fluency": 0.9428090415820634,
+            "pronunciation": 0
+          },
+          "maxDimStdev": 3.299831645537222
+        }
+      },
+      "itemGen": {
+        "caseId": "Returning a faulty product at an electronics store",
+        "validity": "valid_first_try",
+        "jsonSchema": "used",
+        "temperatureDropped": false,
+        "latencyMs": 4301,
+        "promptTokens": 132,
+        "completionTokens": 216,
+        "costUsd": 0.0005796,
+        "sample": "{\"prompt_cn\":\"你好，我上周在这里买的耳机坏了，我想退货或者换一副新的。\",\"reference_answers\":[\"Hi, the headphones I bought here last week are faulty, and I'd like to return them or get a replacement.\",\"Hello, I bought these headphones here last week but they're not working. Can I get a refund or an exchange?\",\"I'd like to return these headphones I purchased last week because they are defective. Is it possible to get a new pair?\"],\"target_phrases\":[\"faulty/defective\",\"get a refund\",\"get a replacement\",\"return something\"],\"common_mistakes\":[{\"wrong\":\"I want to back these headphones.\",\"explanation\":\"In English, use the verb ",
+        "parsed": {
+          "prompt_cn": "你好，我上周在这里买的耳机坏了，我想退货或者换一副新的。",
+          "reference_answers": [
+            "Hi, the headphones I bought here last week are faulty, and I'd like to return them or get a replacement.",
+            "Hello, I bought these headphones here last week but they're not working. Can I get a refund or an exchange?",
+            "I'd like to return these headphones I purchased last week because they are defective. Is it possible to get a new pair?"
+          ],
+          "target_phrases": [
+            "faulty/defective",
+            "get a refund",
+            "get a replacement",
+            "return something"
+          ],
+          "common_mistakes": [
+            {
+              "wrong": "I want to back these headphones.",
+              "explanation": "In English, use the verb \"return\" when taking an item back to a store for a refund or exchange."
+            },
+            {
+              "wrong": "The headphones is broken.",
+              "explanation": "\"Headphones\" is a plural noun (like glasses or pants), so you must use the plural verb \"are\"."
+            }
+          ],
+          "difficulty_score": 45
+        }
+      }
+    },
+    "gemini-pro": {
+      "key": "gemini-pro",
+      "provider": "Gemini",
+      "model": "gemini-3.1-pro-preview",
+      "instantFeedback": [
+        {
+          "caseId": "fb-a2-cafe",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 11917,
+          "promptTokens": 218,
+          "completionTokens": 156,
+          "costUsd": 0.002308,
+          "sample": "{\"original\": \"I want one latte please, and what is wifi the password?\", \"corrected\": \"Could I get a latte please, and what is the wifi password?\", \"natural_version\": \"Could I get a latte, please? And what's the wifi password?\", \"issues\": [{\"type\": \"grammar\", \"explanation\": \"The word order is incorrect. It should be 'the wifi password', not 'wifi the password'.\"}, {\"type\": \"register\", \"explanation\": \"Saying 'I want' is a bit too direct for ordering. Use 'Could I get' or 'I'd like' to sound polite.\"}], \"save_candidates\": [\"Could I get a...\", \"the wifi password\", \"What's the...\"]}",
+          "parsed": {
+            "original": "I want one latte please, and what is wifi the password?",
+            "corrected": "Could I get a latte please, and what is the wifi password?",
+            "natural_version": "Could I get a latte, please? And what's the wifi password?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "The word order is incorrect. It should be 'the wifi password', not 'wifi the password'."
+              },
+              {
+                "type": "register",
+                "explanation": "Saying 'I want' is a bit too direct for ordering. Use 'Could I get' or 'I'd like' to sound polite."
+              }
+            ],
+            "save_candidates": [
+              "Could I get a...",
+              "the wifi password",
+              "What's the..."
+            ]
+          }
+        },
+        {
+          "caseId": "fb-b1-hotel",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 12340,
+          "promptTokens": 237,
+          "completionTokens": 229,
+          "costUsd": 0.003222,
+          "sample": "{\"original\": \"Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.\", \"corrected\": \"Hello, my bill has a problem. I was charged twice for the minibar. Please fix it for me.\", \"natural_version\": \"Hello, there seems to be a mistake on my bill. I was charged twice for the minibar. Could you please fix this?\", \"issues\": [{\"type\": \"grammar\", \"explanation\": \"Use 'has' instead of 'have' because 'my bill' is singular.\"}, {\"type\": \"register\", \"explanation\": \"Saying 'you charge me' sounds accusatory. Using the passive voice 'I was charged twice' is more polite and",
+          "parsed": {
+            "original": "Hello, my bill have a problem, you charge me two times for the minibar, please fix it for me.",
+            "corrected": "Hello, my bill has a problem. I was charged twice for the minibar. Please fix it for me.",
+            "natural_version": "Hello, there seems to be a mistake on my bill. I was charged twice for the minibar. Could you please fix this?",
+            "issues": [
+              {
+                "type": "grammar",
+                "explanation": "Use 'has' instead of 'have' because 'my bill' is singular."
+              },
+              {
+                "type": "register",
+                "explanation": "Saying 'you charge me' sounds accusatory. Using the passive voice 'I was charged twice' is more polite and standard in customer service."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "Instead of 'my bill has a problem', it is much more natural to say 'there seems to be a mistake on my bill'."
+              }
+            ],
+            "save_candidates": [
+              "there seems to be a mistake",
+              "I was charged twice",
+              "on my bill",
+              "Could you please fix this?"
+            ]
+          }
+        },
+        {
+          "caseId": "fb-c1-meeting",
+          "validity": "valid_first_try",
+          "jsonSchema": "used",
+          "temperatureDropped": false,
+          "latencyMs": 14122,
+          "promptTokens": 233,
+          "completionTokens": 252,
+          "costUsd": 0.0034899999999999996,
+          "sample": "{\"original\":\"I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.\",\"corrected\":\"I appreciate the urgency, but I feel we need a more realistic timeline so that we can maintain quality and avoid mistakes.\",\"natural_version\":\"I appreciate the urgency, but I think we need a more realistic timeline to ensure we don't compromise on quality.\",\"issues\":[{\"type\":\"register\",\"explanation\":\"'I know it is very urgent' is a bit blunt for a professional setting. 'I appreciate the urgency' is a much more diplomatic",
+          "parsed": {
+            "original": "I know it is very urgent, but honestly I feel we should make the timeline more realistic so that we can keep the quality good and not make mistakes.",
+            "corrected": "I appreciate the urgency, but I feel we need a more realistic timeline so that we can maintain quality and avoid mistakes.",
+            "natural_version": "I appreciate the urgency, but I think we need a more realistic timeline to ensure we don't compromise on quality.",
+            "issues": [
+              {
+                "type": "register",
+                "explanation": "'I know it is very urgent' is a bit blunt for a professional setting. 'I appreciate the urgency' is a much more diplomatic way to show understanding before pushing back."
+              },
+              {
+                "type": "vocabulary",
+                "explanation": "'Keep the quality good' is grammatically correct but basic. Using 'maintain quality' or 'ensure quality' elevates your language to a C1 professional standard."
+              },
+              {
+                "type": "naturalness",
+                "explanation": "The ending 'so that we can... and not make mistakes' is slightly wordy. Condensing it to 'to ensure quality' or 'to avoid compromising on quality' makes your argument punchier and more confident."
+              }
+            ],
+            "save_candidates": [
+              "I appreciate the urgency",
+              "a more realistic timeline",
+              "maintain quality",
+              "compromise on quality"
+            ]
+          }
+        }
+      ],
+      "rubric": {
+        "runs": [
+          {
+            "caseId": "rubric-run-1",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 9582,
+            "promptTokens": 233,
+            "completionTokens": 137,
+            "costUsd": 0.00211,
+            "sample": "{\"vocabulary\": 70, \"grammar\": 65, \"coherence\": 75, \"interaction\": 75, \"fluency\": 75, \"pronunciation\": 70, \"summary\": \"The learner successfully describes their hometown and reasons for liking it, demonstrating solid B1 communication despite some grammatical inaccuracies.\", \"weak_points\": [\"Incorrect use of 'there' as a direct object instead of 'it there'.\", \"Double subject usage in 'the people they are friendly'.\", \"Unnecessary definite article before 'life'.\", \"Preposition error with 'in the weekend' instead of 'on or at the weekend'.\"]}",
+            "parsed": {
+              "vocabulary": 70,
+              "grammar": 65,
+              "coherence": 75,
+              "interaction": 75,
+              "fluency": 75,
+              "pronunciation": 70,
+              "summary": "The learner successfully describes their hometown and reasons for liking it, demonstrating solid B1 communication despite some grammatical inaccuracies.",
+              "weak_points": [
+                "Incorrect use of 'there' as a direct object instead of 'it there'.",
+                "Double subject usage in 'the people they are friendly'.",
+                "Unnecessary definite article before 'life'.",
+                "Preposition error with 'in the weekend' instead of 'on or at the weekend'."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-2",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 9672,
+            "promptTokens": 233,
+            "completionTokens": 137,
+            "costUsd": 0.00211,
+            "sample": "{\"vocabulary\": 70, \"grammar\": 65, \"coherence\": 75, \"interaction\": 75, \"fluency\": 75, \"pronunciation\": 70, \"summary\": \"The learner successfully describes their hometown and reasons for liking it, demonstrating solid B1 communication despite some grammatical inaccuracies.\", \"weak_points\": [\"Incorrect use of 'there' as a direct object instead of 'it there'.\", \"Double subject usage in 'the people they are friendly'.\", \"Unnecessary definite article before 'life'.\", \"Preposition error with 'in the weekend' instead of 'on or at the weekend'.\"]}",
+            "parsed": {
+              "vocabulary": 70,
+              "grammar": 65,
+              "coherence": 75,
+              "interaction": 75,
+              "fluency": 75,
+              "pronunciation": 70,
+              "summary": "The learner successfully describes their hometown and reasons for liking it, demonstrating solid B1 communication despite some grammatical inaccuracies.",
+              "weak_points": [
+                "Incorrect use of 'there' as a direct object instead of 'it there'.",
+                "Double subject usage in 'the people they are friendly'.",
+                "Unnecessary definite article before 'life'.",
+                "Preposition error with 'in the weekend' instead of 'on or at the weekend'."
+              ]
+            }
+          },
+          {
+            "caseId": "rubric-run-3",
+            "validity": "valid_first_try",
+            "jsonSchema": "used",
+            "temperatureDropped": false,
+            "latencyMs": 10115,
+            "promptTokens": 233,
+            "completionTokens": 137,
+            "costUsd": 0.00211,
+            "sample": "{\"vocabulary\": 70, \"grammar\": 65, \"coherence\": 75, \"interaction\": 75, \"fluency\": 75, \"pronunciation\": 70, \"summary\": \"The learner successfully describes their hometown and reasons for liking it, demonstrating solid B1 communication despite some grammatical inaccuracies.\", \"weak_points\": [\"Incorrect use of 'there' as a direct object instead of 'it there'.\", \"Double subject usage in 'the people they are friendly'.\", \"Unnecessary definite article before 'life'.\", \"Preposition error with 'in the weekend' instead of 'on or at the weekend'.\"]}",
+            "parsed": {
+              "vocabulary": 70,
+              "grammar": 65,
+              "coherence": 75,
+              "interaction": 75,
+              "fluency": 75,
+              "pronunciation": 70,
+              "summary": "The learner successfully describes their hometown and reasons for liking it, demonstrating solid B1 communication despite some grammatical inaccuracies.",
+              "weak_points": [
+                "Incorrect use of 'there' as a direct object instead of 'it there'.",
+                "Double subject usage in 'the people they are friendly'.",
+                "Unnecessary definite article before 'life'.",
+                "Preposition error with 'in the weekend' instead of 'on or at the weekend'."
+              ]
+            }
+          }
+        ],
+        "stability": {
+          "validRuns": 3,
+          "totals": [
+            71.66666666666667,
+            71.66666666666667,
+            71.66666666666667
+          ],
+          "totalStdev": 0,
+          "perDimStdev": {
+            "vocabulary": 0,
+            "grammar": 0,
+            "coherence": 0,
+            "interaction": 0,
+            "fluency": 0,
+            "pronunciation": 0
+          },
+          "maxDimStdev": 0
+        }
+      },
+      "itemGen": {
+        "caseId": "Returning a faulty product at an electronics store",
+        "validity": "valid_first_try",
+        "jsonSchema": "used",
+        "temperatureDropped": false,
+        "latencyMs": 11452,
+        "promptTokens": 132,
+        "completionTokens": 253,
+        "costUsd": 0.0033000000000000004,
+        "sample": "{\"prompt_cn\":\"你好，我想退掉这副耳机。左边没有声音，我希望能退款或者换个新的。\",\"reference_answers\":[\"Hi, I'd like to return these headphones. The left side isn't working, and I'd like a refund or a replacement.\",\"Hello, I want to return this pair of headphones. There's no sound coming from the left side, so I'd like to get a refund or exchange it for a new one.\",\"Hi, I need to return these headphones because the left one is broken. Can I get a refund or a replacement?\"],\"target_phrases\":[\"return these headphones\",\"get a refund\",\"a replacement\",\"isn't working\"],\"common_mistakes\":[{\"wrong\":\"I want to back these headphones.\",\"",
+        "parsed": {
+          "prompt_cn": "你好，我想退掉这副耳机。左边没有声音，我希望能退款或者换个新的。",
+          "reference_answers": [
+            "Hi, I'd like to return these headphones. The left side isn't working, and I'd like a refund or a replacement.",
+            "Hello, I want to return this pair of headphones. There's no sound coming from the left side, so I'd like to get a refund or exchange it for a new one.",
+            "Hi, I need to return these headphones because the left one is broken. Can I get a refund or a replacement?"
+          ],
+          "target_phrases": [
+            "return these headphones",
+            "get a refund",
+            "a replacement",
+            "isn't working"
+          ],
+          "common_mistakes": [
+            {
+              "wrong": "I want to back these headphones.",
+              "explanation": "Use 'return' instead of 'back' when bringing a product back to a store."
+            },
+            {
+              "wrong": "I want a return money.",
+              "explanation": "The correct noun for getting your money back is 'a refund'."
+            },
+            {
+              "wrong": "The left side has no voice.",
+              "explanation": "Use 'sound' instead of 'voice' for electronic devices. 'Voice' is used for people."
+            }
+          ],
+          "difficulty_score": 45
+        }
+      }
+    }
+  }
+}
