@@ -19,7 +19,7 @@ const EnvSchema = z.object({
   AI_PROVIDER: z.string().default('openai'),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
-  AI_TEXT_MODEL: z.string().default('gpt-5.5'),
+  AI_TEXT_MODEL: z.string().default('gpt-5.4-mini'), // eval pick: quality wash vs flagship, accepts temperature, cheapest
   ASR_MODEL: z.string().default('whisper-1'),
   WHISPER_URL: z.string().optional(),
 
