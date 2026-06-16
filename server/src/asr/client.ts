@@ -1,6 +1,8 @@
 import { env } from '../env.js';
 import { computeAsrConfidence, isLowConfidence, type AsrSegment } from './confidence.js';
 import type { AsrWord } from '../scoring/features.js';
+import { resolveTask } from '../ai/registry.js';
+import { getProvider } from '../ai/providers.js';
 
 /**
  * Server-side ASR via the OFFICIAL OpenAI transcription API (whisper-1,
@@ -48,7 +50,7 @@ export class OpenAITranscriber implements Transcriber {
   ) {}
 
   async transcribe(audio: Buffer, filename: string, mime: string): Promise<TranscriptionResult> {
-    if (!this.apiKey) throw new Error('OPENAI_API_KEY is not set');
+    if (!this.apiKey) throw new Error('ASR API key is not set');
     const form = new FormData();
     form.append('file', new Blob([audio], { type: mime }), filename);
     form.append('model', this.model);
@@ -67,4 +69,17 @@ export class OpenAITranscriber implements Transcriber {
     }
     return parseWhisperVerbose((await res.json()) as WhisperVerbose);
   }
+}
+
+/**
+ * Build a transcriber from the configurable registry (task `asr`). ASR is pinned
+ * to OpenAI-style whisper transcription; if `asr` is ever pointed at a provider
+ * without a transcription endpoint, we fall back to the OpenAI provider + the
+ * configured model so voice never silently breaks.
+ */
+export async function transcriberForAsr(): Promise<OpenAITranscriber> {
+  const cfg = await resolveTask('asr');
+  if (cfg.provider === 'openai') return new OpenAITranscriber(cfg.apiKey, cfg.baseUrl, cfg.model);
+  const op = getProvider('openai');
+  return new OpenAITranscriber(op.apiKey, op.baseUrl, env.ASR_MODEL);
 }

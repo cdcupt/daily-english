@@ -1,13 +1,14 @@
-import { OpenAIChatClient, type ChatClient } from '../ai/client.js';
+import { type ChatClient } from '../ai/client.js';
 import { runStructured } from '../ai/runner.js';
+import { runTask } from '../ai/execute.js';
 import { RubricScoreSchema, RUBRIC_JSON_SCHEMA, type RubricScore } from '../schemas.js';
 
 export const RUBRIC_PROMPT_VERSION = 'score.rubric.v1';
 
 /**
- * LLM rubric scoring (TECH §B5) — temp 0 with calibration anchors for stability.
- * Scores language dimensions only; code blends in objective speech features and
- * a deterministic mapping turns the total into CEFR (engine.ts).
+ * LLM rubric scoring (TECH §B5) — temp 0 + calibration anchors for stability.
+ * In production the model is resolved via the configurable registry (task
+ * `scoring`, default gemini-3.1-pro — the most repeatable model per the eval).
  */
 const SYSTEM = [
   'You are a strict, consistent English assessor. Score the learner response on six 0–100 dimensions:',
@@ -22,11 +23,8 @@ export interface RubricInput {
   transcriptOrText: string; isSpoken: boolean;
 }
 
-export async function scoreRubric(
-  input: RubricInput,
-  client: ChatClient = new OpenAIChatClient(),
-): Promise<{ rubric: RubricScore; raw: string; repaired: boolean; promptVersion: string }> {
-  const user = [
+function buildUser(input: RubricInput): string {
+  return [
     `Scenario goal: ${input.scenarioGoal}`,
     `Target CEFR: ${input.cefrTarget}`,
     `Modality: ${input.isSpoken ? 'spoken (transcribed)' : 'written'}`,
@@ -34,9 +32,17 @@ export async function scoreRubric(
     '',
     `Learner: "${input.transcriptOrText}"`,
   ].filter(Boolean).join('\n');
+}
 
-  const r = await runStructured<RubricScore>({
-    client, system: SYSTEM, user, schema: RubricScoreSchema, jsonSchema: RUBRIC_JSON_SCHEMA, temperature: 0,
-  });
-  return { rubric: r.data, raw: r.raw, repaired: r.repaired, promptVersion: RUBRIC_PROMPT_VERSION };
+export async function scoreRubric(
+  input: RubricInput,
+  client?: ChatClient,
+): Promise<{ rubric: RubricScore; raw: string; repaired: boolean; promptVersion: string; model?: string }> {
+  const user = buildUser(input);
+  if (client) {
+    const r = await runStructured<RubricScore>({ client, system: SYSTEM, user, schema: RubricScoreSchema, jsonSchema: RUBRIC_JSON_SCHEMA, temperature: 0 });
+    return { rubric: r.data, raw: r.raw, repaired: r.repaired, promptVersion: RUBRIC_PROMPT_VERSION };
+  }
+  const r = await runTask<RubricScore>({ task: 'scoring', system: SYSTEM, user, schema: RubricScoreSchema, jsonSchema: RUBRIC_JSON_SCHEMA, temperature: 0 });
+  return { rubric: r.data, raw: r.raw, repaired: r.repaired, promptVersion: RUBRIC_PROMPT_VERSION, model: r.model };
 }

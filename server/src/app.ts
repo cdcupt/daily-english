@@ -34,10 +34,13 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
   app.setErrorHandler((err: FastifyError, req: FastifyRequest, reply: FastifyReply) => {
     const status = err.statusCode ?? 500;
-    if (status >= 500) req.log.error(err);
+    if (status >= 500) req.log.error(err); // full detail (incl. provider bodies) stays in logs only
     reply.code(status).send({
       data: null,
-      error: { code: status === 500 ? 'internal_error' : 'request_error', message: err.message },
+      error: {
+        code: status >= 500 ? 'internal_error' : 'request_error',
+        message: status >= 500 ? 'An internal error occurred' : err.message,
+      },
       meta: null,
     });
   });

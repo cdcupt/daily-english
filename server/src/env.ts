@@ -19,9 +19,18 @@ const EnvSchema = z.object({
   AI_PROVIDER: z.string().default('openai'),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
-  AI_TEXT_MODEL: z.string().default('gpt-5.4-mini'), // eval pick: quality wash vs flagship, accepts temperature, cheapest
+  AI_TEXT_MODEL: z.string().default('gpt-5.4-mini'), // legacy default for openai text tasks (back-compat)
   ASR_MODEL: z.string().default('whisper-1'),
   WHISPER_URL: z.string().optional(),
+
+  // Gemini provider (OpenAI-compatible endpoint). Optional — if the key is unset,
+  // the registry won't route any task to gemini (falls back to openai defaults).
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_BASE_URL: z.string().url().default('https://generativelanguage.googleapis.com/v1beta/openai'),
+
+  // Per-task model overrides are read directly from process.env in the AI registry
+  // (AI_<TASK>_PROVIDER / AI_<TASK>_MODEL, e.g. AI_SCORING_MODEL) so this schema
+  // stays lean; DB overrides (admin) take precedence over both.
 
   RESEND_KEY: z.string().optional(),
 });
@@ -31,3 +40,9 @@ export type Env = z.infer<typeof EnvSchema>;
 export const env: Env = EnvSchema.parse(process.env);
 
 export const isProd = env.NODE_ENV === 'production';
+
+// Never run production with the public dev-default JWT secrets (token forgery).
+if (isProd && (env.JWT_SECRET === 'dev-only-insecure-secret-change-me'
+  || env.JWT_REFRESH_SECRET === 'dev-only-insecure-refresh-change-me')) {
+  throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be set to strong random values in production');
+}
