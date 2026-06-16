@@ -1,13 +1,15 @@
-import { OpenAIChatClient, type ChatClient } from '../ai/client.js';
+import { type ChatClient } from '../ai/client.js';
 import { runStructured } from '../ai/runner.js';
+import { runTask } from '../ai/execute.js';
 import { ItemGenSchema, ITEM_GEN_JSON_SCHEMA, type ItemGen } from '../schemas.js';
 
 export const ITEM_GEN_PROMPT_VERSION = 'gen.item.v1';
 
 /**
- * AI generation of a new question item for the content pipeline (TECH §B4/§B8).
- * Output is validated; the new item enters the lifecycle as a draft and must be
- * reviewed before publishing. Source/license metadata is attached by the caller.
+ * AI generation of a new question item (TECH §B4/§B8). In production the model
+ * is resolved via the configurable registry (task `item_gen`, default
+ * gemini-3-flash with an openai fallback on 503). New items enter the lifecycle
+ * as drafts pending review.
  */
 export interface ItemGenInput {
   scenarioTitle: string;
@@ -17,10 +19,7 @@ export interface ItemGenInput {
   cefrLevel: string;
 }
 
-export async function generateItem(
-  input: ItemGenInput,
-  client: ChatClient = new OpenAIChatClient(),
-): Promise<{ item: ItemGen; raw: string; promptVersion: string }> {
+function buildPrompts(input: ItemGenInput): { system: string; user: string } {
   const system = [
     'You generate ONE high-quality English-practice item for a real-world scenario.',
     `Type: ${input.type}. Target CEFR: ${input.cefrLevel}.`,
@@ -29,9 +28,18 @@ export async function generateItem(
     'realistic learner errors with short fixes; difficulty_score is 0–100 matching the CEFR. Return JSON only.',
   ].join(' ');
   const user = `Scenario: ${input.scenarioTitle} (${input.category}). Goal: ${input.scenarioGoal}.`;
+  return { system, user };
+}
 
-  const r = await runStructured<ItemGen>({
-    client, system, user, schema: ItemGenSchema, jsonSchema: ITEM_GEN_JSON_SCHEMA, temperature: 0.4,
-  });
-  return { item: r.data, raw: r.raw, promptVersion: ITEM_GEN_PROMPT_VERSION };
+export async function generateItem(
+  input: ItemGenInput,
+  client?: ChatClient,
+): Promise<{ item: ItemGen; raw: string; promptVersion: string; model?: string }> {
+  const { system, user } = buildPrompts(input);
+  if (client) {
+    const r = await runStructured<ItemGen>({ client, system, user, schema: ItemGenSchema, jsonSchema: ITEM_GEN_JSON_SCHEMA, temperature: 0.4 });
+    return { item: r.data, raw: r.raw, promptVersion: ITEM_GEN_PROMPT_VERSION };
+  }
+  const r = await runTask<ItemGen>({ task: 'item_gen', system, user, schema: ItemGenSchema, jsonSchema: ITEM_GEN_JSON_SCHEMA, temperature: 0.4 });
+  return { item: r.data, raw: r.raw, promptVersion: ITEM_GEN_PROMPT_VERSION, model: r.model };
 }

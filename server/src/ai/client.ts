@@ -37,20 +37,30 @@ export class OpenAIChatClient implements ChatClient {
 
   async chat(messages: ChatMessage[], opts: ChatJsonOptions = {}): Promise<string> {
     if (!this.apiKey) throw new AIError('OPENAI_API_KEY is not set');
-    const body: Record<string, unknown> = {
-      model: opts.model ?? this.defaultModel,
-      messages,
-      temperature: opts.temperature ?? 0.2,
+    // temperature is included ONLY when explicitly set — some models (gpt-5.5)
+    // reject a custom temperature with a 400; undefined means "omit the field".
+    const base: Record<string, unknown> = { model: opts.model ?? this.defaultModel, messages };
+    if (opts.temperature !== undefined) base['temperature'] = opts.temperature;
+
+    // First try with json_schema response_format (strict). If the provider
+    // rejects response_format (a 400 mentioning it — e.g. an endpoint that only
+    // supports json_object), downgrade once and rely on the prompt + Zod.
+    const send = async (withSchema: boolean) => {
+      const body = { ...base };
+      if (opts.jsonSchema && withSchema) body['response_format'] = { type: 'json_schema', json_schema: opts.jsonSchema };
+      return fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
+        body: JSON.stringify(body),
+        signal: opts.signal ?? null,
+      });
     };
-    if (opts.jsonSchema) {
-      body['response_format'] = { type: 'json_schema', json_schema: opts.jsonSchema };
+
+    let res = await send(Boolean(opts.jsonSchema));
+    if (!res.ok && res.status === 400 && opts.jsonSchema) {
+      const peek = await res.clone().text().catch(() => '');
+      if (/response_format|json_schema|schema/i.test(peek)) res = await send(false);
     }
-    const res = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
-      body: JSON.stringify(body),
-      signal: opts.signal ?? null,
-    });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
       throw new AIError(`AI provider error ${res.status}: ${text.slice(0, 300)}`, res.status);

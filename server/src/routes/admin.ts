@@ -1,11 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { getDb } from '../db/client.js';
-import { questionItems, questionQualityMetrics, scenarios, contentSources } from '../db/schema.js';
+import { questionItems, questionQualityMetrics, scenarios, contentSources, aiTaskConfig } from '../db/schema.js';
 import { requireOperator } from '../auth/plugin.js';
 import { ok, fail } from '../schemas.js';
 import { canTransition, isItemStatus, allowedTransitions, type ItemStatus } from '../content/lifecycle.js';
 import { generateItem } from '../content/generate.js';
+import { resolveAll, invalidateConfigCache, isTaskKey } from '../ai/registry.js';
+import { isProviderId, providerAvailable, PROVIDER_IDS } from '../ai/providers.js';
 
 const DEFAULT_RUBRIC = { vocabulary: 20, grammar: 25, naturalness: 25, task_completion: 20, pronunciation: 10 };
 
@@ -89,5 +91,53 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       rubric: DEFAULT_RUBRIC, sourceId: source!.id,
     }).returning();
     return reply.code(201).send(ok({ id: row!.id, status: row!.status, itemKey: row!.itemKey }));
+  });
+
+  // --- Configurable AI models (per task), switchable at runtime, no redeploy ---
+
+  // Current resolved config per task + which providers have a key configured.
+  app.get('/v1/admin/ai-config', { preHandler: requireOperator }, async (_req, reply) => {
+    const tasks = await resolveAll();
+    return reply.send(ok({
+      providers: PROVIDER_IDS.map((id) => ({ id, available: providerAvailable(id) })),
+      tasks: tasks.map((t) => ({
+        task: t.task, provider: t.provider, model: t.model,
+        fallback: t.fallback ?? null, source: t.source, supportsTemperature: t.supportsTemp,
+      })),
+    }));
+  });
+
+  // Override a task's model at runtime (persisted; takes precedence over env/default).
+  app.put('/v1/admin/ai-config/:task', { preHandler: requireOperator }, async (req, reply) => {
+    const { task } = req.params as { task: string };
+    if (!isTaskKey(task)) return reply.code(400).send(fail('bad_request', 'unknown task'));
+    const b = (req.body ?? {}) as { provider?: string; model?: string; fallbackModel?: string | null };
+    if (!b.provider || !isProviderId(b.provider)) return reply.code(400).send(fail('bad_request', `provider must be one of ${PROVIDER_IDS.join(', ')}`));
+    if (!b.model) return reply.code(400).send(fail('bad_request', 'model is required'));
+    const MODEL_RE = /^[\w.:\-/]{1,200}$/;
+    if (!MODEL_RE.test(b.model)) return reply.code(400).send(fail('bad_request', 'model must be a valid model identifier (≤200 chars, [A-Za-z0-9._:/-])'));
+    if (b.fallbackModel != null && !MODEL_RE.test(b.fallbackModel)) return reply.code(400).send(fail('bad_request', 'fallbackModel must be a valid model identifier'));
+    if (!providerAvailable(b.provider)) return reply.code(409).send(fail('provider_unavailable', `${b.provider} has no API key configured`));
+
+    const db = getDb();
+    await db.insert(aiTaskConfig).values({
+      task, provider: b.provider, model: b.model, fallbackModel: b.fallbackModel ?? null,
+      updatedBy: req.user!.sub, updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: aiTaskConfig.task,
+      set: { provider: b.provider, model: b.model, fallbackModel: b.fallbackModel ?? null, updatedBy: req.user!.sub, updatedAt: new Date() },
+    });
+    invalidateConfigCache();
+    return reply.send(ok({ task, provider: b.provider, model: b.model }));
+  });
+
+  // Revert a task to its env/default config.
+  app.delete('/v1/admin/ai-config/:task', { preHandler: requireOperator }, async (req, reply) => {
+    const { task } = req.params as { task: string };
+    if (!isTaskKey(task)) return reply.code(400).send(fail('bad_request', 'unknown task'));
+    const db = getDb();
+    await db.delete(aiTaskConfig).where(eq(aiTaskConfig.task, task));
+    invalidateConfigCache();
+    return reply.send(ok({ task, reverted: true }));
   });
 }

@@ -4,7 +4,7 @@ import { getDb } from '../db/client.js';
 import { practiceSessions, practiceTurns, questionItems, aiFeedbackItems, expressionBankItems } from '../db/schema.js';
 import { requireAuth } from '../auth/plugin.js';
 import { ok, fail } from '../schemas.js';
-import { OpenAITranscriber, type Transcriber } from '../asr/client.js';
+import { transcriberForAsr, type Transcriber } from '../asr/client.js';
 import { computeSpeechFeatures } from '../scoring/features.js';
 import { generateDialogueFeedback } from '../ai/feedback.js';
 import { mistakePairFromFeedback } from '../expressions/service.js';
@@ -17,7 +17,7 @@ const ACCEPTED_MIME = /^(audio\/(webm|ogg|opus|mp4|aac|x-m4a|m4a|mpeg|wav|x-wav)
  * scoring. Otherwise → light dialogue feedback + auto-save. Server-side ASR is
  * canonical so web + iOS score identically.
  */
-export function audioTurnRoutes(transcriber: Transcriber = new OpenAITranscriber()) {
+export function audioTurnRoutes(injectedTranscriber?: Transcriber) {
   return async function register(app: FastifyInstance): Promise<void> {
     app.post('/v1/sessions/:id/turns/audio', { preHandler: requireAuth }, async (req, reply) => {
       const { id } = req.params as { id: string };
@@ -47,6 +47,7 @@ export function audioTurnRoutes(transcriber: Transcriber = new OpenAITranscriber
       if (items.length === 0) return reply.code(404).send(fail('not_found', 'Item not found'));
       const item = items[0]!;
 
+      const transcriber = injectedTranscriber ?? await transcriberForAsr();
       const asr = await transcriber.transcribe(audio, filename, mime);
       const features = computeSpeechFeatures(asr.words, asr.durationSeconds);
 

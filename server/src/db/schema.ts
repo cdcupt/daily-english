@@ -195,6 +195,15 @@ export const userAbilityProfiles = pgTable('user_ability_profiles', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const aiTaskConfig = pgTable('ai_task_config', {
+  task: text('task').primaryKey(),
+  provider: text('provider').notNull(),
+  model: text('model').notNull(),
+  fallbackModel: text('fallback_model'),
+  updatedBy: text('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const dimensionSnapshots = pgTable('dimension_snapshots', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull().references(() => users.id),
