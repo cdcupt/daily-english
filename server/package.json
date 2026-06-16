@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "seed": "tsx seed/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ai:config": "node scripts/ai-config.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",

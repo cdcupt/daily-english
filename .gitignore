@@ -39,3 +39,9 @@ brand/generated/
 
 # xcodegen-generated (source of truth is project.yml)
 DailyEnglish.xcodeproj/
+
+# secrets — never commit (operator credential lives in ~/.scenario-english/)
+.env
+*.env
+!*.env.example
+operator.env
