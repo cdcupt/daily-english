@@ -36,7 +36,10 @@ export function defaults(): Record<TaskKey, TaskDefault> {
   return {
     feedback: { provider: 'openai', model: openaiText },
     dialogue: { provider: 'openai', model: openaiText },
-    scoring: { provider: 'gemini', model: 'gemini-3.1-pro-preview', fallback: { provider: 'openai', model: openaiText } },
+    // scoring primary is gemini-3-flash-preview (fast, far fewer timeouts than
+    // gemini-3.1-pro-preview); openai is the resilient fallback. The scoring
+    // path is synchronous (session finish) so robustness > marginal repeatability.
+    scoring: { provider: 'gemini', model: 'gemini-3-flash-preview', fallback: { provider: 'openai', model: openaiText } },
     item_gen: { provider: 'gemini', model: 'gemini-3-flash-preview', fallback: { provider: 'openai', model: openaiText } },
     asr: { provider: 'openai', model: env.ASR_MODEL },
   };

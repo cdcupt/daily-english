@@ -109,9 +109,23 @@ describe('runWithResilience', () => {
     expect(calls).toBe(1);
   });
 
-  it('isTransientErr classifies 5xx + network, not 4xx', () => {
+  it('falls back to the fallback model when the primary TIMES OUT (AbortError)', async () => {
+    const abort = Object.assign(new Error('aborted'), { name: 'AbortError' });
+    const { result, used } = await runWithResilience({
+      primary: t('prim'), fallback: t('fb'),
+      run: async (target) => { if (target.model === 'prim') throw abort; return 'fb-ok'; },
+      sleep: noSleep,
+    });
+    expect(result).toBe('fb-ok'); expect(used.model).toBe('fb');
+  });
+
+  it('isTransientErr classifies 5xx + network + timeout, not 4xx', () => {
     expect(isTransientErr(new AIError('a', 503))).toBe(true);
-    expect(isTransientErr(new AIError('b'))).toBe(true); // no status = network
+    expect(isTransientErr(new AIError('b'))).toBe(true); // no status = network (client rewraps)
     expect(isTransientErr(new AIError('c', 400))).toBe(false);
+    expect(isTransientErr(Object.assign(new Error('aborted'), { name: 'AbortError' }))).toBe(true);
+    expect(isTransientErr(Object.assign(new Error('slow'), { name: 'TimeoutError' }))).toBe(true);
+    expect(isTransientErr(new TypeError('fetch failed'))).toBe(true); // undici network failure
+    expect(isTransientErr(new Error('something else'))).toBe(false);
   });
 });

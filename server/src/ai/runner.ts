@@ -37,16 +37,17 @@ export interface RunStructuredArgs<T> {
   jsonSchema?: { name: string; strict: boolean; schema: unknown };
   temperature?: number;
   model?: string;
+  signal?: AbortSignal;
 }
 
 export async function runStructured<T>(args: RunStructuredArgs<T>): Promise<StructuredResult<T>> {
-  const { client, system, user, schema, jsonSchema, temperature, model } = args;
+  const { client, system, user, schema, jsonSchema, temperature, model, signal } = args;
   const messages: ChatMessage[] = [
     { role: 'system', content: system },
     { role: 'user', content: user },
   ];
 
-  const first = await client.chat(messages, { jsonSchema, temperature, model });
+  const first = await client.chat(messages, { jsonSchema, temperature, model, signal });
   const parsedFirst = tryParse(first, schema);
   if (parsedFirst.ok) return { data: parsedFirst.value, raw: first, repaired: false };
 
@@ -59,7 +60,7 @@ export async function runStructured<T>(args: RunStructuredArgs<T>): Promise<Stru
       content: `Your previous output failed schema validation:\n${parsedFirst.error}\nReturn ONLY corrected JSON that matches the schema. No prose, no markdown fences.`,
     },
   ];
-  const second = await client.chat(repairMessages, { jsonSchema, temperature, model });
+  const second = await client.chat(repairMessages, { jsonSchema, temperature, model, signal });
   const parsedSecond = tryParse(second, schema);
   if (parsedSecond.ok) return { data: parsedSecond.value, raw: second, repaired: true };
 

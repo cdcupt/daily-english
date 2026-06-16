@@ -56,18 +56,30 @@ export class OpenAIChatClient implements ChatClient {
       });
     };
 
-    let res = await send(Boolean(opts.jsonSchema));
-    if (!res.ok && res.status === 400 && opts.jsonSchema) {
-      const peek = await res.clone().text().catch(() => '');
-      if (/response_format|json_schema|schema/i.test(peek)) res = await send(false);
+    try {
+      let res = await send(Boolean(opts.jsonSchema));
+      if (!res.ok && res.status === 400 && opts.jsonSchema) {
+        const peek = await res.clone().text().catch(() => '');
+        if (/response_format|json_schema|schema/i.test(peek)) res = await send(false);
+      }
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new AIError(`AI provider error ${res.status}: ${text.slice(0, 300)}`, res.status);
+      }
+      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const content = json.choices?.[0]?.message?.content;
+      if (typeof content !== 'string') throw new AIError('AI response missing content');
+      return content;
+    } catch (e) {
+      // Preserve typed provider errors (they carry an HTTP status). A raw
+      // fetch rejection — network failure or an aborted/timed-out request —
+      // is rewrapped as a status-less AIError so the resilience layer treats
+      // it as transient and falls over to the fallback model.
+      if (e instanceof AIError) throw e;
+      const name = e instanceof Error ? e.name : 'Error';
+      const msg = e instanceof Error ? e.message : String(e);
+      const label = name === 'AbortError' || name === 'TimeoutError' ? 'request timed out' : 'request failed';
+      throw new AIError(`AI ${label} (${name}): ${msg}`);
     }
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new AIError(`AI provider error ${res.status}: ${text.slice(0, 300)}`, res.status);
-    }
-    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const content = json.choices?.[0]?.message?.content;
-    if (typeof content !== 'string') throw new AIError('AI response missing content');
-    return content;
   }
 }

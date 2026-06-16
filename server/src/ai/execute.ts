@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import { env } from '../env.js';
 import { OpenAIChatClient, AIError } from './client.js';
 import { runStructured, AIContractError } from './runner.js';
 import { resolveTask, type TaskKey } from './registry.js';
@@ -8,7 +9,8 @@ import { getProvider, supportsTemperature, type ProviderId } from './providers.j
  * Task execution with provider hardening (AI-config blueprint):
  * - resolves the configured provider+model for the task,
  * - omits `temperature` for models that reject it (e.g. gpt-5.5),
- * - retries transient 5xx with backoff, and
+ * - aborts a stalled call at AI_REQUEST_TIMEOUT_MS (no hanging requests),
+ * - retries transient 5xx / network / timeout errors with backoff, and
  * - falls back to the task's fallback model on persistent failure.
  * The resilience core (`runWithResilience`) is injectable for unit tests.
  */
@@ -25,7 +27,18 @@ export interface RunTaskResult<T> { data: T; raw: string; repaired: boolean; mod
 export interface AttemptTarget { provider: ProviderId; model: string; baseUrl: string; apiKey: string | undefined }
 
 const defaultSleep = (ms: number) => new Promise<void>((r) => { setTimeout(r, ms); });
-export const isTransientErr = (e: unknown): boolean => e instanceof AIError && (e.status === undefined || e.status >= 500);
+
+/**
+ * Transient = worth retrying then falling over. Covers provider 5xx and any
+ * status-less AIError (the client rewraps network failures / aborted-timeouts
+ * as status-less AIErrors), plus bare AbortError/TimeoutError/TypeError in case
+ * a raw fetch rejection ever reaches here unwrapped. A 4xx stays non-transient.
+ */
+export const isTransientErr = (e: unknown): boolean => {
+  if (e instanceof AIError) return e.status === undefined || e.status >= 500;
+  if (e instanceof Error) return e.name === 'AbortError' || e.name === 'TimeoutError' || e instanceof TypeError;
+  return false;
+};
 const isContractErr = (e: unknown): boolean => e instanceof AIContractError;
 
 /** Retry primary on transient errors with backoff; fall back once on persistent transient/contract failure. */
@@ -68,7 +81,15 @@ export async function runTask<T>(args: RunTaskArgs<T>): Promise<RunTaskResult<T>
   const run = async (t: AttemptTarget) => {
     const client = new OpenAIChatClient(t.apiKey, t.baseUrl, t.model);
     const temperature = supportsTemperature(t.model) ? args.temperature : undefined;
-    return runStructured<T>({ client, system: args.system, user: args.user, schema: args.schema, jsonSchema: args.jsonSchema, temperature, model: t.model });
+    // Fresh deadline per attempt (primary, each retry, fallback) so a stalled
+    // provider is aborted and routed to the next attempt instead of hanging.
+    const controller = new AbortController();
+    const timer = setTimeout(() => { controller.abort(); }, env.AI_REQUEST_TIMEOUT_MS);
+    try {
+      return await runStructured<T>({ client, system: args.system, user: args.user, schema: args.schema, jsonSchema: args.jsonSchema, temperature, model: t.model, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
   };
 
   const { result, used } = await runWithResilience({ primary, fallback, run });
