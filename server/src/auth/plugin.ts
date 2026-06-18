@@ -22,6 +22,7 @@ export async function requireAuth(req: FastifyRequest, reply: FastifyReply): Pro
     req.user = verifyToken(header.slice(7), 'access');
   } catch {
     reply.code(401).send(fail('unauthorized', 'Invalid or expired token'));
+    return;
   }
 }
 

@@ -16,7 +16,12 @@ export interface AccessClaims {
   exp: number;
 }
 
-const ACCESS_TTL = 15 * 60;            // 15 minutes
+// Access tokens are stateless: POST /v1/auth/signout bumps the user's
+// token_version, which invalidates refresh tokens immediately (the next refresh
+// is rejected), but an already-issued access token stays valid until it expires.
+// We accept that small window as the stateless-JWT tradeoff — no per-request DB
+// check — and keep the access TTL short (10 min) to bound it.
+const ACCESS_TTL = 10 * 60;            // 10 minutes
 const REFRESH_TTL = 30 * 24 * 60 * 60; // 30 days
 
 function b64url(input: Buffer | string): string {

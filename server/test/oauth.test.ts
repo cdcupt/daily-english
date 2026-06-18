@@ -1,9 +1,14 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { generateKeyPairSync, createSign, type JsonWebKey } from 'node:crypto';
 import { decideLink } from '../src/auth/linking.js';
 import {
   verifyGoogle, verifyApple, setJwksFetcher, clearJwksCache, OAuthError,
 } from '../src/auth/oauth.js';
+import {
+  appleConfigured, upsertIdentity, isRateLimited, resetRateLimit, type IdentityStore,
+} from '../src/routes/oauth.js';
+import { buildApp } from '../src/app.js';
+import type { VerifiedIdentity } from '../src/auth/oauth.js';
 import { issueToken, verifyToken, tokenVersionOf } from '../src/auth/tokens.js';
 
 // These must match test/setup.ts (loaded before src/env.ts).
@@ -35,6 +40,7 @@ interface MintOpts {
   email?: string;
   emailVerified?: boolean | string;
   exp?: number;
+  iat?: number;
   nonce?: string;
   tamper?: boolean;
 }
@@ -47,7 +53,7 @@ function mintIdToken(opts: MintOpts): string {
     aud: opts.aud,
     sub: opts.sub ?? 'provider-sub-123',
     exp: opts.exp ?? now + 3600,
-    iat: now,
+    iat: opts.iat ?? now,
   };
   if (opts.email !== undefined) payload['email'] = opts.email;
   if (opts.emailVerified !== undefined) payload['email_verified'] = opts.emailVerified;
@@ -98,6 +104,31 @@ describe('verifyGoogle', () => {
   it('rejects an expired token', async () => {
     const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD, exp: Math.floor(Date.now() / 1000) - 600 });
     await expect(verifyGoogle(token)).rejects.toThrow(/expired/);
+  });
+
+  it('rejects a token issued in the future beyond clock skew (F5)', async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600; // 1h ahead, well past the 60s skew
+    const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD, iat: future });
+    await expect(verifyGoogle(token)).rejects.toThrow(/not yet valid/);
+  });
+
+  it('accepts an iat within the clock-skew tolerance', async () => {
+    const slightlyAhead = Math.floor(Date.now() / 1000) + 30; // inside the 60s skew window
+    const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD, sub: 'g-skew', iat: slightlyAhead });
+    await expect(verifyGoogle(token)).resolves.toMatchObject({ sub: 'g-skew' });
+  });
+
+  it('rejects a non-RSA signing key (key type mismatch, F6)', async () => {
+    // JWKS returns an EC key under the token's kid → reject before verifying.
+    setJwksFetcher(async () => [{ ...PUBLIC_JWK, kty: 'EC' }]);
+    const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD });
+    await expect(verifyGoogle(token)).rejects.toThrow(/key type mismatch/);
+  });
+
+  it('rejects a JWK whose declared use is not "sig" (F6)', async () => {
+    setJwksFetcher(async () => [{ ...PUBLIC_JWK, use: 'enc' }]);
+    const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD });
+    await expect(verifyGoogle(token)).rejects.toThrow(/key type mismatch/);
   });
 
   it('rejects a tampered signature', async () => {
@@ -157,6 +188,47 @@ describe('verifyApple', () => {
     const token = mintIdToken({ iss: APPLE_ISS, aud: APPLE_AUD, email: 'x@example.com' });
     const identity = await verifyApple(token);
     expect(identity.emailVerified).toBe(false);
+  });
+});
+
+// ---------- F2: JWKS fetch amplification guards ----------
+describe('JWKS refetch cooldown + in-flight de-dup', () => {
+  it('does not refetch the same JWKS URL again within the 30s cooldown (F2)', async () => {
+    // Fetcher always returns a key whose kid never matches the token → every
+    // verify is a kid-miss. Without the cooldown, each verify would refetch
+    // forever; with it, the second verify (cache already populated) must NOT.
+    const fetcher = vi.fn(async () => [{ ...PUBLIC_JWK, kid: 'rotated-away' }]);
+    setJwksFetcher(fetcher);
+
+    const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD, kid: 'wanted-kid' });
+
+    // First verify: cold cache → 1 fill fetch, then 1 allowed kid-miss refetch.
+    await expect(verifyGoogle(token)).rejects.toThrow(/signing key/);
+    const callsAfterFirst = fetcher.mock.calls.length;
+    expect(callsAfterFirst).toBeGreaterThanOrEqual(1);
+
+    // Second verify (ms later, within cooldown): cache is warm and the refetch
+    // is suppressed → fetch count must not grow.
+    await expect(verifyGoogle(token)).rejects.toThrow(/signing key/);
+    expect(fetcher.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it('shares one in-flight fetch across concurrent verifies for the same URL (F2)', async () => {
+    let resolveFetch: (keys: typeof PUBLIC_JWK[]) => void = () => {};
+    const fetcher = vi.fn(() => new Promise<typeof PUBLIC_JWK[]>((res) => { resolveFetch = res; }));
+    setJwksFetcher(fetcher);
+
+    const token = mintIdToken({ iss: GOOGLE_ISS, aud: GOOGLE_AUD, sub: 'g-concurrent' });
+    const p1 = verifyGoogle(token);
+    const p2 = verifyGoogle(token);
+    // Both verifies are awaiting the SAME in-flight fetch — only one network call.
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    resolveFetch([PUBLIC_JWK]);
+    const [r1, r2] = await Promise.all([p1, p2]);
+    expect(r1.sub).toBe('g-concurrent');
+    expect(r2.sub).toBe('g-concurrent');
+    expect(fetcher).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -234,5 +306,111 @@ describe('token_version in JWT claims', () => {
     const claims = verifyToken(issueToken('u1', 'user', 'refresh', 0), 'refresh');
     const userVersionAfterSignout = 1;
     expect(tokenVersionOf(claims) !== userVersionAfterSignout).toBe(true);
+  });
+});
+
+// ---------- F1: Apple "configured" gate (must NOT auto-enable) ----------
+describe('appleConfigured', () => {
+  it('is NOT configured when neither APPLE_CLIENT_ID nor APPLE_IOS_CLIENT_ID is set', () => {
+    // Empty audience set ⇒ endpoint must 503 (provider_not_configured) rather
+    // than trust tokens against an empty allow-list.
+    expect(appleConfigured(undefined, undefined)).toBe(false);
+  });
+
+  it('is configured when only the web Services ID is set', () => {
+    expect(appleConfigured('com.cdcupt.dailyenglish.web', undefined)).toBe(true);
+  });
+
+  it('is configured when only the iOS bundle id is set', () => {
+    expect(appleConfigured(undefined, 'com.cdcupt.DailyEnglish')).toBe(true);
+  });
+
+  it('is configured when both are set', () => {
+    expect(appleConfigured('com.cdcupt.dailyenglish.web', 'com.cdcupt.DailyEnglish')).toBe(true);
+  });
+});
+
+// ---------- F7: idempotent identity insert under concurrency ----------
+describe('upsertIdentity (onConflictDoNothing race)', () => {
+  const identity: VerifiedIdentity = {
+    provider: 'google', sub: 'race-sub', email: 'race@example.com', emailVerified: true,
+  };
+
+  it('returns our user id on a clean insert (no conflict)', async () => {
+    const store: IdentityStore = {
+      insertIdentity: async (userId) => userId,        // insert won the race
+      findIdentityUserId: async () => null,            // never consulted
+    };
+    await expect(upsertIdentity(store, 'me', identity)).resolves.toBe('me');
+  });
+
+  it('resolves to the concurrent winner without throwing when the insert conflicts (F7)', async () => {
+    const findSpy = vi.fn(async () => 'concurrent-winner');
+    const store: IdentityStore = {
+      insertIdentity: async () => null,                // onConflictDoNothing → 0 rows
+      findIdentityUserId: findSpy,                      // re-select the existing row
+    };
+    // Must NOT throw (no 500) — it re-selects and returns the winning user id.
+    await expect(upsertIdentity(store, 'me', identity)).resolves.toBe('concurrent-winner');
+    expect(findSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws only if the row is genuinely missing after a conflict', async () => {
+    const store: IdentityStore = {
+      insertIdentity: async () => null,
+      findIdentityUserId: async () => null,            // conflict but no row → integrity error
+    };
+    await expect(upsertIdentity(store, 'me', identity)).rejects.toThrow(OAuthError);
+  });
+});
+
+// ---------- F4: per-IP fixed-window rate limit ----------
+describe('isRateLimited (fixed-window per-IP)', () => {
+  beforeEach(() => resetRateLimit());
+
+  it('allows the first 10 requests then limits the 11th in one window', () => {
+    const t = 1_000_000; // frozen instant → all requests share the window
+    for (let i = 0; i < 10; i += 1) {
+      expect(isRateLimited('1.2.3.4', t)).toBe(false);
+    }
+    expect(isRateLimited('1.2.3.4', t)).toBe(true); // 11th
+  });
+
+  it('tracks buckets per IP independently', () => {
+    const t = 2_000_000;
+    for (let i = 0; i < 11; i += 1) isRateLimited('a', t);
+    expect(isRateLimited('a', t)).toBe(true);
+    expect(isRateLimited('b', t)).toBe(false); // a fresh IP is unaffected
+  });
+
+  it('resets after the 60s window rolls over', () => {
+    const t = 3_000_000;
+    for (let i = 0; i < 11; i += 1) isRateLimited('c', t);
+    expect(isRateLimited('c', t)).toBe(true);
+    expect(isRateLimited('c', t + 60_001)).toBe(false); // new window
+  });
+});
+
+describe('OAuth POST rate limiting (route preHandler, F4)', () => {
+  beforeEach(() => resetRateLimit());
+
+  it('returns 429 after the per-IP threshold on POST /v1/auth/oauth/google', async () => {
+    const app = await buildApp();
+    try {
+      // Bodyless POSTs short-circuit at the 400 (idToken required) BEFORE any DB
+      // call, so we exercise the preHandler limiter without a live database.
+      const statuses: number[] = [];
+      for (let i = 0; i < 11; i += 1) {
+        const res = await app.inject({ method: 'POST', url: '/v1/auth/oauth/google', payload: {} });
+        statuses.push(res.statusCode);
+      }
+      // First 10 reach the handler (400); the 11th is rate-limited at the gate.
+      expect(statuses.slice(0, 10).every((s) => s === 400)).toBe(true);
+      const last = await app.inject({ method: 'POST', url: '/v1/auth/oauth/google', payload: {} });
+      expect(last.statusCode).toBe(429);
+      expect(last.json().error.code).toBe('rate_limited');
+    } finally {
+      await app.close();
+    }
   });
 });

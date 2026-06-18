@@ -45,7 +45,9 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),     // Google OAuth Web client id (web flow)
   GOOGLE_IOS_CLIENT_ID: z.string().optional(), // Google OAuth iOS client id (native flow)
   APPLE_CLIENT_ID: z.string().optional(),      // Apple Services ID (web flow client_id)
-  APPLE_IOS_CLIENT_ID: z.string().default('com.cdcupt.DailyEnglish'), // iOS bundle id (native flow)
+  // iOS bundle id (native flow). No default — a default would silently auto-enable
+  // Apple sign-in (and trust that audience) even on a box with no Apple credentials.
+  APPLE_IOS_CLIENT_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

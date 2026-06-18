@@ -32,6 +32,7 @@ const GOOGLE_ISS = ['https://accounts.google.com', 'accounts.google.com'];
 const APPLE_ISS = ['https://appleid.apple.com'];
 
 const JWKS_TTL_MS = 60 * 60 * 1000; // 1h — providers rotate keys slowly; keep it short
+const JWKS_REFETCH_COOLDOWN_MS = 30_000; // min spacing between refetches of one URL (anti-amplification)
 const JWKS_FETCH_TIMEOUT_MS = 8_000;
 const CLOCK_SKEW_SEC = 60; // tolerate small clock drift on exp/iat
 
@@ -40,6 +41,12 @@ interface JwkKey extends JsonWebKey { kid?: string; alg?: string; use?: string }
 interface CachedJwks { keys: JwkKey[]; fetchedAt: number }
 
 const jwksCache = new Map<string, CachedJwks>();
+// Last network fetch attempt per URL (cooldown gate — a kid-miss won't refetch a
+// URL more than once per JWKS_REFETCH_COOLDOWN_MS, capping fetch amplification).
+const jwksLastFetch = new Map<string, number>();
+// In-flight fetches per URL: concurrent verifies for the same URL await one
+// Promise instead of each firing their own request.
+const jwksInflight = new Map<string, Promise<JwkKey[]>>();
 
 // Seam for hermetic tests: stub the network fetch without touching globals.
 type JwksFetcher = (url: string) => Promise<JwkKey[]>;
@@ -53,6 +60,8 @@ export function setJwksFetcher(fn?: JwksFetcher): void {
 /** Clear the JWKS cache (tests only — keeps cases isolated). */
 export function clearJwksCache(): void {
   jwksCache.clear();
+  jwksLastFetch.clear();
+  jwksInflight.clear();
 }
 
 async function defaultJwksFetcher(url: string): Promise<JwkKey[]> {
@@ -69,12 +78,45 @@ async function defaultJwksFetcher(url: string): Promise<JwkKey[]> {
   return json.keys;
 }
 
-async function getJwks(url: string, now = Date.now()): Promise<JwkKey[]> {
+interface JwksResult { keys: JwkKey[]; fromCache: boolean }
+
+/** Keys for a URL: the cached set if still within TTL, else a (de-duped) fetch. */
+async function getJwks(url: string, now = Date.now()): Promise<JwksResult> {
   const cached = jwksCache.get(url);
-  if (cached && now - cached.fetchedAt < JWKS_TTL_MS) return cached.keys;
-  const keys = await jwksFetcher(url);
-  jwksCache.set(url, { keys, fetchedAt: now });
-  return keys;
+  if (cached && now - cached.fetchedAt < JWKS_TTL_MS) return { keys: cached.keys, fromCache: true };
+  return { keys: await fetchJwks(url, now), fromCache: false };
+}
+
+/**
+ * Fetch (and cache) the JWKS for one URL, de-duplicating concurrent callers: a
+ * fetch already in flight for this URL is shared so a burst of verifies makes a
+ * single request. Records the attempt time so the kid-miss refetch cooldown can
+ * tell when this URL was last hit.
+ */
+async function fetchJwks(url: string, now: number): Promise<JwkKey[]> {
+  const inflight = jwksInflight.get(url);
+  if (inflight) return inflight;
+
+  jwksLastFetch.set(url, now);
+  const promise = (async () => {
+    const keys = await jwksFetcher(url);
+    jwksCache.set(url, { keys, fetchedAt: now });
+    return keys;
+  })().finally(() => {
+    jwksInflight.delete(url);
+  });
+  jwksInflight.set(url, promise);
+  return promise;
+}
+
+/**
+ * True if this URL was fetched within the refetch cooldown (a kid-miss refetch
+ * is suppressed). Caps fetch amplification from a stream of bogus/rotated kids:
+ * at most one refetch per URL per JWKS_REFETCH_COOLDOWN_MS.
+ */
+function inRefetchCooldown(url: string, now: number): boolean {
+  const last = jwksLastFetch.get(url);
+  return last !== undefined && now - last < JWKS_REFETCH_COOLDOWN_MS;
 }
 
 // ---------- Compact JWS (RS256) ----------
@@ -133,15 +175,24 @@ async function verifyIdToken(
   if (header.alg !== 'RS256') throw new OAuthError(`unsupported alg: ${header.alg ?? 'none'}`);
   if (!header.kid) throw new OAuthError('token missing kid');
 
-  // Find the signing key by kid (refetch once if a rotated kid misses the cache).
-  let keys = await getJwks(opts.jwksUrl, opts.now);
-  let jwk = keys.find((k) => k.kid === header.kid);
-  if (!jwk) {
+  // Find the signing key by kid. On a cache miss (rotated kid) refetch once —
+  // but only from cached keys (a just-fetched set is already current) and only
+  // outside the per-URL cooldown, so a stream of bogus kids can't amplify into
+  // repeated fetches.
+  const nowMs = opts.now ?? Date.now();
+  const initial = await getJwks(opts.jwksUrl, nowMs);
+  let jwk = initial.keys.find((k) => k.kid === header.kid);
+  if (!jwk && initial.fromCache && !inRefetchCooldown(opts.jwksUrl, nowMs)) {
     clearJwksCacheFor(opts.jwksUrl);
-    keys = await getJwks(opts.jwksUrl, opts.now);
-    jwk = keys.find((k) => k.kid === header.kid);
+    const refreshed = await getJwks(opts.jwksUrl, nowMs);
+    jwk = refreshed.keys.find((k) => k.kid === header.kid);
   }
   if (!jwk) throw new OAuthError('no matching signing key');
+
+  // Guard the selected key before trusting it: RS256 needs an RSA key, and if the
+  // JWK declares a use it must be for signatures (not an encryption key).
+  if (jwk.kty !== 'RSA') throw new OAuthError('key type mismatch');
+  if (jwk.use !== undefined && jwk.use !== 'sig') throw new OAuthError('key type mismatch');
 
   // Verify the signature over `header.payload` with the JWK as an RSA public key.
   let publicKey;
@@ -163,6 +214,9 @@ async function verifyIdToken(
   if (!claims.iss || !opts.allowedIss.includes(claims.iss)) throw new OAuthError('bad issuer');
   if (!audienceMatches(claims.aud, opts.allowedAud)) throw new OAuthError('bad audience');
   if (typeof claims.exp !== 'number' || claims.exp + CLOCK_SKEW_SEC < now) throw new OAuthError('token expired');
+  // Reject tokens issued in the future (beyond clock skew) — a sign of a forged
+  // or replayed token from a clock-skewed/hostile issuer.
+  if (typeof claims.iat === 'number' && claims.iat > now + CLOCK_SKEW_SEC) throw new OAuthError('token not yet valid');
   if (typeof claims.sub !== 'string' || claims.sub.length === 0) throw new OAuthError('token missing sub');
   if (opts.nonce !== undefined && claims.nonce !== opts.nonce) throw new OAuthError('nonce mismatch');
 
