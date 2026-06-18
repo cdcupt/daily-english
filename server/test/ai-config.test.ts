@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { supportsTemperature, isProviderId } from '../src/ai/providers.js';
 import { pickConfig, type TaskDefault } from '../src/ai/registry.js';
-import { runWithResilience, isTransientErr, type AttemptTarget } from '../src/ai/execute.js';
+import { runWithResilience, isTransientErr, isTimeoutErr, type AttemptTarget } from '../src/ai/execute.js';
 import { AIError } from '../src/ai/client.js';
 import { AIContractError } from '../src/ai/runner.js';
 
@@ -117,6 +117,28 @@ describe('runWithResilience', () => {
       sleep: noSleep,
     });
     expect(result).toBe('fb-ok'); expect(used.model).toBe('fb');
+  });
+
+  it('on a TIMEOUT, skips primary retries and fails over after ONE attempt', async () => {
+    let primaryCalls = 0; let fbCalls = 0;
+    const abort = Object.assign(new Error('request timed out'), { name: 'AbortError' });
+    const { used } = await runWithResilience({
+      primary: t('prim'), fallback: t('fb'),
+      run: async (target) => {
+        if (target.model === 'prim') { primaryCalls += 1; throw abort; }
+        fbCalls += 1; return 'fb';
+      },
+      sleep: noSleep,
+    });
+    expect(used.model).toBe('fb');
+    expect(primaryCalls).toBe(1); // NOT 3 — a stalled primary is not retried
+    expect(fbCalls).toBe(1);
+  });
+
+  it('isTimeoutErr matches aborts/timeouts but not plain 5xx', () => {
+    expect(isTimeoutErr(Object.assign(new Error('x'), { name: 'AbortError' }))).toBe(true);
+    expect(isTimeoutErr(new AIError('AI request timed out (AbortError): ...'))).toBe(true);
+    expect(isTimeoutErr(new AIError('boom', 503))).toBe(false);
   });
 
   it('isTransientErr classifies 5xx + network + timeout, not 4xx', () => {

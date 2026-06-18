@@ -36,10 +36,11 @@ export function defaults(): Record<TaskKey, TaskDefault> {
   return {
     feedback: { provider: 'openai', model: openaiText },
     dialogue: { provider: 'openai', model: openaiText },
-    // scoring primary is gemini-3-flash-preview (fast, far fewer timeouts than
-    // gemini-3.1-pro-preview); openai is the resilient fallback. The scoring
-    // path is synchronous (session finish) so robustness > marginal repeatability.
-    scoring: { provider: 'gemini', model: 'gemini-3-flash-preview', fallback: { provider: 'openai', model: openaiText } },
+    // scoring runs on the SYNCHRONOUS finish path, so latency + reliability win.
+    // QA (2026-06-18) measured gemini-3-flash-preview at 12–86s (frequent stalls)
+    // vs openai gpt-5.4-mini at ~1.4s with equivalent scores → openai primary,
+    // gemini-flash kept as the cross-provider fallback.
+    scoring: { provider: 'openai', model: openaiText, fallback: { provider: 'gemini', model: 'gemini-3-flash-preview' } },
     item_gen: { provider: 'gemini', model: 'gemini-3-flash-preview', fallback: { provider: 'openai', model: openaiText } },
     asr: { provider: 'openai', model: env.ASR_MODEL },
   };

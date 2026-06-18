@@ -26,7 +26,7 @@ const EnvSchema = z.object({
   // Hard per-request deadline for AI calls. A stalled provider is aborted at
   // this cap, classified transient, and falls over to the task's fallback model
   // instead of hanging the (synchronous) request. Tunable per environment.
-  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
 
   // Gemini provider (OpenAI-compatible endpoint). Optional — if the key is unset,
   // the registry won't route any task to gemini (falls back to openai defaults).

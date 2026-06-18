@@ -41,6 +41,17 @@ export const isTransientErr = (e: unknown): boolean => {
 };
 const isContractErr = (e: unknown): boolean => e instanceof AIContractError;
 
+/**
+ * A timed-out / aborted call means the primary is *slow right now* — retrying the
+ * same primary just burns another full timeout. So on a timeout we skip the
+ * remaining primary retries and fail over to the fallback immediately. (A quick
+ * 5xx, by contrast, is cheap to retry.) This bounds worst-case latency on the
+ * synchronous scoring path to ~one timeout + the fallback call.
+ */
+export const isTimeoutErr = (e: unknown): boolean =>
+  (e instanceof AIError && /timed out|AbortError|TimeoutError/i.test(e.message))
+  || (e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError'));
+
 /** Retry primary on transient errors with backoff; fall back once on persistent transient/contract failure. */
 export async function runWithResilience<T, R extends AttemptTarget>(opts: {
   primary: R;
@@ -50,17 +61,20 @@ export async function runWithResilience<T, R extends AttemptTarget>(opts: {
   sleep?: (ms: number) => Promise<void>;
   transient?: (e: unknown) => boolean;
   contract?: (e: unknown) => boolean;
+  timedOut?: (e: unknown) => boolean;
 }): Promise<{ result: T; used: R }> {
   const delays = opts.delays ?? [400, 1200];
   const sleep = opts.sleep ?? defaultSleep;
   const transient = opts.transient ?? isTransientErr;
   const contract = opts.contract ?? isContractErr;
+  const timedOut = opts.timedOut ?? isTimeoutErr;
   let lastErr: unknown;
   for (let i = 0; i <= delays.length; i += 1) {
     try {
       return { result: await opts.run(opts.primary), used: opts.primary };
     } catch (e) {
       lastErr = e;
+      if (timedOut(e)) break; // stalled primary — don't burn retries, fail over now
       if (transient(e) && i < delays.length) { await sleep(delays[i]!); continue; }
       break;
     }
@@ -93,6 +107,10 @@ export async function runTask<T>(args: RunTaskArgs<T>): Promise<RunTaskResult<T>
   };
 
   const { result, used } = await runWithResilience({ primary, fallback, run });
+  if (used.model !== primary.model || used.provider !== primary.provider) {
+    // Surface fallbacks in `docker logs` — otherwise degradation is invisible.
+    console.warn(`[ai] task=${args.task} fell back ${primary.provider}/${primary.model} -> ${used.provider}/${used.model}`);
+  }
   return { data: result.data, raw: result.raw, repaired: result.repaired, model: used.model, provider: used.provider };
 }
 
