@@ -21,6 +21,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: { level: env.NODE_ENV === 'test' ? 'silent' : 'info' },
     bodyLimit: 2 * 1024 * 1024,
+    // Behind the shared Caddy (api binds 127.0.0.1, only reachable via the proxy),
+    // so trust X-Forwarded-For → req.ip is the real client IP. Without this the
+    // per-IP OAuth rate limiter would collapse to one global bucket (Caddy's IP)
+    // and request logs would show the proxy, not the client.
+    trustProxy: true,
   });
 
   await app.register(helmet, { contentSecurityPolicy: false });
