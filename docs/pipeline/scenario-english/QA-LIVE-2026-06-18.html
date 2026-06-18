@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scenario English — Live QA Report · 2026-06-18</title>
+<style>
+  :root{
+    --bg:#f6f7f9;--surface:#fff;--ink:#15171a;--muted:#5b6470;--line:#e4e7ec;
+    --ok:#16a34a;--ok-bg:#e7f6ec;--hi:#dc2626;--hi-bg:#fdecec;--med:#d97706;--med-bg:#fff3e2;--low:#0ea5a4;--low-bg:#e6f7f7;
+    --accent:#0b6b6a;--radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:clamp(20px,4vw,50px)}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--ok-bg);color:var(--ok);border:1px solid #c9ead4}
+  h1{font-size:clamp(1.6rem,1rem+2.4vw,2.4rem);margin:.25em 0 .1em;letter-spacing:-.02em}
+  .lede{color:var(--muted);margin:0 0 6px}
+  h2{font-size:1.28rem;margin:2.2em 0 .3em;letter-spacing:-.01em}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(16px,2.4vw,24px);margin-top:14px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px -18px rgba(16,24,40,.25)}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);margin-top:14px}
+  table{border-collapse:collapse;width:100%;min-width:540px;font-size:.93rem;background:var(--surface)}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#fbfcfd;font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  tr:last-child td{border-bottom:0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;background:#eef1f4;padding:1.5px 6px;border-radius:6px}
+  .tag{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .t-ok{background:var(--ok-bg);color:var(--ok)} .t-hi{background:var(--hi-bg);color:var(--hi)} .t-med{background:var(--med-bg);color:var(--med)} .t-low{background:var(--low-bg);color:var(--low)}
+  .bars{margin-top:14px}
+  .bar-row{display:flex;align-items:center;gap:12px;margin:8px 0;font-size:.9rem}
+  .bar-row .lab{width:230px;flex:none;color:var(--muted)}
+  @media(max-width:560px){.bar-row .lab{width:130px}}
+  .bar{height:22px;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding:0 8px;color:#fff;font-weight:700;font-size:.8rem;min-width:42px}
+  .slow{background:linear-gradient(90deg,#f59e0b,#dc2626)} .fast{background:var(--ok)}
+  ul.tight{margin:.4em 0;padding-left:1.15em} ul.tight li{margin:.3em 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  footer{margin-top:38px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="pill">Live QA · PASS</span>
+  <h1>Scenario English — Live QA Report</h1>
+  <p class="lede">Independent end-to-end QA of the <strong>deployed</strong> app (API + web) — 2026-06-18.
+  Scope: real requests against <code>api.english.daichenlab.com</code> and <code>english.daichenlab.com</code>,
+  including the voice/ASR path and mobile/desktop visual checks. 3 issues found, all fixed and re-verified.</p>
+
+  <h2>Result: 1 high + 2 polish issues — fixed</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Sev</th><th>Issue</th><th>Fix</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="tag t-hi">HIGH</span></td>
+        <td><strong>Finish path 12–86s.</strong> Scoring (gemini-3-flash-preview) stalled past the 30s timeout; a timed-out primary was then retried 3× (~90s) before failing over.</td>
+        <td>Scoring default → <code>openai/gpt-5.4-mini</code> (gemini-flash = fallback). Timeouts now fail over <em>immediately</em> (<code>isTimeoutErr</code>) instead of burning retries; cap 30s→20s; fallbacks logged.</td>
+        <td><span class="tag t-ok">fixed</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag t-med">MED</span></td>
+        <td><strong>Fake account feature.</strong> Settings → "Save your progress" faked <code>✓ Magic link sent … (demo stub)</code> with no backend.</td>
+        <td>Replaced with an honest "Coming soon" preview — no fake input, no fake success.</td>
+        <td><span class="tag t-ok">fixed</span></td>
+      </tr>
+      <tr>
+        <td><span class="tag t-low">LOW</span></td>
+        <td><strong>Bare empty state.</strong> You → "Dimensions" rendered just a header for fresh users.</td>
+        <td>Added an empty-state line ("Finish a session and your six skill dimensions will appear here.").</td>
+        <td><span class="tag t-ok">fixed</span></td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h2>The headline finding: scoring latency</h2>
+  <div class="card">
+    <p style="margin:0 0 6px">Measured finish latency on the synchronous session-finish path, 3 runs each, same prompts:</p>
+    <div class="bars">
+      <div class="bar-row"><span class="lab">gemini-3-flash-preview <em>(was)</em></span><div class="bar slow" style="width:86%">12–86s</div></div>
+      <div class="bar-row"><span class="lab">openai gpt-5.4-mini <em>(now)</em></span><div class="bar fast" style="width:8%">~1.4s</div></div>
+    </div>
+    <p style="margin:10px 0 0;color:var(--muted);font-size:.9rem">Scores were equivalent across both (e.g. 50/63/62 vs 49/64/62) — so the switch is pure latency + reliability win. Confirms Gemini (pro and flash) is unreliable on a synchronous path. Model remains runtime-switchable via the <code>app-model</code> skill.</p>
+  </div>
+
+  <h2>API end-to-end — all green</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Flow</th><th>Check</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Auth</td><td>anonymous → JWT; token refresh</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Content</td><td><code>GET /v1/scenarios</code> (16 seeded)</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Study</td><td><code>GET /v1/study/next</code> → adaptive session+item</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Text turn</td><td>3-tier feedback returned</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Voice turn</td><td>mp3 → whisper ASR → feedback (transcribed accurately, confidence present)</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Finish</td><td>ScoreReport: numeric total + CEFR + 6 dimensions (now ~1.4s)</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Expressions</td><td>list / create (valid type → 201) / delete / invalid type → 400</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Review · Profile · Trends</td><td>queue, profile, trends all 200</td><td><span class="tag t-ok">pass</span></td></tr>
+      <tr><td>Security</td><td>operator admin surface 404s non-operators</td><td><span class="tag t-ok">pass</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Web visual — no overflow, no console errors</h2>
+  <div class="grid">
+    <div class="card" style="margin-top:0">
+      <strong>Breakpoints</strong>
+      <ul class="tight"><li>320 · 390 · 1440 px</li><li>Landing + Study + You + Settings</li><li>0 horizontal overflow</li><li>0 console / page errors</li></ul>
+    </div>
+    <div class="card" style="margin-top:0">
+      <strong>Surfaces verified</strong>
+      <ul class="tight">
+        <li><strong>Study</strong> — coach card, CEFR badge, prompt, answer + "Speak instead"</li>
+        <li><strong>You</strong> — CEFR hero, dimensions, <em>required CEFR disclaimer present</em>, trend, expression bank</li>
+        <li><strong>Settings</strong> — account, preferences, theme, delete-data, about</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Verification after fixes</h2>
+  <ul class="tight">
+    <li>Server: <code>tsc</code> clean · <strong>80 vitest</strong> green (+2 for timeout fail-over) · redeployed (<code>3b7758e</code>) · finish re-measured fast.</li>
+    <li>Web: <code>next build</code> clean · redeployed (<code>1b10725</code>) · Settings + You re-screenshotted, fixes confirmed.</li>
+    <li>Full API E2E re-run from the box: 15/16 (the one "fail" was an invalid-type test payload — the API correctly returned 400).</li>
+  </ul>
+
+  <footer>
+    Live QA · 2026-06-18 · Scenario English (cdcupt/daily-english). API + web LIVE and healthy; neighbours (9relay, BillMind) unaffected.
+    Tooling note: external HTTPS tests run from the BWH box (the local proxy mangles outbound TLS); screenshots via headless Playwright.
+  </footer>
+</div>
+</body>
+</html>
