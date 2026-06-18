@@ -37,7 +37,15 @@ const EnvSchema = z.object({
   // (AI_<TASK>_PROVIDER / AI_<TASK>_MODEL, e.g. AI_SCORING_MODEL) so this schema
   // stays lean; DB overrides (admin) take precedence over both.
 
-  RESEND_KEY: z.string().optional(),
+  // Social sign-in (Sign in with Google / Apple). All optional: the box may have
+  // no credentials yet, and crashing prod over a missing OAuth client id is
+  // unacceptable. When a provider's client id is unset, that provider's endpoint
+  // returns 503 (provider_not_configured) instead. These public client ids are
+  // the allowed JWT audiences when verifying provider ID tokens (see auth/oauth.ts).
+  GOOGLE_CLIENT_ID: z.string().optional(),     // Google OAuth Web client id (web flow)
+  GOOGLE_IOS_CLIENT_ID: z.string().optional(), // Google OAuth iOS client id (native flow)
+  APPLE_CLIENT_ID: z.string().optional(),      // Apple Services ID (web flow client_id)
+  APPLE_IOS_CLIENT_ID: z.string().default('com.cdcupt.DailyEnglish'), // iOS bundle id (native flow)
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { env } from './env.js';
 import { authRoutes } from './auth/plugin.js';
+import { oauthRoutes } from './routes/oauth.js';
 import { sessionRoutes } from './routes/sessions.js';
 import { expressionRoutes } from './routes/expressions.js';
 import { audioTurnRoutes } from './routes/audioTurns.js';
@@ -54,6 +55,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024, files: 1 } });
   await app.register(authRoutes);
+  await app.register(oauthRoutes());
   await app.register(sessionRoutes);
   await app.register(expressionRoutes);
   await app.register(audioTurnRoutes());

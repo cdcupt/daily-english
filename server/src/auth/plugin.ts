@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'node:crypto';
 import { getDb } from '../db/client.js';
 import { users, userAbilityProfiles } from '../db/schema.js';
-import { issueToken, verifyToken, type AccessClaims } from './tokens.js';
+import { issueToken, verifyToken, tokenVersionOf, type AccessClaims } from './tokens.js';
 import { ok, fail } from '../schemas.js';
 
 declare module 'fastify' {
@@ -43,35 +43,47 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const existing = await db.select().from(users).where(eqDevice(deviceId));
     let userId: string;
     let role: 'user' | 'operator' = 'user';
+    let tokenVersion = 0;
     if (existing.length > 0) {
       userId = existing[0]!.id;
       role = existing[0]!.isOperator ? 'operator' : 'user';
+      tokenVersion = existing[0]!.tokenVersion;
     } else {
       const [row] = await db.insert(users).values({ deviceId }).returning();
       userId = row!.id;
+      tokenVersion = row!.tokenVersion;
       await db.insert(userAbilityProfiles).values({ userId }).onConflictDoNothing();
     }
     return reply.send(ok({
       userId,
       deviceId,
-      access: issueToken(userId, role, 'access'),
-      refresh: issueToken(userId, role, 'refresh'),
+      access: issueToken(userId, role, 'access', tokenVersion),
+      refresh: issueToken(userId, role, 'refresh', tokenVersion),
     }));
   });
 
-  // Rotate refresh → new access + refresh.
+  // Rotate refresh → new access + refresh. Rejects if the user's token_version
+  // has moved on since the refresh token was issued (sign-out/merge invalidation).
   app.post('/v1/auth/refresh', async (req, reply) => {
     const body = (req.body ?? {}) as { refresh?: string };
     if (!body.refresh) return reply.code(400).send(fail('bad_request', 'refresh required'));
+    let claims: AccessClaims;
     try {
-      const claims = verifyToken(body.refresh, 'refresh');
-      return reply.send(ok({
-        access: issueToken(claims.sub, claims.role, 'access'),
-        refresh: issueToken(claims.sub, claims.role, 'refresh'),
-      }));
+      claims = verifyToken(body.refresh, 'refresh');
     } catch {
       return reply.code(401).send(fail('unauthorized', 'Invalid refresh token'));
     }
+    const db = getDb();
+    const rows = await db.select().from(users).where(eq(users.id, claims.sub));
+    const user = rows[0];
+    if (!user || tokenVersionOf(claims) !== user.tokenVersion) {
+      return reply.code(401).send(fail('unauthorized', 'Invalid refresh token'));
+    }
+    const role = user.isOperator ? 'operator' : 'user';
+    return reply.send(ok({
+      access: issueToken(user.id, role, 'access', user.tokenVersion),
+      refresh: issueToken(user.id, role, 'refresh', user.tokenVersion),
+    }));
   });
 }
 

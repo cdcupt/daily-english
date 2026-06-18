@@ -23,7 +23,7 @@ describe('JWT tokens', () => {
 
   it('rejects an expired token', () => {
     const past = Math.floor(Date.now() / 1000) - 10_000;
-    const tok = issueToken('user-1', 'user', 'access', past);
+    const tok = issueToken('user-1', 'user', 'access', 0, past);
     expect(() => verifyToken(tok, 'access')).toThrow(/expired/);
   });
 

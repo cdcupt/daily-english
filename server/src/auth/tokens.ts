@@ -11,6 +11,7 @@ export interface AccessClaims {
   sub: string;        // user id
   role: 'user' | 'operator';
   typ: 'access' | 'refresh';
+  ver?: number;       // user's token_version at issue time (sign-out/merge invalidation)
   iat: number;
   exp: number;
 }
@@ -38,10 +39,19 @@ export function issueToken(
   sub: string,
   role: 'user' | 'operator',
   typ: 'access' | 'refresh',
+  tokenVersion = 0,
   now = Math.floor(Date.now() / 1000),
 ): string {
-  const claims: AccessClaims = { sub, role, typ, iat: now, exp: now + (typ === 'refresh' ? REFRESH_TTL : ACCESS_TTL) };
+  const claims: AccessClaims = {
+    sub, role, typ, ver: tokenVersion,
+    iat: now, exp: now + (typ === 'refresh' ? REFRESH_TTL : ACCESS_TTL),
+  };
   return sign(JSON.stringify(claims), secretFor(typ));
+}
+
+/** Read the user's token_version from claims (absent on legacy tokens → 0). */
+export function tokenVersionOf(claims: AccessClaims): number {
+  return claims.ver ?? 0;
 }
 
 export function verifyToken(

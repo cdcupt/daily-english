@@ -1,6 +1,7 @@
 import {
-  pgTable, pgEnum, uuid, text, integer, real, boolean, timestamp, jsonb, index, uniqueIndex,
+  pgTable, pgEnum, uuid, text, integer, real, boolean, timestamp, jsonb, index, uniqueIndex, check,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 /**
  * Data model for the AI Scenario English Trainer (TECH §B2).
@@ -56,10 +57,34 @@ export const users = pgTable('users', {
   nativeLanguage: text('native_language').notNull().default('zh'),
   isOperator: boolean('is_operator').notNull().default(false),
   mergedInto: uuid('merged_into'),
+  // Bumped on sign-out/merge to invalidate stale refresh tokens with one write
+  // (claims carry the version; refresh rejects when it no longer matches).
+  tokenVersion: integer('token_version').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
   deviceIdx: uniqueIndex('users_device_id').on(t.deviceId),
   emailIdx: uniqueIndex('users_email').on(t.email),
+}));
+
+// Social sign-in identities (accounts v1: attach + sign-in via Google/Apple).
+// One row per (provider, provider_sub); a user may have several (e.g. Google on
+// web + Apple on iOS) all pointing at the same user_id. The provider's signed
+// ID token is verified at the route (auth/oauth.ts) before a row is created.
+export const oauthIdentities = pgTable('oauth_identities', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  // 'google' | 'apple' — constrained by a CHECK in the migration.
+  provider: text('provider').notNull(),
+  // The provider's stable subject id for this account ('sub' claim).
+  providerSub: text('provider_sub').notNull(),
+  // Email at link time (may be a verified private-relay address for Apple); the
+  // canonical email lives on users — this is an audit/debug copy.
+  email: text('email'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  providerSubIdx: uniqueIndex('oauth_provider_sub').on(t.provider, t.providerSub),
+  userIdx: index('oauth_user_id').on(t.userId),
+  providerCheck: check('oauth_provider_check', sql`${t.provider} IN ('google', 'apple')`),
 }));
 
 export const contentSources = pgTable('content_sources', {
