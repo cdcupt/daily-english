@@ -19,8 +19,6 @@ export function SettingsView({ onSignOut }: SettingsViewProps) {
   const [voice, setVoice] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const [appearance, setAppearance] = useState<Appearance>("system");
-  const [magicEmail, setMagicEmail] = useState("");
-  const [magicSent, setMagicSent] = useState(false);
   const userId = getUserId();
 
   return (
@@ -41,37 +39,15 @@ export function SettingsView({ onSignOut }: SettingsViewProps) {
           </div>
         </div>
         <div className="a-card">
-          <div className="section-label" style={{ margin: "0 0 8px" }}>
+          <div className="section-label" style={{ margin: "0 0 8px", display: "flex", alignItems: "center", gap: 8 }}>
             Save your progress
+            <span className="acct-badge">Coming soon</span>
           </div>
-          <p style={{ fontSize: 13, color: "var(--color-ink-2)", margin: "0 0 10px" }}>
-            Add an email to keep your bank and CEFR history across devices. We&apos;ll
-            send a magic link — no password.
+          <p style={{ fontSize: 13, color: "var(--color-ink-2)", margin: 0 }}>
+            Soon you&apos;ll be able to add an email to keep your bank and CEFR history
+            across devices with a magic link — no password. For now, your progress is
+            saved on this device.
           </p>
-          {magicSent ? (
-            <p style={{ fontSize: 13, color: "var(--color-teal-700)", fontWeight: 700 }}>
-              ✓ Magic link sent to {magicEmail} (demo stub)
-            </p>
-          ) : (
-            <div className="magic-input">
-              <input
-                type="email"
-                inputMode="email"
-                placeholder="you@example.com"
-                aria-label="Email for magic link"
-                value={magicEmail}
-                onChange={(e) => setMagicEmail(e.target.value)}
-              />
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                disabled={!magicEmail.includes("@")}
-                onClick={() => setMagicSent(true)}
-              >
-                Send link
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

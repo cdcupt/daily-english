@@ -123,6 +123,11 @@ function ProfilePanel({ profile }: { profile: AbilityProfile }) {
         <div className="section-label" style={{ margin: "0 0 12px" }}>
           Dimensions
         </div>
+        {dims.length === 0 && (
+          <p style={{ fontSize: 13, color: "var(--color-ink-2)", margin: 0 }}>
+            Finish a session and your six skill dimensions will appear here.
+          </p>
+        )}
         {dims.map(([name, d]) => (
           <div className="dim-row" key={name}>
             <span className="nm">{name}</span>
