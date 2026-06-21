@@ -3,9 +3,12 @@
  * envelope via `request<T>` and returns the typed payload.
  */
 import { request } from "./client";
-import { storeTokens, getDeviceId } from "./tokens";
+import { storeTokens, clearTokens, getDeviceId } from "./tokens";
 import type {
   AnonymousAuth,
+  AuthConfig,
+  OAuthResult,
+  EmailAuth,
   StudyNext,
   TurnResult,
   AudioTurnResult,
@@ -39,6 +42,77 @@ export async function authAnonymous(): Promise<AnonymousAuth> {
     deviceId: auth.deviceId,
   });
   return auth;
+}
+
+/* ---------- Account / OAuth ---------- */
+
+/** GET /v1/auth/config — which social providers are enabled (public). */
+export function getAuthConfig(): Promise<AuthConfig> {
+  return request<AuthConfig>("/auth/config", { method: "GET", auth: false });
+}
+
+/**
+ * POST /v1/auth/oauth/google — exchange a Google ID token for a linked session.
+ * Persists the re-issued tokens plus the account identity (email / provider).
+ */
+export async function oauthGoogle(
+  idToken: string,
+  nonce?: string,
+): Promise<OAuthResult> {
+  const result = await request<OAuthResult>("/auth/oauth/google", {
+    method: "POST",
+    auth: false,
+    body: nonce ? { idToken, nonce } : { idToken },
+  });
+  persistOAuth(result);
+  return result;
+}
+
+/** POST /v1/auth/oauth/apple — exchange an Apple identity token for a session. */
+export async function oauthApple(
+  identityToken: string,
+  nonce?: string,
+): Promise<OAuthResult> {
+  const result = await request<OAuthResult>("/auth/oauth/apple", {
+    method: "POST",
+    auth: false,
+    body: nonce ? { identityToken, nonce } : { identityToken },
+  });
+  persistOAuth(result);
+  return result;
+}
+
+/** GET /v1/auth/me — the current session's identity (requires a token). */
+export function getMe(): Promise<EmailAuth> {
+  return request<EmailAuth>("/auth/me", { method: "GET" });
+}
+
+/**
+ * POST /v1/auth/signout — bumps the server token_version (invalidating the
+ * current tokens), then clears local tokens and re-establishes an anonymous
+ * session so the user is never left tokenless.
+ */
+export async function signOut(): Promise<AnonymousAuth> {
+  try {
+    await request<{ ok: boolean }>("/auth/signout", { method: "POST" });
+  } catch {
+    // The server may already consider the token stale; clear locally regardless.
+  }
+  clearTokens();
+  return authAnonymous();
+}
+
+/** Persist an OAuth exchange result as the active linked session. */
+function persistOAuth(result: OAuthResult): void {
+  storeTokens({
+    access: result.access,
+    refresh: result.refresh,
+    userId: result.userId,
+    deviceId: result.deviceId,
+    email: result.email,
+    provider: result.provider,
+    emailVerified: result.emailVerified,
+  });
 }
 
 /** GET /v1/study/next — the adaptive feed item. */

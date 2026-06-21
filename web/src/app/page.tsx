@@ -7,9 +7,11 @@ import { YouView } from "@/components/YouView";
 import { SettingsView } from "@/components/SettingsView";
 import { Onboarding } from "@/components/Onboarding";
 import { useAuth } from "@/lib/useAuth";
+import { useAccount } from "@/lib/useAccount";
 
 export default function Home() {
   const { status, error, start, signOut } = useAuth();
+  const account = useAccount();
   const [surface, setSurface] = useState<Surface>("study");
 
   if (status === "checking") {
@@ -26,6 +28,7 @@ export default function Home() {
         onStart={start}
         loading={false}
         error={status === "error" ? error : null}
+        account={account}
       />
     );
   }
@@ -34,7 +37,9 @@ export default function Home() {
     <AppShell active={surface} onNavigate={setSurface}>
       {surface === "study" && <StudyView />}
       {surface === "you" && <YouView />}
-      {surface === "settings" && <SettingsView onSignOut={signOut} />}
+      {surface === "settings" && (
+        <SettingsView onSignOut={signOut} account={account} />
+      )}
     </AppShell>
   );
 }

@@ -7,6 +7,10 @@
  */
 import type {
   AnonymousAuth,
+  AuthConfig,
+  OAuthResult,
+  EmailAuth,
+  AuthProvider,
   StudyNext,
   TurnResult,
   AudioTurnResult,
@@ -324,6 +328,49 @@ export async function mockFetch<T>(
       access: mockToken("access"),
       refresh: mockToken("refresh"),
     } satisfies AnonymousAuth as T;
+  }
+
+  // Account / OAuth. Dormant by default (no clientIds → no buttons offline).
+  // Set NEXT_PUBLIC_MOCK_OAUTH=1 to preview the buttons + linked states.
+  if (path === "/auth/config") {
+    const enabled = process.env.NEXT_PUBLIC_MOCK_OAUTH === "1";
+    return {
+      google: { clientId: enabled ? "mock-google-client-id.apps.googleusercontent.com" : null },
+      apple: { clientId: enabled ? "com.cdcupt.scenario-english.mock" : null },
+    } satisfies AuthConfig as T;
+  }
+
+  if (
+    (path === "/auth/oauth/google" || path === "/auth/oauth/apple") &&
+    method === "POST"
+  ) {
+    const provider: AuthProvider = path.endsWith("google") ? "google" : "apple";
+    return {
+      userId: "mock-user",
+      deviceId: "mock-device",
+      email: provider === "google" ? "learner@gmail.com" : "learner@privaterelay.appleid.com",
+      emailVerified: true,
+      access: mockToken("access"),
+      refresh: mockToken("refresh"),
+      provider,
+      linked: true,
+    } satisfies OAuthResult as T;
+  }
+
+  if (path === "/auth/me") {
+    return {
+      userId: "mock-user",
+      deviceId: "mock-device",
+      email: null,
+      emailVerified: false,
+      isAnonymous: true,
+      nativeLanguage: "zh",
+      role: process.env.NEXT_PUBLIC_MOCK_ROLE === "user" ? "user" : "operator",
+    } satisfies EmailAuth as T;
+  }
+
+  if (path === "/auth/signout" && method === "POST") {
+    return { ok: true } as T;
   }
 
   if (path === "/study/next") {

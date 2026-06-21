@@ -8,12 +8,28 @@ const ACCESS_KEY = "se.access";
 const REFRESH_KEY = "se.refresh";
 const USER_KEY = "se.userId";
 const DEVICE_KEY = "se.deviceId";
+const EMAIL_KEY = "se.email";
+const PROVIDER_KEY = "se.provider";
+const EMAIL_VERIFIED_KEY = "se.emailVerified";
+
+type LinkedProvider = "google" | "apple";
 
 interface StoredTokens {
   access: string;
   refresh: string;
   userId: string;
   deviceId: string;
+  /** Set only for a linked (non-anonymous) session. */
+  email?: string | null;
+  provider?: LinkedProvider | null;
+  emailVerified?: boolean | null;
+}
+
+/** The persisted account identity, read synchronously to avoid a flash. */
+export interface StoredAccount {
+  email: string | null;
+  provider: LinkedProvider | null;
+  emailVerified: boolean;
 }
 
 let memory: Partial<StoredTokens> = {};
@@ -43,6 +59,28 @@ export function getUserId(): string | null {
 
 export function isAuthenticated(): boolean {
   return !!getAccessToken();
+}
+
+/**
+ * The persisted account identity. Returns `email: null` for an anonymous
+ * session. Read synchronously from storage so the UI can seed without a flash.
+ */
+export function getStoredAccount(): StoredAccount {
+  const read = (key: string): string | null =>
+    hasStorage() ? window.localStorage.getItem(key) : null;
+  if (hasStorage()) {
+    const provider = read(PROVIDER_KEY);
+    return {
+      email: read(EMAIL_KEY),
+      provider: provider === "google" || provider === "apple" ? provider : null,
+      emailVerified: read(EMAIL_VERIFIED_KEY) === "true",
+    };
+  }
+  return {
+    email: memory.email ?? null,
+    provider: memory.provider ?? null,
+    emailVerified: memory.emailVerified ?? false,
+  };
 }
 
 /**
@@ -80,6 +118,19 @@ export function storeTokens(t: StoredTokens): void {
     window.localStorage.setItem(REFRESH_KEY, t.refresh);
     window.localStorage.setItem(USER_KEY, t.userId);
     window.localStorage.setItem(DEVICE_KEY, t.deviceId);
+    // Account fields: present on a linked OAuth session, absent for anonymous.
+    if (t.provider) {
+      window.localStorage.setItem(PROVIDER_KEY, t.provider);
+      window.localStorage.setItem(EMAIL_KEY, t.email ?? "");
+      window.localStorage.setItem(
+        EMAIL_VERIFIED_KEY,
+        t.emailVerified ? "true" : "false",
+      );
+    } else {
+      [EMAIL_KEY, PROVIDER_KEY, EMAIL_VERIFIED_KEY].forEach((k) =>
+        window.localStorage.removeItem(k),
+      );
+    }
   } else {
     memory = { ...t };
   }
@@ -87,9 +138,15 @@ export function storeTokens(t: StoredTokens): void {
 
 export function clearTokens(): void {
   if (hasStorage()) {
-    [ACCESS_KEY, REFRESH_KEY, USER_KEY, DEVICE_KEY].forEach((k) =>
-      window.localStorage.removeItem(k),
-    );
+    [
+      ACCESS_KEY,
+      REFRESH_KEY,
+      USER_KEY,
+      DEVICE_KEY,
+      EMAIL_KEY,
+      PROVIDER_KEY,
+      EMAIL_VERIFIED_KEY,
+    ].forEach((k) => window.localStorage.removeItem(k));
   }
   memory = {};
 }

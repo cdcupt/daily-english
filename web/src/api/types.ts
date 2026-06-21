@@ -18,6 +18,42 @@ export interface AnonymousAuth {
   refresh: string;
 }
 
+/* ---------- Account / OAuth (server/src/routes/auth.ts) ---------- */
+
+export type AuthProvider = "google" | "apple";
+
+/** GET /v1/auth/config — which social providers are wired up server-side. */
+export interface AuthConfig {
+  google: { clientId: string | null };
+  apple: { clientId: string | null };
+}
+
+/**
+ * POST /v1/auth/oauth/{google,apple} — exchange a verified provider token for a
+ * (re-issued) device session bound to the now-linked account.
+ */
+export interface OAuthResult {
+  userId: string;
+  deviceId: string;
+  email: string;
+  emailVerified: boolean;
+  access: string;
+  refresh: string;
+  provider: AuthProvider;
+  linked: boolean;
+}
+
+/** GET /v1/auth/me — the current session's identity. */
+export interface EmailAuth {
+  userId: string;
+  deviceId: string;
+  email: string | null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+  nativeLanguage: string | null;
+  role: "user" | "operator";
+}
+
 export type ItemType =
   | "scenario_translation"
   | "scenario_dialogue"
