@@ -6,11 +6,14 @@ import {
   studyNext,
   submitTextTurn,
   submitAudioTurn,
+  reviewComplete,
 } from "@/api/endpoints";
 import type {
   StudyNext,
+  StudyPractice,
   FeedbackPayload,
   AudioTurnResult,
+  ReviewItem,
 } from "@/api/types";
 import { FeedbackDiff } from "./FeedbackDiff";
 import { useVoiceRecorder } from "@/lib/useVoiceRecorder";
@@ -28,31 +31,216 @@ const BADGE_CLASS: Record<string, string> = {
   topic_description: "description",
 };
 
+/** SM-2 quality grades surfaced to the learner, mapped to the backend 0–5 scale. */
+const GRADES: ReadonlyArray<{
+  label: string;
+  grade: number;
+  className: string;
+}> = [
+  { label: "Forgot", grade: 1, className: "btn-coral" },
+  { label: "Good", grade: 4, className: "btn-primary" },
+  { label: "Easy", grade: 5, className: "btn-ghost" },
+];
+
 export function StudyView() {
   const queryClient = useQueryClient();
-  const { data, isLoading, isError, error, refetch } = useQuery<StudyNext>({
-    queryKey: ["study", "next"],
-    queryFn: studyNext,
-  });
+  const { data, isLoading, isError, error, refetch } = useQuery<StudyNext | null>(
+    {
+      queryKey: ["study", "next"],
+      queryFn: studyNext,
+    },
+  );
 
+  function refetchNext() {
+    queryClient.invalidateQueries({ queryKey: ["study", "next"] });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="app-pad">
+        <CoachStrip progress="…" sub="Loading your next item" />
+        <div className="feed-item">
+          <div className="skel" style={{ height: 18, width: "40%", marginBottom: 12 }} />
+          <div className="skel" style={{ height: 60, marginBottom: 12 }} />
+          <div className="skel" style={{ height: 84 }} />
+        </div>
+      </div>
+    );
+  }
+
+  // Real network/server failure — keep showing the error message.
+  if (isError) {
+    return (
+      <div className="app-pad">
+        <div className="center-state">
+          <p>{error instanceof Error ? error.message : "Something went wrong."}</p>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => refetch()}>
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty bank (data === null, meta.reason === "empty_bank") — a calm, friendly
+  // caught-up state, intentionally distinct from the error branch above.
+  if (!data) {
+    return (
+      <div className="app-pad">
+        <div className="center-state">
+          <p>You&apos;re all caught up — come back later for more.</p>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => refetch()}>
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (data.kind === "review") {
+    return (
+      <ReviewCard review={data.review} onDone={refetchNext} />
+    );
+  }
+
+  return <PracticeCard data={data} onNext={refetchNext} />;
+}
+
+/* ---------- Review card (spaced repetition) ---------- */
+
+function ReviewCard({
+  review,
+  onDone,
+}: {
+  review: ReviewItem;
+  onDone: () => void;
+}) {
+  const [revealed, setRevealed] = useState(false);
+  const [grading, setGrading] = useState(false);
+  const [gradeError, setGradeError] = useState<string | null>(null);
+
+  const answer = review.naturalExpression ?? review.content;
+
+  async function grade(value: number) {
+    if (grading) return;
+    setGrading(true);
+    setGradeError(null);
+    try {
+      await reviewComplete(review.expressionId, { grade: value });
+      onDone();
+    } catch (e) {
+      setGradeError(e instanceof Error ? e.message : "Could not save your review");
+      setGrading(false);
+    }
+  }
+
+  return (
+    <div className="app-pad">
+      <CoachStrip progress="Review" sub="A saved expression is due" />
+
+      <article className="feed-item">
+        <div className="it-head">
+          <span className="it-badge review">review</span>
+        </div>
+
+        <h2 className="it-q">Quick review</h2>
+
+        <div className="prompt-cn">
+          <small>Try to recall</small>
+          {review.prompt}
+        </div>
+
+        {review.userOriginal && (
+          <p className="it-goal">
+            You once said: <i>“{review.userOriginal}”</i>
+          </p>
+        )}
+
+        {!revealed ? (
+          <div className="input-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => setRevealed(true)}
+            >
+              Show answer
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="prompt-cn" aria-live="polite">
+              <small>Natural expression</small>
+              {answer}
+            </div>
+
+            <p className="it-goal">How well did you remember it?</p>
+            <div className="input-actions">
+              {GRADES.map((g) => (
+                <button
+                  key={g.grade}
+                  type="button"
+                  className={`btn ${g.className}`}
+                  onClick={() => grade(g.grade)}
+                  disabled={grading}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+
+            {grading && (
+              <div className="thinking" aria-live="polite">
+                Saving your review
+                <span className="dots">
+                  <i /> <i /> <i />
+                </span>
+              </div>
+            )}
+          </>
+        )}
+
+        {gradeError && (
+          <div className="asr-banner" role="alert" style={{ marginTop: 12 }}>
+            <span className="bi" aria-hidden>
+              ⚠️
+            </span>
+            <div>
+              <b>Something went wrong</b>
+              <small>{gradeError}</small>
+            </div>
+          </div>
+        )}
+      </article>
+    </div>
+  );
+}
+
+/* ---------- Practice card (adaptive item) ---------- */
+
+function PracticeCard({
+  data,
+  onNext,
+}: {
+  data: StudyPractice;
+  onNext: () => void;
+}) {
   const [answer, setAnswer] = useState("");
   const [turn, setTurn] = useState<TurnState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const recorder = useVoiceRecorder();
 
-  const item = data?.item;
-  const sessionId = data?.sessionId;
+  const { item, sessionId } = data;
 
   function resetForNext() {
     setAnswer("");
     setTurn(null);
     setSubmitError(null);
-    queryClient.invalidateQueries({ queryKey: ["study", "next"] });
+    onNext();
   }
 
   async function handleSubmitText() {
-    if (!item || !sessionId || !answer.trim() || submitting) return;
+    if (!answer.trim() || submitting) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -66,7 +254,6 @@ export function StudyView() {
   }
 
   async function handleRecordToggle() {
-    if (!item || !sessionId) return;
     if (recorder.state === "recording") {
       const rec = await recorder.stop();
       if (!rec) return;
@@ -107,41 +294,12 @@ export function StudyView() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="app-pad">
-        <CoachStrip progress="…" sub="Loading your next item" />
-        <div className="feed-item">
-          <div className="skel" style={{ height: 18, width: "40%", marginBottom: 12 }} />
-          <div className="skel" style={{ height: 60, marginBottom: 12 }} />
-          <div className="skel" style={{ height: 84 }} />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !item || !sessionId) {
-    return (
-      <div className="app-pad">
-        <div className="center-state">
-          <p>{error instanceof Error ? error.message : "Nothing to study right now."}</p>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => refetch()}>
-            Try again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const badge = BADGE_CLASS[item.type] ?? "translation";
   const showFeedback = turn?.feedback;
 
   return (
     <div className="app-pad">
-      <CoachStrip
-        progress={item.cefrLevel}
-        sub={item.learningGoal}
-      />
+      <CoachStrip progress={item.cefrLevel} sub={item.learningGoal} />
 
       <article className="feed-item">
         <div className="it-head">
@@ -153,9 +311,7 @@ export function StudyView() {
           )}
         </div>
 
-        {item.scenario && (
-          <h2 className="it-q">{item.scenario.goal}</h2>
-        )}
+        {item.scenario && <h2 className="it-q">{item.scenario.goal}</h2>}
         <p className="it-goal">
           You are the <b>{item.scenario?.userRole ?? "learner"}</b>. Respond to
           the <b>{item.scenario?.aiRole ?? "coach"}</b> in English.

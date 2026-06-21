@@ -115,9 +115,25 @@ function persistOAuth(result: OAuthResult): void {
   });
 }
 
-/** GET /v1/study/next — the adaptive feed item. */
-export function studyNext(): Promise<StudyNext> {
-  return request<StudyNext>("/study/next", { method: "GET" });
+/**
+ * GET /v1/study/next — the adaptive feed item. Resolves to a practice item, a
+ * due review item (discriminated on `kind`), or `null` when the bank is empty
+ * (the server sends `data: null`, which `request` unwraps to `null`).
+ */
+export function studyNext(): Promise<StudyNext | null> {
+  return request<StudyNext | null>("/study/next", { method: "GET" });
+}
+
+/**
+ * POST /v1/review/:id/complete — grade a due review and reschedule it via SM-2.
+ * The backend route (server/src/routes/review.ts) expects `{ grade }` where
+ * grade is an integer 0–5; `id` is the expression id from the review item.
+ */
+export function reviewComplete(
+  id: string,
+  body: { grade: number },
+): Promise<{ taskId: string; expressionId: string; reviewStatus: unknown }> {
+  return request(`/review/${id}/complete`, { method: "POST", body });
 }
 
 /** POST /v1/sessions/:id/turns — submit a text answer, get 3-tier feedback. */

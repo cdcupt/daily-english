@@ -80,12 +80,44 @@ export interface StudyItem {
   scenario: StudyScenario | null;
 }
 
-export interface StudyNext {
+/** The five SM-2 review prompt flavours emitted by the server (review/prompt.ts). */
+export type ReviewKind = "use_pattern" | "ask_politely" | "re_enter_scenario";
+
+/**
+ * A spaced-repetition review item resurfaced by GET /v1/study/next when a saved
+ * expression is due. `expressionId` is the id passed to POST /v1/review/:id/complete.
+ */
+export interface ReviewItem {
+  expressionId: string;
+  type: ExpressionType;
+  content: string;
+  userOriginal: string | null;
+  naturalExpression: string | null;
+  prompt: string;
+  reviewKind: ReviewKind;
+}
+
+/** GET /v1/study/next, adaptive practice branch. */
+export interface StudyPractice {
   kind: "practice";
   reason: string;
   sessionId: string;
   item: StudyItem;
 }
+
+/** GET /v1/study/next, due spaced-repetition review branch. */
+export interface StudyReview {
+  kind: "review";
+  reason: string;
+  sessionId: string;
+  review: ReviewItem;
+}
+
+/**
+ * GET /v1/study/next is a discriminated union on `kind`. The endpoint also
+ * resolves to `null` when the bank is empty (meta.reason === "empty_bank").
+ */
+export type StudyNext = StudyPractice | StudyReview;
 
 export type FeedbackIssueType =
   | "grammar"

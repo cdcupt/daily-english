@@ -203,6 +203,26 @@ const STUDY_NEXT: StudyNext = {
   },
 };
 
+/**
+ * A due spaced-repetition review item, mirroring the server's `kind: "review"`
+ * branch (study.ts) built from a saved mistake_pair via reviewPromptFor.
+ */
+const STUDY_REVIEW: StudyNext = {
+  kind: "review",
+  reason: "due_review",
+  sessionId: "mock-session-1",
+  review: {
+    expressionId: "exp-1",
+    type: "mistake_pair",
+    content: "a table for two",
+    userOriginal: "a table for two person",
+    naturalExpression: "a table for two",
+    prompt:
+      'You once said "a table for two person". Say it naturally — try: "a table for two".',
+    reviewKind: "ask_politely",
+  },
+};
+
 const SCORE_REPORT: ScoreReport = {
   session_id: "mock-session-1",
   total: 78,
@@ -374,7 +394,26 @@ export async function mockFetch<T>(
   }
 
   if (path === "/study/next") {
+    // Default mock stays on the practice path. Set NEXT_PUBLIC_MOCK_STUDY=review
+    // to preview the spaced-repetition review card; =empty for the caught-up state.
+    const flavour = process.env.NEXT_PUBLIC_MOCK_STUDY;
+    if (flavour === "review") return STUDY_REVIEW as T;
+    if (flavour === "empty") return null as T;
     return STUDY_NEXT as T;
+  }
+
+  if (/\/review\/.+\/complete$/.test(path) && method === "POST") {
+    const id = path.split("/")[2];
+    const grade = (req.body as { grade?: number } | undefined)?.grade ?? 0;
+    // Mark the matching expression as no longer due so a subsequent
+    // /study/next falls through to the practice item.
+    const expr = mockExpressions.find((e) => e.id === id);
+    if (expr) expr.reviewStatus = { due: false };
+    return {
+      taskId: `task-${id}`,
+      expressionId: id,
+      reviewStatus: { due: false, lastGrade: grade },
+    } as T;
   }
 
   if (/\/sessions\/.+\/turns\/audio$/.test(path)) {

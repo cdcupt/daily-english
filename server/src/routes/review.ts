@@ -38,7 +38,11 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
     return reply.send(ok(queue, { total: queue.length }));
   });
 
-  // Grade a review → reschedule the expression (SM-2) + close the task.
+  // Grade a review → reschedule the expression (SM-2). `:id` is the EXPRESSION id
+  // (what GET /v1/study/next returns as review.expressionId and what the client
+  // sends) — the expression's reviewStatus IS the SM-2 state; reviewTasks are just
+  // optional materialized prompts. Also close any pending task for this expression
+  // so /v1/review/queue stays consistent.
   app.post('/v1/review/:id/complete', { preHandler: requireAuth }, async (req, reply) => {
     const { id } = req.params as { id: string };
     const { grade } = (req.body ?? {}) as { grade?: number };
@@ -46,18 +50,17 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send(fail('bad_request', 'grade must be 0–5'));
     }
     const db = getDb();
-    const tasks = await db.select().from(reviewTasks).where(eq(reviewTasks.id, id));
-    if (tasks.length === 0) return reply.code(404).send(fail('not_found', 'Review task not found'));
-    const task = tasks[0]!;
-    if (task.userId !== req.user!.sub) return reply.code(404).send(fail('not_found', 'Not found'));
-
-    const exprs = await db.select().from(expressionBankItems).where(eq(expressionBankItems.id, task.expressionId));
+    const exprs = await db.select().from(expressionBankItems).where(eq(expressionBankItems.id, id));
     if (exprs.length === 0) return reply.code(404).send(fail('not_found', 'Expression not found'));
-    const next = scheduleNext(exprs[0]!.reviewStatus, grade, new Date());
+    const expr = exprs[0]!;
+    if (expr.userId !== req.user!.sub) return reply.code(404).send(fail('not_found', 'Not found'));
 
-    await db.update(expressionBankItems).set({ reviewStatus: next }).where(eq(expressionBankItems.id, task.expressionId));
-    await db.update(reviewTasks).set({ state: 'completed' }).where(eq(reviewTasks.id, id));
+    const next = scheduleNext(expr.reviewStatus, grade, new Date());
+    await db.update(expressionBankItems).set({ reviewStatus: next }).where(eq(expressionBankItems.id, id));
+    await db.update(reviewTasks).set({ state: 'completed' }).where(and(
+      eq(reviewTasks.expressionId, id), eq(reviewTasks.state, 'pending'),
+    ));
 
-    return reply.send(ok({ taskId: id, expressionId: task.expressionId, reviewStatus: next }));
+    return reply.send(ok({ expressionId: id, reviewStatus: next }));
   });
 }
