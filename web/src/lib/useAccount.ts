@@ -37,6 +37,8 @@ export interface UseAccount {
   /** A provider sign-in is currently in flight. */
   busy: AuthProvider | null;
   error: string | null;
+  /** True when Google's script can't load (e.g. blocked network) — hide Google. */
+  googleUnavailable: boolean;
   /**
    * Mount Google's official rendered sign-in button into `container`. Loads GIS,
    * calls `initialize` once, then `renderButton` — the rendered button reliably
@@ -71,6 +73,7 @@ export function useAccount(): UseAccount {
   const [account, setAccount] = useState<AccountIdentity | null>(seedAccount);
   const [busy, setBusy] = useState<AuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [googleUnavailable, setGoogleUnavailable] = useState(false);
 
   // Guards against StrictMode double-invoke + post-unmount state writes.
   const configLoaded = useRef(false);
@@ -174,12 +177,13 @@ export function useAccount(): UseAccount {
           logo_alignment: "left",
           width: 320,
         });
+        if (mounted.current) setGoogleUnavailable(false);
       } catch (e) {
-        if (mounted.current) {
-          setError(
-            e instanceof Error ? e.message : "Could not load Google sign-in",
-          );
-        }
+        // GIS script blocked or a transient network failure — do NOT surface a
+        // scary "Failed to load" error; just hide Google and let the user retry
+        // (refresh) or use Apple. Real sign-in failures still set `error`.
+        console.warn("Google sign-in unavailable (script failed to load):", e);
+        if (mounted.current) setGoogleUnavailable(true);
       }
     },
     [providers.google, handleGoogleCredential],
@@ -238,6 +242,7 @@ export function useAccount(): UseAccount {
     loadingConfig,
     busy,
     error,
+    googleUnavailable,
     renderGoogleButton,
     linkWithApple,
     signOutAccount,

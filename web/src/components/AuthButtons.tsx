@@ -37,7 +37,7 @@ export function AuthButtons({
   withDivider = false,
   dividerLabel = "or sign in to sync",
 }: AuthButtonsProps) {
-  const { providers, busy, error, renderGoogleButton, linkWithApple } = account;
+  const { providers, busy, error, googleUnavailable, renderGoogleButton, linkWithApple } = account;
   const hasGoogle = !!providers.google;
   const hasApple = !!providers.apple;
   const googleSlot = useRef<HTMLDivElement | null>(null);
@@ -71,8 +71,17 @@ export function AuthButtons({
             ref={googleSlot}
             className="google-btn-slot"
             data-busy={busy === "google" ? "true" : undefined}
+            hidden={googleUnavailable}
             aria-label="Sign in with Google"
           />
+        )}
+        {hasGoogle && googleUnavailable && (
+          <p
+            className="auth-hint"
+            style={{ fontSize: 13, color: "var(--color-ink-2)", textAlign: "center", margin: 0 }}
+          >
+            Google didn’t load — refresh to retry, or continue with Apple.
+          </p>
         )}
         {hasApple && (
           <button
