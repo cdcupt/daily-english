@@ -1098,6 +1098,15 @@ textarea:focus-visible,
   display: grid;
   gap: 9px;
 }
+/* Slot for Google's official rendered button — center it in the auth block. */
+.google-btn-slot {
+  display: flex;
+  justify-content: center;
+}
+.google-btn-slot[data-busy="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
 .auth-divider {
   display: flex;
   align-items: center;

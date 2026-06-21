@@ -4,14 +4,22 @@ import { AuthButtons } from "@/components/AuthButtons";
 import type { UseAccount } from "@/lib/useAccount";
 
 interface OnboardingProps {
-  onStart: () => void;
-  loading: boolean;
+  /** Bootstrap error from the anonymous session, surfaced under the hero. */
   error: string | null;
   account: UseAccount;
 }
 
-export function Onboarding({ onStart, loading, error, account }: OnboardingProps) {
-  const hasProviders = !!account.providers.google || !!account.providers.apple;
+/**
+ * Login-first sign-in gate. The app requires a linked account, so this screen is
+ * the only thing an unauthenticated visitor sees: the Cleo hero plus the social
+ * sign-in buttons as the primary CTA. There is no anonymous "start" path. When
+ * /auth/config returns no providers we show a clear unavailable message rather
+ * than a dead-end screen, so sign-in can never hard-brick the app.
+ */
+export function Onboarding({ error, account }: OnboardingProps) {
+  const { loadingConfig } = account;
+  const hasProviders =
+    !!account.providers.google || !!account.providers.apple;
 
   return (
     <main id="main" className="app-shell">
@@ -20,29 +28,28 @@ export function Onboarding({ onStart, loading, error, account }: OnboardingProps
         <h1 id="onb-title">Practice English in real scenarios.</h1>
         <p>
           Order coffee, negotiate a deadline, check into a hotel — answer in
-          English and get warm, three-tier coaching from Cleo. No sign-up needed.
+          English and get warm, three-tier coaching from Cleo. Sign in to start.
         </p>
-        <button
-          type="button"
-          className="btn btn-primary btn-block"
-          onClick={onStart}
-          disabled={loading}
-        >
-          {loading ? "Starting…" : "Start practising"}
-        </button>
-        {error && (
-          <p style={{ color: "var(--color-red)", fontSize: 13, marginTop: 12 }}>
-            {error}
+
+        {loadingConfig ? (
+          <p style={{ fontSize: 13, color: "var(--color-muted)", marginTop: 18 }}>
+            Loading sign-in…
+          </p>
+        ) : hasProviders ? (
+          <AuthButtons account={account} />
+        ) : (
+          <p
+            className="auth-error"
+            role="alert"
+            style={{ marginTop: 18, fontSize: 13 }}
+          >
+            Sign-in is temporarily unavailable — please try again later.
           </p>
         )}
 
-        {/* Social sign-in renders only when /auth/config enabled a provider. */}
-        <AuthButtons account={account} withDivider dividerLabel="or sign in to sync" />
-
-        {!hasProviders && (
-          <p style={{ fontSize: 12, color: "var(--color-muted)", marginTop: 18 }}>
-            Already have an account? You can add an email later from Settings to
-            sync across devices.
+        {error && (
+          <p style={{ color: "var(--color-red)", fontSize: 13, marginTop: 12 }}>
+            {error}
           </p>
         )}
       </section>

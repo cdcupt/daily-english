@@ -37,8 +37,13 @@ export interface UseAccount {
   /** A provider sign-in is currently in flight. */
   busy: AuthProvider | null;
   error: string | null;
-  /** Begin the Google credential flow (loads GIS, prompts, verifies). */
-  linkWithGoogle: () => Promise<void>;
+  /**
+   * Mount Google's official rendered sign-in button into `container`. Loads GIS,
+   * calls `initialize` once, then `renderButton` — the rendered button reliably
+   * opens the account chooser on click (unlike `prompt()` / One Tap, which
+   * silently no-ops in many browsers). The GIS callback verifies the credential.
+   */
+  renderGoogleButton: (container: HTMLElement) => Promise<void>;
   /** Begin the Apple popup flow (loads appleid.auth.js, verifies). */
   linkWithApple: () => Promise<void>;
   /** Sign out then re-establish an anonymous session. */
@@ -70,6 +75,12 @@ export function useAccount(): UseAccount {
   // Guards against StrictMode double-invoke + post-unmount state writes.
   const configLoaded = useRef(false);
   const mounted = useRef(true);
+
+  // One nonce per mount, shared by GIS initialize() and the oauthGoogle exchange
+  // so the backend's nonce check matches. google.accounts.id.initialize() is a
+  // global, idempotent singleton — guard it so we call it at most once.
+  const googleNonce = useRef<string>(freshNonce());
+  const googleInitialized = useRef(false);
 
   useEffect(() => {
     mounted.current = true;
@@ -106,41 +117,73 @@ export function useAccount(): UseAccount {
     setAccount(seedAccount());
   }, []);
 
-  const linkWithGoogle = useCallback(async () => {
-    const clientId = providers.google?.clientId;
-    if (!clientId || busy) return;
-    setBusy("google");
-    setError(null);
-    try {
-      const id = await loadGoogleIdentity();
-      const nonce = freshNonce();
-      const credential = await new Promise<string>((resolve, reject) => {
-        id.initialize({
-          client_id: clientId,
-          nonce,
-          callback: (response: GoogleCredentialResponse) => {
-            if (response.credential) resolve(response.credential);
-            else reject(new Error("Google sign-in returned no credential"));
-          },
-          cancel_on_tap_outside: true,
-          use_fedcm_for_prompt: true,
+  /** GIS callback: verify the returned ID token, then flip to a linked session. */
+  const handleGoogleCredential = useCallback(
+    async (response: GoogleCredentialResponse) => {
+      if (!response.credential) {
+        if (mounted.current) {
+          setError("Google sign-in returned no credential");
+        }
+        return;
+      }
+      setBusy("google");
+      setError(null);
+      try {
+        const result = await oauthGoogle(response.credential, googleNonce.current);
+        if (mounted.current) {
+          setAccount({ email: result.email, provider: "google" });
+        }
+      } catch (e) {
+        if (mounted.current) {
+          setError(
+            e instanceof Error ? e.message : "Could not sign in with Google",
+          );
+        }
+      } finally {
+        if (mounted.current) setBusy(null);
+      }
+    },
+    [],
+  );
+
+  const renderGoogleButton = useCallback(
+    async (container: HTMLElement) => {
+      const clientId = providers.google?.clientId;
+      if (!clientId) return;
+      try {
+        const id = await loadGoogleIdentity();
+        if (!googleInitialized.current) {
+          id.initialize({
+            client_id: clientId,
+            nonce: googleNonce.current,
+            callback: (response: GoogleCredentialResponse) => {
+              void handleGoogleCredential(response);
+            },
+            cancel_on_tap_outside: true,
+            use_fedcm_for_prompt: true,
+          });
+          googleInitialized.current = true;
+        }
+        container.replaceChildren();
+        id.renderButton(container, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "pill",
+          logo_alignment: "left",
+          width: 320,
         });
-        id.prompt();
-      });
-      const result = await oauthGoogle(credential, nonce);
-      if (mounted.current) {
-        setAccount({ email: result.email, provider: "google" });
+      } catch (e) {
+        if (mounted.current) {
+          setError(
+            e instanceof Error ? e.message : "Could not load Google sign-in",
+          );
+        }
       }
-    } catch (e) {
-      if (mounted.current) {
-        setError(
-          e instanceof Error ? e.message : "Could not sign in with Google",
-        );
-      }
-    } finally {
-      if (mounted.current) setBusy(null);
-    }
-  }, [providers.google, busy]);
+    },
+    [providers.google, handleGoogleCredential],
+  );
 
   const linkWithApple = useCallback(async () => {
     const clientId = providers.apple?.clientId;
@@ -195,7 +238,7 @@ export function useAccount(): UseAccount {
     loadingConfig,
     busy,
     error,
-    linkWithGoogle,
+    renderGoogleButton,
     linkWithApple,
     signOutAccount,
     refresh,
