@@ -5,11 +5,49 @@
  * UI renders without a running backend.
  */
 import type { ApiEnvelope } from "./types";
-import { getAccessToken } from "./tokens";
+import {
+  getAccessToken,
+  getRefreshToken,
+  updateAccessTokens,
+  clearTokens,
+} from "./tokens";
 import { isMockMode, mockFetch } from "@/mocks/handlers";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://api.english.daichenlab.com/v1";
+
+// Single in-flight refresh shared across concurrent 401s, so a burst of expired
+// requests triggers exactly one /auth/refresh.
+let refreshInflight: Promise<boolean> | null = null;
+
+async function refreshAccessToken(): Promise<boolean> {
+  const rt = getRefreshToken();
+  if (!rt) return false;
+  if (!refreshInflight) {
+    refreshInflight = (async (): Promise<boolean> => {
+      try {
+        const res = await fetch(`${API_URL}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh: rt }),
+        });
+        if (!res.ok) return false;
+        const env = (await res.json()) as ApiEnvelope<{
+          access: string;
+          refresh: string;
+        }>;
+        if (env.error || !env.data?.access || !env.data?.refresh) return false;
+        updateAccessTokens(env.data.access, env.data.refresh);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+  }
+  const ok = await refreshInflight;
+  refreshInflight = null;
+  return ok;
+}
 
 export class ApiError extends Error {
   code: string;
@@ -29,6 +67,8 @@ interface RequestOptions {
   form?: FormData;
   query?: Record<string, string | number | undefined>;
   auth?: boolean;
+  /** Internal: set after a refresh retry so we don't loop. */
+  _retried?: boolean;
 }
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
@@ -46,7 +86,7 @@ export async function request<T>(
   path: string,
   opts: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, form, query, auth = true } = opts;
+  const { method = "GET", body, form, query, auth = true, _retried = false } = opts;
 
   if (isMockMode()) {
     return mockFetch<T>(path, { method, body, form, query });
@@ -85,6 +125,21 @@ export async function request<T>(
   }
 
   if (!res.ok || envelope.error) {
+    // Access token expired → silently refresh once and retry. /auth/* calls are
+    // excluded (the refresh call itself must not recurse).
+    if (
+      res.status === 401 &&
+      auth &&
+      !_retried &&
+      !path.startsWith("/auth/")
+    ) {
+      if (await refreshAccessToken()) {
+        return request<T>(path, { ...opts, _retried: true });
+      }
+      // Refresh failed (refresh token also dead) → drop the session so the app
+      // falls back to the sign-in gate on next mount/reload.
+      clearTokens();
+    }
     const e = envelope.error;
     throw new ApiError(
       e?.code ?? "error",

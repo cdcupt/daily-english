@@ -57,8 +57,28 @@ export function getUserId(): string | null {
   return memory.userId ?? null;
 }
 
+export function getRefreshToken(): string | null {
+  if (hasStorage()) return window.localStorage.getItem(REFRESH_KEY);
+  return memory.refresh ?? null;
+}
+
 export function isAuthenticated(): boolean {
   return !!getAccessToken();
+}
+
+/**
+ * Replace ONLY the access+refresh pair after a silent token refresh, preserving
+ * the stored identity (userId/deviceId/email/provider) — the /auth/refresh
+ * response carries just the rotated token pair.
+ */
+export function updateAccessTokens(access: string, refresh: string): void {
+  if (hasStorage()) {
+    window.localStorage.setItem(ACCESS_KEY, access);
+    window.localStorage.setItem(REFRESH_KEY, refresh);
+  } else {
+    memory.access = access;
+    memory.refresh = refresh;
+  }
 }
 
 /**
