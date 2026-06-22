@@ -36,6 +36,39 @@ struct RefreshResponse: Decodable, Sendable {
     let refresh: String
 }
 
+/// GET /v1/auth/config → which social providers are wired up server-side.
+/// A provider button is shown only when its `clientId` is non-null.
+struct AuthConfig: Decodable, Sendable {
+    struct Provider: Decodable, Sendable {
+        let clientId: String?
+    }
+    let google: Provider
+    let apple: Provider
+}
+
+/// POST /v1/auth/oauth/{apple,google} → a re-issued session bound to the now-linked account.
+struct OAuthResult: Decodable, Sendable {
+    let userId: String
+    let deviceId: String
+    let email: String
+    let emailVerified: Bool
+    let access: String
+    let refresh: String
+    let provider: String      // "apple" | "google"
+    // `linked` is the server's link outcome string ("login"/"created"/…); not consumed.
+}
+
+/// GET /v1/auth/me → the current session's identity (anonymous vs linked).
+struct MeResponse: Decodable, Sendable {
+    let userId: String
+    let deviceId: String
+    let email: String?
+    let emailVerified: Bool
+    let isAnonymous: Bool
+    let nativeLanguage: String?
+    let role: String
+}
+
 // MARK: - Study feed
 
 /// GET /v1/study/next → { kind, sessionId, item?, review? }
@@ -76,6 +109,45 @@ struct ReviewPrompt: Decodable, Sendable {
     let naturalExpression: String?
     let prompt: String
     let reviewKind: String?
+}
+
+// MARK: - Topic sessions
+
+/// One selectable category chip from GET /v1/topics (only categories with published items).
+struct TopicCategory: Decodable, Sendable, Identifiable {
+    let key: String
+    let label: String
+    let scenarioCount: Int?
+    let publishedItemCount: Int?
+
+    var id: String { key }
+}
+
+/// GET /v1/topics → category chips + a few suggested custom topics.
+struct TopicsResponse: Decodable, Sendable {
+    let categories: [TopicCategory]
+    let suggestions: [String]
+}
+
+/// The active topic on the current session. `category` is set for category
+/// topics, `topicId` for custom (AI-generated) ones. `status` is "ready" |
+/// "generating"; a custom topic warms while its first batch generates.
+struct ActiveTopic: Decodable, Sendable, Equatable {
+    let kind: String          // "category" | "custom"
+    let label: String
+    let category: String?
+    let topicId: String?
+    let status: String?
+    let itemCount: Int?
+
+    var isCustom: Bool { kind == "custom" }
+    var isGenerating: Bool { status == "generating" }
+}
+
+/// POST /v1/study/topic and GET /v1/study/topic → session id + the now-active topic.
+struct TopicResult: Decodable, Sendable {
+    let sessionId: String?
+    let topic: ActiveTopic?
 }
 
 // MARK: - Sessions / turns

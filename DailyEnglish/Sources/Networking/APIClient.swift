@@ -28,7 +28,9 @@ enum APIError: LocalizedError {
 actor APIClient {
     static let shared = APIClient()
 
-    private let baseURL = URL(string: "https://api.english.daichenlab.com/v1")!
+    // Trailing slash is REQUIRED: URL(string:relativeTo:) replaces the last path
+    // segment of a base without one, which would drop the "/v1" prefix and 404.
+    private let baseURL = URL(string: "https://api.english.daichenlab.com/v1/")!
     private let session: URLSession
     private let tokens = TokenStore.shared
 
@@ -56,6 +58,81 @@ actor APIClient {
         return true
     }
 
+    // MARK: - Account / OAuth
+
+    /// GET /v1/auth/config — which social providers the backend has wired up.
+    func authConfig() async throws -> AuthConfig {
+        try await send(path: "auth/config", method: "GET", authenticated: false, allowRetry: false)
+    }
+
+    /// POST /v1/auth/oauth/apple — exchange a verified Apple identity token for a
+    /// linked session. Persists the re-issued tokens + identity.
+    func oauthApple(identityToken: String, nonce: String) async throws -> OAuthResult {
+        let body = ["identityToken": identityToken, "nonce": nonce]
+        let result: OAuthResult = try await send(
+            path: "auth/oauth/apple", method: "POST", body: body, authenticated: true, allowRetry: false
+        )
+        tokens.save(oauth: result)
+        return result
+    }
+
+    /// POST /v1/auth/oauth/google — exchange a Google ID token for a linked session.
+    /// `nonce` is optional: GoogleSignIn-iOS does not nonce-bind the token, and the
+    /// backend only enforces the nonce when one is supplied.
+    func oauthGoogle(idToken: String, nonce: String?) async throws -> OAuthResult {
+        var body = ["idToken": idToken]
+        if let nonce { body["nonce"] = nonce }
+        let result: OAuthResult = try await send(
+            path: "auth/oauth/google", method: "POST", body: body, authenticated: true, allowRetry: false
+        )
+        tokens.save(oauth: result)
+        return result
+    }
+
+    /// GET /v1/auth/me — the current session's identity (anonymous vs linked).
+    func me() async throws -> MeResponse {
+        try await send(path: "auth/me", method: "GET")
+    }
+
+    /// POST /v1/auth/signout — invalidate server tokens; the caller then clears
+    /// local tokens and re-bootstraps anonymously.
+    func signOut() async throws {
+        struct SignOutResult: Decodable { let signedOut: Bool? }
+        let _: SignOutResult = try await send(path: "auth/signout", method: "POST", body: EmptyBody())
+    }
+
+    // MARK: - Topic sessions
+
+    func topics() async throws -> TopicsResponse {
+        try await send(path: "topics", method: "GET")
+    }
+
+    func currentTopic() async throws -> TopicResult {
+        try await send(path: "study/topic", method: "GET")
+    }
+
+    func setCategoryTopic(_ category: String) async throws -> TopicResult {
+        try await send(path: "study/topic", method: "POST", body: ["kind": "category", "category": category])
+    }
+
+    func setCustomTopic(_ topic: String) async throws -> TopicResult {
+        try await send(path: "study/topic", method: "POST", body: ["kind": "custom", "topic": topic])
+    }
+
+    func clearTopic() async throws -> TopicResult {
+        try await send(path: "study/topic", method: "DELETE")
+    }
+
+    // MARK: - Review
+
+    /// POST /v1/review/:id/complete — grade a due review (0–5) and reschedule via SM-2.
+    func completeReview(expressionId: String, grade: Int) async throws {
+        struct ReviewCompleteResult: Decodable { let expressionId: String? }
+        let _: ReviewCompleteResult = try await send(
+            path: "review/\(expressionId)/complete", method: "POST", body: ["grade": grade]
+        )
+    }
+
     private func refresh() async throws {
         guard let refresh = tokens.refreshToken else { throw APIError.unauthorized }
         let body = ["refresh": refresh]
@@ -74,6 +151,13 @@ actor APIClient {
 
     func studyNext() async throws -> StudyNext? {
         try await sendOptional(path: "study/next", method: "GET")
+    }
+
+    /// GET /v1/study/next, keeping the envelope `meta` so the caller can read the
+    /// empty sub-state (`meta.reason == "topic_warming"` while a custom topic
+    /// generates, vs "empty_bank" when caught up). `data` may be nil.
+    func studyNextRaw() async throws -> (next: StudyNext?, reason: String?) {
+        try await requestWithMeta(path: "study/next", method: "GET")
     }
 
     func startSession(mode: String = "mixed") async throws -> SessionRef {
@@ -105,7 +189,11 @@ actor APIClient {
 
     func expressions(type: String? = nil) async throws -> [Expression] {
         var path = "expressions"
-        if let type { path += "?type=\(type)" }
+        if let type {
+            var components = URLComponents()
+            components.queryItems = [URLQueryItem(name: "type", value: type)]
+            if let query = components.percentEncodedQuery { path += "?\(query)" }
+        }
         return try await send(path: path, method: "GET")
     }
 
@@ -153,6 +241,35 @@ actor APIClient {
         authenticated: Bool,
         allowRetry: Bool
     ) async throws -> T? {
+        let env: APIEnvelope<T> = try await requestEnvelope(
+            path: path, method: method, body: body, authenticated: authenticated, allowRetry: allowRetry
+        )
+        return env.data
+    }
+
+    /// Like `studyNext`, but also surfaces the envelope `meta.reason`.
+    private func requestWithMeta<T: Decodable>(
+        path: String,
+        method: String,
+        body: (any Encodable)? = nil,
+        authenticated: Bool = true,
+        allowRetry: Bool = true
+    ) async throws -> (next: T?, reason: String?) {
+        let env: APIEnvelope<T> = try await requestEnvelope(
+            path: path, method: method, body: body, authenticated: authenticated, allowRetry: allowRetry
+        )
+        return (env.data, env.meta?.reason)
+    }
+
+    /// Core HTTP + envelope decode. Returns the full envelope so callers can read
+    /// either `data` alone or `data` + `meta`. Refreshes once on 401.
+    private func requestEnvelope<T: Decodable>(
+        path: String,
+        method: String,
+        body: (any Encodable)?,
+        authenticated: Bool,
+        allowRetry: Bool
+    ) async throws -> APIEnvelope<T> {
         guard let url = URL(string: path, relativeTo: baseURL) else { throw APIError.invalidURL }
 
         var req = URLRequest(url: url)
@@ -178,7 +295,7 @@ actor APIClient {
 
         if http.statusCode == 401, authenticated, allowRetry {
             try await refresh()
-            return try await request(
+            return try await requestEnvelope(
                 path: path, method: method, body: body, authenticated: authenticated, allowRetry: false
             )
         }
@@ -197,7 +314,7 @@ actor APIClient {
         if !(200...299).contains(http.statusCode) {
             throw APIError.http(http.statusCode)
         }
-        return envelope.data
+        return envelope
     }
 }
 

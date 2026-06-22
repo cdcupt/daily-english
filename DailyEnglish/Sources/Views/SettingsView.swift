@@ -4,10 +4,12 @@ struct SettingsView: View {
     @AppStorage("nativeLanguage") private var nativeLanguage: String = "中文 (Chinese)"
     @AppStorage("ttsVoice") private var ttsVoice: String = "System"
 
-    @State private var userId: String? = TokenStore.shared.userId
-    @State private var showResetConfirm = false
+    @Bindable var account: AccountStore
+    @State private var showSignOutConfirm = false
 
     private let voices = ["System", "Marin", "Kore", "Alloy"]
+
+    private var isSigningOut: Bool { account.busyProvider == "signout" }
 
     var body: some View {
         NavigationStack {
@@ -27,31 +29,46 @@ struct SettingsView: View {
             HStack {
                 MascotBadge(size: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Anonymous account")
+                    Text(account.email ?? "Signed in")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.appCharcoal)
-                    Text(userId.map { "ID " + String($0.prefix(8)) } ?? "Not signed in")
+                    Text(providerLabel)
                         .font(.system(size: 12))
                         .foregroundColor(.appWarmGray)
                 }
             }
             Button(role: .destructive) {
-                showResetConfirm = true
+                showSignOutConfirm = true
             } label: {
-                Label("Reset device account", systemImage: "arrow.counterclockwise")
+                if isSigningOut {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text("Signing out…")
+                    }
+                } else {
+                    Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
+                }
             }
+            .disabled(isSigningOut)
             .confirmationDialog(
-                "Reset this device account? Your progress is tied to it.",
-                isPresented: $showResetConfirm, titleVisibility: .visible
+                "Sign out of your account?",
+                isPresented: $showSignOutConfirm, titleVisibility: .visible
             ) {
-                Button("Reset", role: .destructive) {
-                    TokenStore.shared.clear()
-                    userId = nil
+                Button("Sign out", role: .destructive) {
+                    Task { await account.signOut() }
                 }
                 Button("Cancel", role: .cancel) {}
             }
         } header: {
             Text("Account")
+        }
+    }
+
+    private var providerLabel: String {
+        switch TokenStore.shared.provider {
+        case "apple": return "Signed in with Apple"
+        case "google": return "Signed in with Google"
+        default: return "Linked account"
         }
     }
 

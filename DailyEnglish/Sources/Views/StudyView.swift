@@ -2,18 +2,34 @@ import SwiftUI
 
 struct StudyView: View {
     @State private var coordinator = StudyCoordinator()
+    @State private var showPicker = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.appBackground.ignoresSafeArea()
-                content
+                VStack(spacing: 0) {
+                    TopicBar(
+                        topic: coordinator.topic,
+                        isBusy: coordinator.isClearingTopic,
+                        onOpenPicker: { showPicker = true },
+                        onClear: { Task { await coordinator.clearTopic() } }
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+
+                    content
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             .navigationTitle("Study")
             .navigationBarTitleDisplayMode(.large)
         }
         .task {
             if coordinator.current == nil { await coordinator.bootstrap() }
+        }
+        .sheet(isPresented: $showPicker) {
+            TopicPicker(coordinator: coordinator)
         }
     }
 
@@ -22,6 +38,8 @@ struct StudyView: View {
         switch coordinator.phase {
         case .onboarding, .loading:
             loadingState
+        case .warming:
+            warmingState
         case .empty:
             emptyState
         case .practice:
@@ -43,6 +61,25 @@ struct StudyView: View {
                 .font(.system(size: 14))
                 .foregroundColor(.appWarmGray)
         }
+    }
+
+    private var warmingState: some View {
+        VStack(spacing: 16) {
+            MascotBadge(size: 80)
+            ProgressView().tint(.appViolet)
+            Text("Building your \(coordinator.warmingLabel) session…")
+                .font(.roundedTitle3())
+                .foregroundColor(.appCharcoal)
+                .multilineTextAlignment(.center)
+            Text("Good prompts take a moment. We're generating your first item.")
+                .font(.system(size: 13))
+                .foregroundColor(.appWarmGray)
+                .multilineTextAlignment(.center)
+            Button("Check again") { Task { await coordinator.loadNext() } }
+                .buttonStyle(PrimaryButtonStyle(tint: .appViolet))
+                .frame(maxWidth: 220)
+        }
+        .padding(28)
     }
 
     private var emptyState: some View {
@@ -87,7 +124,12 @@ struct StudyView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 if coordinator.isReview, let review = coordinator.currentReview {
-                    reviewCard(review)
+                    ReviewCardView(
+                        review: review,
+                        isSubmitting: coordinator.isSubmitting,
+                        onGrade: { grade in Task { await coordinator.gradeReview(grade) } }
+                    )
+                    .id(review.expressionId)
                 } else if let item = coordinator.currentItem {
                     itemCard(item)
                     answerField
@@ -174,28 +216,6 @@ struct StudyView: View {
             .disabled(coordinator.isSubmitting ||
                 coordinator.draftAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-    }
-
-    private func reviewCard(_ review: ReviewPrompt) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Label("Review", systemImage: "arrow.triangle.2.circlepath")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.appViolet)
-                Spacer()
-            }
-            Text(review.prompt)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(.appCharcoal)
-            if let natural = review.naturalExpression {
-                Text(natural)
-                    .font(.system(size: 15))
-                    .foregroundColor(.appWarmGray)
-            }
-            answerField
-        }
-        .padding(18)
-        .cardStyle()
     }
 
     // MARK: - Feedback
@@ -288,6 +308,108 @@ struct StudyView: View {
         case "description": return "Describe this"
         default: return "Practice"
         }
+    }
+}
+
+// MARK: - Review card (spaced repetition)
+
+/// A due saved expression resurfaced for review. The learner recalls it, taps
+/// "Show answer", then self-grades (Forgot/Good/Easy → 1/4/5). Mirrors the web
+/// ReviewCard. Grading advances to the next item via the coordinator.
+private struct ReviewCardView: View {
+    let review: ReviewPrompt
+    let isSubmitting: Bool
+    let onGrade: (Int) -> Void
+
+    @State private var revealed = false
+
+    private struct Grade { let label: String; let value: Int; let tint: Color }
+    private let grades: [Grade] = [
+        Grade(label: "Forgot", value: 1, tint: .appCoral),
+        Grade(label: "Good", value: 4, tint: .appTeal),
+        Grade(label: "Easy", value: 5, tint: .appViolet),
+    ]
+
+    private var answer: String {
+        if let natural = review.naturalExpression, !natural.isEmpty { return natural }
+        return review.content
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label("Review", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.appViolet)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Color.appViolet.opacity(0.12))
+                    .clipShape(Capsule())
+                Spacer()
+            }
+
+            Text("Try to recall")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(.appWarmGray)
+            Text(review.prompt)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.appCharcoal)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let original = review.userOriginal, !original.isEmpty {
+                Text("You once said: “\(original)”")
+                    .font(.system(size: 13))
+                    .foregroundColor(.appWarmGray)
+                    .italic()
+            }
+
+            if !revealed {
+                Button("Show answer") { revealed = true }
+                    .buttonStyle(PrimaryButtonStyle(tint: .appViolet))
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Natural expression")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.diffNatural)
+                    Text(answer)
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.appCharcoal)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(12)
+                .background(Color.diffNatural.opacity(0.07))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                Text("How well did you remember it?")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.appWarmGray)
+
+                HStack(spacing: 10) {
+                    ForEach(grades, id: \.value) { grade in
+                        Button { onGrade(grade.value) } label: {
+                            Text(grade.label)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 13)
+                                .background(grade.tint)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .disabled(isSubmitting)
+                    }
+                }
+
+                if isSubmitting {
+                    HStack(spacing: 8) {
+                        ProgressView().tint(.appViolet)
+                        Text("Saving your review…")
+                            .font(.system(size: 12))
+                            .foregroundColor(.appWarmGray)
+                    }
+                }
+            }
+        }
+        .padding(18)
+        .cardStyle()
     }
 }
 

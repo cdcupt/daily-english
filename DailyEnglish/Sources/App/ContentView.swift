@@ -6,8 +6,41 @@ private struct TabItem {
     let tag: Int
 }
 
-/// Custom 3-tab shell: Study · You · Settings (warm editorial identity).
+/// Root view: the login-first gate. Shows SignInView until an account is linked,
+/// then the main TabView. The anonymous session is bootstrapped under the hood.
 struct ContentView: View {
+    @State private var account = AccountStore()
+
+    var body: some View {
+        Group {
+            switch account.gate {
+            case .loading:
+                GateLoadingView()
+            case .signIn:
+                SignInView(account: account)
+            case .linked:
+                MainTabView(account: account)
+            }
+        }
+        .task { await account.bootstrap() }
+    }
+}
+
+private struct GateLoadingView: View {
+    var body: some View {
+        ZStack {
+            Color.appBackground.ignoresSafeArea()
+            VStack(spacing: 16) {
+                MascotBadge(size: 84)
+                ProgressView().tint(.appTeal)
+            }
+        }
+    }
+}
+
+/// The signed-in shell: custom 3-tab bar (Study · You · Settings).
+struct MainTabView: View {
+    @Bindable var account: AccountStore
     @State private var selectedTab: Int = 0
 
     private let tabs: [TabItem] = [
@@ -22,7 +55,7 @@ struct ContentView: View {
                 switch selectedTab {
                 case 0: StudyView()
                 case 1: YouView()
-                default: SettingsView()
+                default: SettingsView(account: account)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

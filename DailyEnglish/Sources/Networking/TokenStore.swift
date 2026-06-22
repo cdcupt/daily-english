@@ -13,6 +13,8 @@ struct TokenStore {
         case refresh
         case userId
         case deviceId
+        case email
+        case provider
     }
 
     // MARK: - Public
@@ -22,7 +24,14 @@ struct TokenStore {
     var userId: String? { read(.userId) }
     var deviceId: String? { read(.deviceId) }
 
+    /// The linked account email, or `nil` for an anonymous session.
+    var email: String? { read(.email) }
+    /// The linked provider ("apple" / "google"), or `nil` when anonymous.
+    var provider: String? { read(.provider) }
+
     var hasSession: Bool { accessToken != nil }
+    /// True once a social account is linked (the app gate opens on this).
+    var isLinked: Bool { provider != nil }
 
     func save(session: AuthSession) {
         write(.access, value: session.access)
@@ -31,9 +40,25 @@ struct TokenStore {
         write(.deviceId, value: session.deviceId)
     }
 
+    /// Persist a successful OAuth exchange as the active linked session.
+    func save(oauth: OAuthResult) {
+        write(.access, value: oauth.access)
+        write(.refresh, value: oauth.refresh)
+        write(.userId, value: oauth.userId)
+        write(.deviceId, value: oauth.deviceId)
+        write(.email, value: oauth.email)
+        write(.provider, value: oauth.provider)
+    }
+
     func updateTokens(access: String, refresh: String) {
         write(.access, value: access)
         write(.refresh, value: refresh)
+    }
+
+    /// Drop only the linked-account identity (keeps tokens/device id intact).
+    func clearAccountIdentity() {
+        delete(.email)
+        delete(.provider)
     }
 
     /// Returns the device id, generating + persisting a new one if absent.
@@ -45,7 +70,7 @@ struct TokenStore {
     }
 
     func clear() {
-        for key in [Key.access, .refresh, .userId, .deviceId] { delete(key) }
+        for key in [Key.access, .refresh, .userId, .deviceId, .email, .provider] { delete(key) }
     }
 
     // MARK: - Keychain primitives
@@ -68,6 +93,18 @@ struct TokenStore {
         return String(data: data, encoding: .utf8)
     }
 
+    /// Keychain accessibility per key. The session secrets (access/refresh tokens)
+    /// are sensitive and must not sync off-device, so they require the device to be
+    /// unlocked and stay device-local; identity/device metadata can stay as-is.
+    private func accessibility(for key: Key) -> CFString {
+        switch key {
+        case .access, .refresh:
+            return kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        case .userId, .deviceId, .email, .provider:
+            return kSecAttrAccessibleAfterFirstUnlock
+        }
+    }
+
     private func write(_ key: Key, value: String) {
         let data = Data(value.utf8)
         let query = baseQuery(key)
@@ -76,7 +113,7 @@ struct TokenStore {
         if status == errSecItemNotFound {
             var insert = query
             insert[kSecValueData as String] = data
-            insert[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            insert[kSecAttrAccessible as String] = accessibility(for: key)
             SecItemAdd(insert as CFDictionary, nil)
         }
     }

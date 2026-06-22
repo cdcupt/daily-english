@@ -6,15 +6,24 @@ options:
   createIntermediateGroups: true
   generateEmptyDirectories: true
 
+packages:
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS.git
+    from: "8.0.0"
+
 settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "2.0"
-    CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""
+    CURRENT_PROJECT_VERSION: "2"
+    DEVELOPMENT_TEAM: NK3U2C365Z
     CODE_SIGN_STYLE: Automatic
-    CODE_SIGNING_REQUIRED: NO
-    CODE_SIGNING_ALLOWED: NO
+  configs:
+    # Headless simulator builds (CI / verification) sign nothing; release archives
+    # sign normally with the team above.
+    Debug:
+      CODE_SIGNING_ALLOWED: NO
+      CODE_SIGNING_REQUIRED: NO
 
 targets:
   DailyEnglish:
@@ -24,16 +33,32 @@ targets:
     sources:
       - path: DailyEnglish/Sources
       - path: DailyEnglish/Resources
+    dependencies:
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    info:
+      path: DailyEnglish/Info.plist
+      properties:
+        CFBundleDisplayName: Dailingo
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSMicrophoneUsageDescription: "Dailingo needs microphone access for speaking practice."
+        NSSpeechRecognitionUsageDescription: "Dailingo needs speech recognition to evaluate your spoken answers."
+        ITSAppUsesNonExemptEncryption: false
+        GIDClientID: "328818408791-9fiml98belskdshtpdhq8smj8ls8qm7e.apps.googleusercontent.com"
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - "com.googleusercontent.apps.328818408791-9fiml98belskdshtpdhq8smj8ls8qm7e"
+    entitlements:
+      path: DailyEnglish/DailyEnglish.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
     settings:
       base:
         PRODUCT_NAME: DailyEnglish
         PRODUCT_BUNDLE_IDENTIFIER: com.cdcupt.DailyEnglish
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: "Dailingo"
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Dailingo needs microphone access for speaking practice."
-        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Dailingo needs speech recognition to evaluate your spoken answers."
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
