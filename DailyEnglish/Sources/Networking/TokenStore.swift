@@ -122,3 +122,26 @@ struct TokenStore {
         SecItemDelete(baseQuery(key) as CFDictionary)
     }
 }
+
+#if DEBUG
+extension TokenStore {
+    /// E2E-only: seed a pre-minted linked session from launch env so the app opens
+    /// straight into the logged-in state without any sign-in or network bootstrap.
+    /// No-op in release builds (this whole extension is `#if DEBUG`) and when the
+    /// `E2E_ACCESS_TOKEN` env var is absent, so the normal flow is unaffected.
+    /// Returns true only when a session was seeded.
+    func seedE2ESessionFromEnvironmentIfPresent() -> Bool {
+        let env = ProcessInfo.processInfo.environment
+        guard let access = env["E2E_ACCESS_TOKEN"], !access.isEmpty else { return false }
+        let refresh = env["E2E_REFRESH_TOKEN"] ?? ""
+        let email = env["E2E_EMAIL"] ?? "e2e@dailingo.test"
+        write(.access, value: access)
+        write(.refresh, value: refresh)
+        write(.email, value: email)
+        write(.provider, value: "test")
+        write(.userId, value: "e2e-user")
+        _ = ensureDeviceId()
+        return true
+    }
+}
+#endif

@@ -1,5 +1,32 @@
 import SwiftUI
 
+/// E2E-only launch knobs for deterministic screenshots. All values are constant
+/// `0` / `false` in release builds (the env reads are compiled out by `#if DEBUG`),
+/// so this is a strict no-op outside of debug runs with the env vars set.
+enum E2ELaunch {
+    /// Initially-selected tab: E2E_TAB = "study"(0) | "you"(1) | "settings"(2).
+    static var initialTab: Int {
+        #if DEBUG
+        switch ProcessInfo.processInfo.environment["E2E_TAB"] {
+        case "you": return 1
+        case "settings": return 2
+        default: return 0
+        }
+        #else
+        return 0
+        #endif
+    }
+
+    /// Whether to auto-present the topic picker on Study appear: E2E_OPEN = "topics".
+    static var openTopics: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment["E2E_OPEN"] == "topics"
+        #else
+        return false
+        #endif
+    }
+}
+
 private struct TabItem {
     let icon: String
     let label: String
@@ -41,7 +68,7 @@ private struct GateLoadingView: View {
 /// The signed-in shell: custom 3-tab bar (Study · You · Settings).
 struct MainTabView: View {
     @Bindable var account: AccountStore
-    @State private var selectedTab: Int = 0
+    @State private var selectedTab: Int = E2ELaunch.initialTab
 
     private let tabs: [TabItem] = [
         TabItem(icon: "graduationcap.fill", label: "Study", tag: 0),

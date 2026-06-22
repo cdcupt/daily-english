@@ -45,6 +45,16 @@ final class AccountStore {
 
     /// Establish the session + load config, then resolve the gate.
     func bootstrap() async {
+        #if DEBUG
+        // E2E-only: when launched with E2E_ACCESS_TOKEN, seed a linked session and
+        // open straight into the app — skip sign-in AND the network bootstrap. This
+        // is a no-op in release builds and when the env var is absent (normal flow).
+        if tokens.seedE2ESessionFromEnvironmentIfPresent() {
+            email = tokens.email
+            gate = .linked
+            return
+        }
+        #endif
         gate = tokens.isLinked ? .linked : .loading
         bootstrapError = nil
         do {

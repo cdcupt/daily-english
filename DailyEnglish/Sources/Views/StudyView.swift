@@ -28,6 +28,11 @@ struct StudyView: View {
         .task {
             if coordinator.current == nil { await coordinator.bootstrap() }
         }
+        .onAppear {
+            // E2E-only: auto-present the topic picker for a deterministic screenshot.
+            // No-op in release builds and when E2E_OPEN != "topics" (normal flow).
+            if E2ELaunch.openTopics { showPicker = true }
+        }
         .sheet(isPresented: $showPicker) {
             TopicPicker(coordinator: coordinator)
         }
