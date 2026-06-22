@@ -2,7 +2,7 @@
  * Typed endpoint functions mirroring the real server routes. Each unwraps the
  * envelope via `request<T>` and returns the typed payload.
  */
-import { request } from "./client";
+import { request, requestRaw, type RawResult } from "./client";
 import { storeTokens, clearTokens, getDeviceId } from "./tokens";
 import type {
   AnonymousAuth,
@@ -10,6 +10,12 @@ import type {
   OAuthResult,
   EmailAuth,
   StudyNext,
+  StudyNextMeta,
+  TopicsResponse,
+  SetTopicInput,
+  SetTopicResult,
+  GetTopicResult,
+  ClearTopicResult,
   TurnResult,
   AudioTurnResult,
   ScoreReport,
@@ -122,6 +128,48 @@ function persistOAuth(result: OAuthResult): void {
  */
 export function studyNext(): Promise<StudyNext | null> {
   return request<StudyNext | null>("/study/next", { method: "GET" });
+}
+
+/**
+ * GET /v1/study/next, but keeping the envelope `meta` so the caller can read
+ * the empty sub-state (`meta.reason` === "topic_warming" while a custom topic
+ * is still generating, vs "empty_bank" when truly caught up) and the active
+ * `meta.topic`. Same payload shape as `studyNext`; only the metadata differs.
+ */
+export function studyNextRaw(): Promise<RawResult<StudyNext>> {
+  return requestRaw<StudyNext>("/study/next", { method: "GET" });
+}
+
+/** Narrow the unknown `meta` from `studyNextRaw` to the topic-aware shape. */
+export function readStudyNextMeta(meta: unknown): StudyNextMeta {
+  return (meta && typeof meta === "object" ? (meta as StudyNextMeta) : {});
+}
+
+/* ---------- Topic sessions (server/src/routes/topic.ts) ---------- */
+
+/** GET /v1/topics — category chips + a few custom-topic suggestions. */
+export function getTopics(): Promise<TopicsResponse> {
+  return request<TopicsResponse>("/topics", { method: "GET" });
+}
+
+/**
+ * POST /v1/study/topic — set the topic on the active session. A category topic
+ * resolves instantly; a custom topic triggers moderation + AI generation and may
+ * come back with `topic.status === "generating"`. Throws an ApiError on a
+ * rejected custom topic (422 topic_rejected / topic_off_domain) or 429.
+ */
+export function setTopic(body: SetTopicInput): Promise<SetTopicResult> {
+  return request<SetTopicResult>("/study/topic", { method: "POST", body });
+}
+
+/** GET /v1/study/topic — the active topic, or nulls when on the adaptive mix. */
+export function getTopic(): Promise<GetTopicResult> {
+  return request<GetTopicResult>("/study/topic", { method: "GET" });
+}
+
+/** DELETE /v1/study/topic — clear the topic, back to the adaptive mix. */
+export function clearTopic(): Promise<ClearTopicResult> {
+  return request<ClearTopicResult>("/study/topic", { method: "DELETE" });
 }
 
 /**

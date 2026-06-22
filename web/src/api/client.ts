@@ -11,7 +11,7 @@ import {
   updateAccessTokens,
   clearTokens,
 } from "./tokens";
-import { isMockMode, mockFetch } from "@/mocks/handlers";
+import { isMockMode, mockFetch, mockFetchRaw } from "@/mocks/handlers";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://api.english.daichenlab.com/v1";
@@ -82,6 +82,12 @@ function buildUrl(path: string, query?: RequestOptions["query"]): string {
   return qs ? `${base}?${qs}` : base;
 }
 
+/** The data payload plus the envelope `meta` (used by topic-aware study/next). */
+export interface RawResult<T> {
+  data: T | null;
+  meta: unknown;
+}
+
 export async function request<T>(
   path: string,
   opts: RequestOptions = {},
@@ -149,4 +155,69 @@ export async function request<T>(
   }
 
   return envelope.data as T;
+}
+
+/**
+ * Like `request<T>`, but returns the envelope `data` AND `meta`. Used by
+ * topic-aware `study/next`, where the empty/warming sub-state is carried in
+ * `meta.reason` (e.g. "topic_warming" vs "empty_bank") rather than the payload.
+ */
+export async function requestRaw<T>(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<RawResult<T>> {
+  const { method = "GET", body, form, query, auth = true, _retried = false } = opts;
+
+  if (isMockMode()) {
+    return mockFetchRaw<T>(path, { method, body, form, query });
+  }
+
+  const headers: Record<string, string> = {};
+  if (auth) {
+    const token = getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
+  let payload: BodyInit | undefined;
+  if (form) {
+    payload = form;
+  } else if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    payload = JSON.stringify(body);
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(path, query), { method, headers, body: payload });
+  } catch (err) {
+    throw new ApiError(
+      "network_error",
+      err instanceof Error ? err.message : "Network request failed",
+      0,
+    );
+  }
+
+  let envelope: ApiEnvelope<T>;
+  try {
+    envelope = (await res.json()) as ApiEnvelope<T>;
+  } catch {
+    throw new ApiError("bad_response", "Malformed server response", res.status);
+  }
+
+  if (!res.ok || envelope.error) {
+    if (res.status === 401 && auth && !_retried && !path.startsWith("/auth/")) {
+      if (await refreshAccessToken()) {
+        return requestRaw<T>(path, { ...opts, _retried: true });
+      }
+      clearTokens();
+    }
+    const e = envelope.error;
+    throw new ApiError(
+      e?.code ?? "error",
+      e?.message ?? `Request failed (${res.status})`,
+      res.status,
+    );
+  }
+
+  return { data: envelope.data, meta: envelope.meta };
 }

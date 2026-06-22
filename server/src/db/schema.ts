@@ -131,11 +131,39 @@ export const questionItems = pgTable('question_items', {
   commonMistakes: jsonb('common_mistakes').$type<CommonMistake[]>().notNull().default([]),
   rubric: jsonb('rubric').$type<Rubric>().notNull(),
   sourceId: uuid('source_id').references(() => contentSources.id),
+  // Set on AI-generated custom-topic items, linking them to their topic_sessions
+  // cache row so study/next can narrow the pool to a single custom topic.
+  topicSessionId: uuid('topic_session_id').references(() => topicSessions.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
   itemKeyIdx: uniqueIndex('qi_item_key').on(t.itemKey),
   adaptiveIdx: index('qi_adaptive').on(t.status, t.cefrLevel, t.difficultyScore),
   scenarioIdx: index('qi_scenario').on(t.scenarioId),
+  topicSessionIdx: index('qi_topic_session').on(t.topicSessionId, t.status),
+}));
+
+// Topic-session cache (Topic Sessions design): a custom free-text topic is
+// normalized → moderated → AI-scaffolded → a small batch of items generated,
+// then CACHED BY NORMALIZED TOPIC ONLY (shared, level-agnostic — adaptive
+// selection handles level fit). One row per distinct normalized topic.
+export const topicSessions = pgTable('topic_sessions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  // Cache key: normalized form of the raw topic (lowercased/slug, CJK allowed).
+  normalizedTopic: text('normalized_topic').notNull(),
+  // The user's original typed topic (for display / provenance).
+  rawTopic: text('raw_topic').notNull(),
+  cefrBand: text('cefr_band').notNull(),
+  // generating → ready (first item published) | failed (off-domain / gen error).
+  status: text('status').notNull().default('generating'),
+  itemCount: integer('item_count').notNull().default(0),
+  // pending → allowed | blocked (moderation gate; blocked never serves).
+  moderationStatus: text('moderation_status').notNull().default('pending'),
+  createdBy: uuid('created_by').references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  normalizedIdx: uniqueIndex('topic_sessions_normalized').on(t.normalizedTopic),
+  statusCheck: check('topic_sessions_status_check', sql`${t.status} IN ('generating', 'ready', 'failed')`),
+  moderationCheck: check('topic_sessions_moderation_check', sql`${t.moderationStatus} IN ('pending', 'allowed', 'blocked')`),
 }));
 
 export const practiceSessions = pgTable('practice_sessions', {
@@ -144,10 +172,19 @@ export const practiceSessions = pgTable('practice_sessions', {
   mode: text('mode').notNull(),
   state: sessionStateEnum('state').notNull().default('active'),
   scoreReport: jsonb('score_report').$type<ScoreReport>(),
+  // Per-session, opt-in topic steering (Topic Sessions). Nullable + additive →
+  // a session with no topic behaves exactly as before (full adaptive feed).
+  // 'category' → topicCategory holds a scenario.category; 'custom' → topicSessionId
+  // points at a topic_sessions cache row. topicLabel is the display label.
+  topicKind: text('topic_kind'),
+  topicCategory: text('topic_category'),
+  topicSessionId: uuid('topic_session_id').references(() => topicSessions.id),
+  topicLabel: text('topic_label'),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   endedAt: timestamp('ended_at', { withTimezone: true }),
 }, (t) => ({
   userIdx: index('ps_user_started').on(t.userId, t.startedAt),
+  topicKindCheck: check('ps_topic_kind_check', sql`${t.topicKind} IS NULL OR ${t.topicKind} IN ('category', 'custom')`),
 }));
 
 export const practiceTurns = pgTable('practice_turns', {

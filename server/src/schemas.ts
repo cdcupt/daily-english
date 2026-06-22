@@ -133,6 +133,54 @@ export const ITEM_GEN_JSON_SCHEMA = {
   },
 } as const;
 
+// ---------- Topic scaffold (custom free-text Topic Sessions) ----------
+// The existing seed scenario categories. The scaffold MUST classify a custom
+// topic into one of these so every category-based join keeps working.
+export const SCENARIO_CATEGORIES = [
+  'daily_life', 'education_growth', 'express_yourself', 'health_services',
+  'shopping_money', 'social', 'travel', 'work',
+] as const;
+export type ScenarioCategory = (typeof SCENARIO_CATEGORIES)[number];
+
+// The CEFR bands the scaffold may pick for a generated scenario. Kept aligned
+// with the seed cefrBand granularity (single band, not a range).
+export const TOPIC_CEFR_BANDS = ['A1', 'A2', 'B1', 'B2', 'C1'] as const;
+
+export const TopicScaffoldSchema = z.object({
+  // A concise English scenario title built FROM the (possibly Chinese) topic.
+  title: z.string().min(1).max(120),
+  category: z.enum(SCENARIO_CATEGORIES),
+  cefrBand: z.enum(TOPIC_CEFR_BANDS),
+  userRole: z.string().min(1).max(80),
+  aiRole: z.string().min(1).max(80),
+  goal: z.string().min(1).max(300),
+  // Safety gate: false for non-English-practice / injection / nonsense topics.
+  onDomain: z.boolean(),
+  // Short reason when onDomain is false (null when on-domain). Surfaced in logs.
+  rejectReason: z.string().max(300).nullable(),
+});
+export type TopicScaffold = z.infer<typeof TopicScaffoldSchema>;
+
+export const TOPIC_SCAFFOLD_JSON_SCHEMA = {
+  name: 'topic_scaffold',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      title: { type: 'string' },
+      category: { type: 'string', enum: [...SCENARIO_CATEGORIES] },
+      cefrBand: { type: 'string', enum: [...TOPIC_CEFR_BANDS] },
+      userRole: { type: 'string' },
+      aiRole: { type: 'string' },
+      goal: { type: 'string' },
+      onDomain: { type: 'boolean' },
+      rejectReason: { type: ['string', 'null'] },
+    },
+    required: ['title', 'category', 'cefrBand', 'userRole', 'aiRole', 'goal', 'onDomain', 'rejectReason'],
+  },
+} as const;
+
 /** Standard response envelope helpers. */
 export function ok<T>(data: T, meta: unknown = null) {
   return { data, error: null, meta };

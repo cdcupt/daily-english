@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  studyNext,
+  studyNextRaw,
+  readStudyNextMeta,
+  getTopic,
+  clearTopic,
   submitTextTurn,
   submitAudioTurn,
   reviewComplete,
@@ -14,8 +17,12 @@ import type {
   FeedbackPayload,
   AudioTurnResult,
   ReviewItem,
+  ActiveTopic,
 } from "@/api/types";
+import type { RawResult } from "@/api/client";
 import { FeedbackDiff } from "./FeedbackDiff";
+import { TopicBar } from "./topic/TopicBar";
+import { TopicPicker } from "./topic/TopicPicker";
 import { useVoiceRecorder } from "@/lib/useVoiceRecorder";
 
 interface TurnState {
@@ -31,6 +38,9 @@ const BADGE_CLASS: Record<string, string> = {
   topic_description: "description",
 };
 
+/** After this long in the generating state, soften the wait copy. */
+const SLOW_GENERATION_MS = 6000;
+
 /** SM-2 quality grades surfaced to the learner, mapped to the backend 0–5 scale. */
 const GRADES: ReadonlyArray<{
   label: string;
@@ -44,66 +54,218 @@ const GRADES: ReadonlyArray<{
 
 export function StudyView() {
   const queryClient = useQueryClient();
-  const { data, isLoading, isError, error, refetch } = useQuery<StudyNext | null>(
-    {
-      queryKey: ["study", "next"],
-      queryFn: studyNext,
-    },
-  );
+
+  // The active topic lives on the session server-side; we mirror it locally so
+  // the bar/picker render synchronously, restoring it from GET /study/topic on
+  // mount so a reload keeps the topic.
+  const [topic, setTopicState] = useState<ActiveTopic | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const topicQ = useQuery({
+    queryKey: ["study", "topic"],
+    queryFn: getTopic,
+  });
+
+  useEffect(() => {
+    if (topicQ.data) setTopicState(topicQ.data.topic);
+  }, [topicQ.data]);
+
+  // study/next, kept raw so we can read meta.reason ("topic_warming") + meta.topic.
+  const studyQ = useQuery<RawResult<StudyNext>>({
+    queryKey: ["study", "next"],
+    queryFn: studyNextRaw,
+  });
 
   function refetchNext() {
     queryClient.invalidateQueries({ queryKey: ["study", "next"] });
   }
 
-  if (isLoading) {
-    return (
-      <div className="app-pad">
-        <CoachStrip progress="…" sub="Loading your next item" />
-        <div className="feed-item">
-          <div className="skel" style={{ height: 18, width: "40%", marginBottom: 12 }} />
-          <div className="skel" style={{ height: 60, marginBottom: 12 }} />
-          <div className="skel" style={{ height: 84 }} />
-        </div>
-      </div>
-    );
+  /** Apply a topic chosen in the picker, then pull the first item for it. */
+  function handleTopicApplied(next: ActiveTopic | null) {
+    setTopicState(next);
+    queryClient.setQueryData(["study", "topic"], { sessionId: null, topic: next });
+    refetchNext();
   }
 
-  // Real network/server failure — keep showing the error message.
-  if (isError) {
-    return (
-      <div className="app-pad">
+  async function handleClearTopic() {
+    if (clearing) return;
+    setClearing(true);
+    try {
+      await clearTopic();
+      setTopicState(null);
+      queryClient.setQueryData(["study", "topic"], { sessionId: null, topic: null });
+      refetchNext();
+    } finally {
+      setClearing(false);
+    }
+  }
+
+  const bar = (
+    <TopicBar
+      topic={topic}
+      onOpenPicker={() => setPickerOpen(true)}
+      onClear={handleClearTopic}
+      isBusy={clearing}
+    />
+  );
+
+  const picker = pickerOpen ? (
+    <TopicPicker
+      activeTopic={topic}
+      onApplied={handleTopicApplied}
+      onClose={() => setPickerOpen(false)}
+    />
+  ) : null;
+
+  // A custom topic is "warming" while its first batch generates: either the
+  // active topic still reports status==="generating", or study/next signals it
+  // via meta.reason. Category topics never warm (instant refetch).
+  const meta = readStudyNextMeta(studyQ.data?.meta);
+  const isWarming =
+    (topic?.kind === "custom" && topic.status === "generating") ||
+    meta.reason === "topic_warming";
+
+  function body() {
+    if (studyQ.isLoading) {
+      return (
+        <>
+          <CoachStrip progress="…" sub="Loading your next item" />
+          <div className="feed-item">
+            <div className="skel" style={{ height: 18, width: "40%", marginBottom: 12 }} />
+            <div className="skel" style={{ height: 60, marginBottom: 12 }} />
+            <div className="skel" style={{ height: 84 }} />
+          </div>
+        </>
+      );
+    }
+
+    if (studyQ.isError) {
+      return (
         <div className="center-state">
-          <p>{error instanceof Error ? error.message : "Something went wrong."}</p>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => refetch()}>
+          <p>
+            {studyQ.error instanceof Error
+              ? studyQ.error.message
+              : "Something went wrong."}
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => studyQ.refetch()}
+          >
             Try again
           </button>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  // Empty bank (data === null, meta.reason === "empty_bank") — a calm, friendly
-  // caught-up state, intentionally distinct from the error branch above.
-  if (!data) {
-    return (
-      <div className="app-pad">
+    const data = studyQ.data?.data ?? null;
+
+    // Custom-topic generating state takes priority over the empty branch.
+    if (!data && isWarming) {
+      return (
+        <GeneratingState
+          topicLabel={topic?.label ?? meta.topic?.label ?? "your topic"}
+          onRetry={() => studyQ.refetch()}
+          onChooseTopic={() => setPickerOpen(true)}
+          onUseAdaptive={handleClearTopic}
+        />
+      );
+    }
+
+    // Empty bank — calm, caught-up state (distinct from error + generating).
+    if (!data) {
+      return (
         <div className="center-state">
           <p>You&apos;re all caught up — come back later for more.</p>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => refetch()}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => studyQ.refetch()}
+          >
             Try again
+          </button>
+        </div>
+      );
+    }
+
+    if (data.kind === "review") {
+      return <ReviewCard review={data.review} onDone={refetchNext} />;
+    }
+
+    return <PracticeCard data={data} topic={topic} onNext={refetchNext} />;
+  }
+
+  return (
+    <div className="app-pad">
+      {bar}
+      {body()}
+      {picker}
+    </div>
+  );
+}
+
+/* ---------- Generating state (custom topic warming) ---------- */
+
+function GeneratingState({
+  topicLabel,
+  onRetry,
+  onChooseTopic,
+  onUseAdaptive,
+}: {
+  topicLabel: string;
+  onRetry: () => void;
+  onChooseTopic: () => void;
+  onUseAdaptive: () => void;
+}) {
+  const [slow, setSlow] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  // After a soft delay show "still working"; if it drags on, offer escape hatches.
+  useEffect(() => {
+    const slowId = setTimeout(() => setSlow(true), SLOW_GENERATION_MS);
+    const failId = setTimeout(() => setFailed(true), SLOW_GENERATION_MS * 5);
+    return () => {
+      clearTimeout(slowId);
+      clearTimeout(failId);
+    };
+  }, []);
+
+  if (failed) {
+    return (
+      <div className="center-state">
+        <p>That topic is taking too long to build. Try another, or carry on with your adaptive mix.</p>
+        <div className="input-actions" style={{ justifyContent: "center" }}>
+          <button type="button" className="btn btn-primary btn-sm" onClick={onChooseTopic}>
+            Choose a topic
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onUseAdaptive}>
+            Use adaptive mix
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onRetry}>
+            Keep waiting
           </button>
         </div>
       </div>
     );
   }
 
-  if (data.kind === "review") {
-    return (
-      <ReviewCard review={data.review} onDone={refetchNext} />
-    );
-  }
-
-  return <PracticeCard data={data} onNext={refetchNext} />;
+  return (
+    <>
+      <CoachStrip progress="New" sub={`Building your ${topicLabel} session…`} />
+      <article className="feed-item" aria-busy="true">
+        <div className="thinking" aria-live="polite">
+          {slow ? "Still working — good prompts take a moment." : "Generating your first item"}
+          <span className="dots">
+            <i /> <i /> <i />
+          </span>
+        </div>
+        <div className="skel" style={{ height: 18, width: "55%", margin: "8px 0 12px" }} />
+        <div className="skel" style={{ height: 60, marginBottom: 12 }} />
+        <div className="skel" style={{ height: 84 }} />
+      </article>
+    </>
+  );
 }
 
 /* ---------- Review card (spaced repetition) ---------- */
@@ -135,7 +297,7 @@ function ReviewCard({
   }
 
   return (
-    <div className="app-pad">
+    <>
       <CoachStrip progress="Review" sub="A saved expression is due" />
 
       <article className="feed-item">
@@ -211,7 +373,7 @@ function ReviewCard({
           </div>
         )}
       </article>
-    </div>
+    </>
   );
 }
 
@@ -219,9 +381,11 @@ function ReviewCard({
 
 function PracticeCard({
   data,
+  topic,
   onNext,
 }: {
   data: StudyPractice;
+  topic: ActiveTopic | null;
   onNext: () => void;
 }) {
   const [answer, setAnswer] = useState("");
@@ -298,12 +462,19 @@ function PracticeCard({
   const showFeedback = turn?.feedback;
 
   return (
-    <div className="app-pad">
+    <>
       <CoachStrip progress={item.cefrLevel} sub={item.learningGoal} />
 
       <article className="feed-item">
         <div className="it-head">
           <span className={`it-badge ${badge}`}>{item.mode}</span>
+          {/* Topic provenance: a small badge when a topic is active. Reviews
+              keep their own review badge (review > topic) and are not affected. */}
+          {topic && (
+            <span className={`it-badge topic ${topic.kind === "category" ? "cat" : ""}`}>
+              topic
+            </span>
+          )}
           {item.scenario && (
             <span className="it-scn">
               {item.scenario.category} · {item.scenario.title}
@@ -449,7 +620,7 @@ function PracticeCard({
           </>
         )}
       </article>
-    </div>
+    </>
   );
 }
 

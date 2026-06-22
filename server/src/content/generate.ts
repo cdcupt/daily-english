@@ -34,12 +34,13 @@ function buildPrompts(input: ItemGenInput): { system: string; user: string } {
 export async function generateItem(
   input: ItemGenInput,
   client?: ChatClient,
+  opts: { timeoutMs?: number } = {},
 ): Promise<{ item: ItemGen; raw: string; promptVersion: string; model?: string }> {
   const { system, user } = buildPrompts(input);
   if (client) {
     const r = await runStructured<ItemGen>({ client, system, user, schema: ItemGenSchema, jsonSchema: ITEM_GEN_JSON_SCHEMA, temperature: 0.4 });
     return { item: r.data, raw: r.raw, promptVersion: ITEM_GEN_PROMPT_VERSION };
   }
-  const r = await runTask<ItemGen>({ task: 'item_gen', system, user, schema: ItemGenSchema, jsonSchema: ITEM_GEN_JSON_SCHEMA, temperature: 0.4 });
+  const r = await runTask<ItemGen>({ task: 'item_gen', system, user, schema: ItemGenSchema, jsonSchema: ITEM_GEN_JSON_SCHEMA, temperature: 0.4, timeoutMs: opts.timeoutMs });
   return { item: r.data, raw: r.raw, promptVersion: ITEM_GEN_PROMPT_VERSION, model: r.model };
 }

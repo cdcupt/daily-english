@@ -10,7 +10,7 @@ import { getProvider, providerAvailable, supportsTemperature, isProviderId, type
  * override (AI_<TASK>_PROVIDER/MODEL) > eval-based default. Unavailable
  * providers (missing key) degrade gracefully so a misconfig never 500s the loop.
  */
-export const TASK_KEYS = ['feedback', 'dialogue', 'scoring', 'item_gen', 'asr'] as const;
+export const TASK_KEYS = ['feedback', 'dialogue', 'scoring', 'item_gen', 'topic_scaffold', 'asr'] as const;
 export type TaskKey = (typeof TASK_KEYS)[number];
 
 export function isTaskKey(s: string): s is TaskKey {
@@ -43,6 +43,9 @@ export function defaults(): Record<TaskKey, TaskDefault> {
     // cross-provider fallback and the item_gen model.
     scoring: { provider: 'openai', model: openaiText, fallback: { provider: 'gemini', model: 'gemini-2.5-flash' } },
     item_gen: { provider: 'gemini', model: 'gemini-2.5-flash', fallback: { provider: 'openai', model: openaiText } },
+    // Scaffolds a custom free-text topic into an English scenario. Same routing
+    // as item_gen (gemini primary, openai fallback) — runtime-switchable.
+    topic_scaffold: { provider: 'gemini', model: 'gemini-2.5-flash', fallback: { provider: 'openai', model: openaiText } },
     asr: { provider: 'openai', model: env.ASR_MODEL },
   };
 }

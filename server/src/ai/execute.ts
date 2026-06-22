@@ -21,6 +21,9 @@ export interface RunTaskArgs<T> {
   schema: z.ZodType<T>;
   jsonSchema?: { name: string; strict: boolean; schema: unknown };
   temperature?: number;
+  // Optional tighter per-attempt deadline (ms) overriding AI_REQUEST_TIMEOUT_MS.
+  // Used by the synchronous first custom-topic item where the learner is waiting.
+  timeoutMs?: number;
 }
 export interface RunTaskResult<T> { data: T; raw: string; repaired: boolean; model: string; provider: string }
 
@@ -98,7 +101,8 @@ export async function runTask<T>(args: RunTaskArgs<T>): Promise<RunTaskResult<T>
     // Fresh deadline per attempt (primary, each retry, fallback) so a stalled
     // provider is aborted and routed to the next attempt instead of hanging.
     const controller = new AbortController();
-    const timer = setTimeout(() => { controller.abort(); }, env.AI_REQUEST_TIMEOUT_MS);
+    const deadlineMs = args.timeoutMs ?? env.AI_REQUEST_TIMEOUT_MS;
+    const timer = setTimeout(() => { controller.abort(); }, deadlineMs);
     try {
       return await runStructured<T>({ client, system: args.system, user: args.user, schema: args.schema, jsonSchema: args.jsonSchema, temperature, model: t.model, signal: controller.signal });
     } finally {

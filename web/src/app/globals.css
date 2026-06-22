@@ -1752,3 +1752,268 @@ textarea:focus-visible,
   color: var(--color-ink-2);
   font-size: 15px;
 }
+
+/* ============================================================
+   TOPIC SESSIONS — bar pinned atop Study + the picker sheet.
+   Teal = category topic, Violet = custom (AI) topic.
+   ============================================================ */
+.topic-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 6px 0 12px;
+}
+.topic-bar .tb-default {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink-2);
+}
+.topic-bar .tb-default .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-teal);
+  flex-shrink: 0;
+}
+.topic-bar .tb-spacer {
+  flex: 1;
+}
+/* "Choose a topic" ghost trigger */
+.tb-choose {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-teal-700);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.tb-choose:hover {
+  background: var(--color-teal-tint);
+  border-color: var(--color-teal-soft);
+}
+/* active topic chip (chip body reopens picker, × clears) */
+.topic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 2px 2px 2px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  max-width: 100%;
+}
+.topic-chip.cat {
+  background: var(--color-teal-soft);
+  color: var(--color-teal-700);
+  border: 1px solid color-mix(in srgb, var(--color-teal) 22%, transparent);
+}
+.topic-chip.custom {
+  background: var(--color-violet-soft);
+  color: var(--color-violet);
+  border: 1px solid color-mix(in srgb, var(--color-violet) 22%, transparent);
+}
+.topic-chip .tc-body {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px 4px 6px 8px;
+  min-width: 0;
+}
+.topic-chip .tc-body .tc-kind {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+.topic-chip .tc-body .tc-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 30ch;
+}
+.topic-chip .tc-clear {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background var(--dur) var(--ease);
+}
+.topic-chip .tc-clear:hover {
+  background: rgba(0, 0, 0, 0.13);
+}
+.topic-chip .tc-gen {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-right: 6px;
+  opacity: 0.85;
+}
+
+/* item-head provenance badge */
+.it-badge.topic {
+  background: var(--color-violet-soft);
+  color: var(--color-violet);
+}
+.it-badge.topic.cat {
+  background: var(--color-teal-soft);
+  color: var(--color-teal-700);
+}
+
+/* ---------- Topic picker sheet ---------- */
+.tp-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(28, 25, 23, 0.42);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: tp-fade var(--dur) var(--ease);
+}
+@media (min-width: 640px) {
+  .tp-scrim {
+    align-items: center;
+  }
+}
+@keyframes tp-fade {
+  from { opacity: 0; }
+}
+.tp-sheet {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: 22px 22px 0 0;
+  padding: 8px 20px 24px;
+  box-shadow: var(--shadow-lg);
+  animation: tp-rise var(--dur) var(--ease);
+}
+@media (min-width: 640px) {
+  .tp-sheet {
+    border-radius: 22px;
+  }
+}
+@keyframes tp-rise {
+  from { transform: translateY(18px); opacity: 0.6; }
+}
+.tp-grip {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-border-2);
+  margin: 8px auto 6px;
+}
+@media (min-width: 640px) {
+  .tp-grip {
+    display: none;
+  }
+}
+.tp-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 6px 0 4px;
+}
+.tp-head h2 {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  flex: 1;
+}
+.tp-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-ink-2);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tp-close:hover {
+  background: var(--color-paper-2);
+}
+.tp-sub {
+  font-size: 13px;
+  color: var(--color-ink-2);
+  margin: 0 0 14px;
+}
+.tp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* picker category chips reuse .etab; aria-pressed = teal selected */
+.tp-chips .etab .cnt {
+  font-weight: 600;
+  opacity: 0.7;
+  margin-left: 5px;
+}
+.tp-custom-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+}
+.tp-quickfills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+.tp-quickfills .qf {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--color-panel);
+  border: 1px dashed var(--color-border-2);
+  color: var(--color-ink-2);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.tp-quickfills .qf:hover {
+  border-color: var(--color-violet);
+  color: var(--color-violet);
+  border-style: solid;
+}
+.tp-actions {
+  margin-top: 20px;
+}
+.tp-hint {
+  font-size: 11px;
+  color: var(--color-muted);
+  margin: 8px 0 0;
+}

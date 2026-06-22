@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { getDb } from '../db/client.js';
-import { scenarios, questionItems, practiceSessions, practiceTurns, userAbilityProfiles, expressionBankItems, dimensionSnapshots } from '../db/schema.js';
+import { scenarios, questionItems, practiceSessions, practiceTurns, userAbilityProfiles, expressionBankItems, dimensionSnapshots, topicSessions } from '../db/schema.js';
 import { gte, and } from 'drizzle-orm';
 import { buildTrendSeries } from '../scoring/trends.js';
 import { requireAuth } from '../auth/plugin.js';
@@ -10,10 +10,35 @@ import { selectNextItem, profileScoreFromDimensions } from '../adaptive/select.j
 import { CEFR_DISCLAIMER } from '../scoring/cefr.js';
 import { isDue } from '../review/sm2.js';
 import { reviewPromptFor } from '../review/prompt.js';
+import { narrowPoolByTopic, type SessionTopic } from '../content/topicPool.js';
 
 const PRACTICE_MODE: Record<string, string> = {
   scenario_translation: 'translation', scenario_dialogue: 'dialogue', topic_description: 'description',
 };
+
+/**
+ * Resolve the user's active practice session (reuse the latest active one, else
+ * open a new mixed session). Shared by study/next and the topic routes so the
+ * "active session" rule is identical across both surfaces.
+ */
+export async function getOrCreateActiveSession(
+  db: ReturnType<typeof getDb>,
+  userId: string,
+): Promise<typeof practiceSessions.$inferSelect> {
+  const active = await db.select().from(practiceSessions)
+    .where(eq(practiceSessions.userId, userId)).orderBy(desc(practiceSessions.startedAt)).limit(1);
+  if (active[0] && active[0].state === 'active') return active[0];
+  return (await db.insert(practiceSessions).values({ userId, mode: 'mixed' }).returning())[0]!;
+}
+
+/** Read a session row's topic into the pure SessionTopic shape. */
+function sessionTopicOf(session: typeof practiceSessions.$inferSelect): SessionTopic {
+  return {
+    kind: session.topicKind === 'category' || session.topicKind === 'custom' ? session.topicKind : null,
+    category: session.topicCategory,
+    topicSessionId: session.topicSessionId,
+  };
+}
 
 /**
  * Study + scenarios + profile read endpoints (TECH §B3/§B7). The Study feed
@@ -29,13 +54,12 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
     const profileScore = profileScoreFromDimensions((profiles[0]?.dimensions as Record<string, { score: number }>) ?? {});
 
     // Reuse the latest active session or open a new one.
-    const active = await db.select().from(practiceSessions)
-      .where(eq(practiceSessions.userId, userId)).orderBy(desc(practiceSessions.startedAt)).limit(1);
-    let sessionId: string;
-    if (active[0] && active[0].state === 'active') sessionId = active[0].id;
-    else sessionId = (await db.insert(practiceSessions).values({ userId, mode: 'mixed' }).returning())[0]!.id;
+    const session = await getOrCreateActiveSession(db, userId);
+    const sessionId = session.id;
+    const topic = sessionTopicOf(session);
 
     // Resurface a due review item if one is waiting (spaced repetition).
+    // Reviews are GLOBAL — they resurface regardless of the active topic.
     const exprs = await db.select().from(expressionBankItems).where(eq(expressionBankItems.userId, userId));
     const due = exprs.filter((e) => isDue(e.reviewStatus, new Date()));
     if (due.length > 0) {
@@ -51,9 +75,31 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
       }));
     }
 
-    const published = await db.select().from(questionItems).where(eq(questionItems.status, 'published'));
+    // Published pool joined to scenarios so the topic filter has the category.
+    const publishedRows = await db.select({ item: questionItems, scenario: scenarios })
+      .from(questionItems)
+      .innerJoin(scenarios, eq(questionItems.scenarioId, scenarios.id))
+      .where(eq(questionItems.status, 'published'));
+    const published = publishedRows.map((r) => ({ ...r.item, scenario: r.scenario }));
+
+    // Topic-aware: narrow the pool to the session's active topic (category or
+    // custom). No topic → full published pool (unchanged behaviour). Narrowing
+    // happens BEFORE recency-exclusion so recency is enforced WITHIN the topic.
+    const topicPool = narrowPoolByTopic(
+      published.map((i) => ({ id: i.id, difficultyScore: i.difficultyScore, scenarioCategory: i.scenario.category, topicSessionId: i.topicSessionId })),
+      topic,
+    );
+
+    // A custom topic whose batch hasn't produced any item yet → tell the client
+    // it's still warming up (rather than 'empty_bank' or a wrong-topic item).
+    if (topic.kind === 'custom' && topic.topicSessionId && topicPool.length === 0) {
+      const ts = (await db.select().from(topicSessions).where(eq(topicSessions.id, topic.topicSessionId)))[0];
+      if (ts && ts.status === 'generating') return reply.send(ok(null, { reason: 'topic_warming' }));
+    }
+
     // Don't serve the same item back-to-back: exclude items practiced in the
-    // user's recent turns; fall back to the full pool only once they're exhausted.
+    // user's recent turns; fall back to the full (narrowed) pool only once
+    // they're exhausted.
     const recentTurns = await db.select({ itemId: practiceTurns.itemId })
       .from(practiceTurns)
       .innerJoin(practiceSessions, eq(practiceTurns.sessionId, practiceSessions.id))
@@ -61,12 +107,12 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
       .orderBy(desc(practiceTurns.createdAt))
       .limit(8);
     const recentIds = new Set(recentTurns.map((r) => r.itemId).filter((x): x is string => Boolean(x)));
-    const freshPool = published.filter((i) => !recentIds.has(i.id));
-    const pool = freshPool.length > 0 ? freshPool : published;
+    const freshPool = topicPool.filter((i) => !recentIds.has(i.id));
+    const pool = freshPool.length > 0 ? freshPool : topicPool;
     const chosen = selectNextItem(pool.map((i) => ({ id: i.id, difficultyScore: i.difficultyScore })), profileScore);
     if (!chosen) return reply.send(ok(null, { reason: 'empty_bank' }));
     const item = published.find((i) => i.id === chosen.id)!;
-    const scen = (await db.select().from(scenarios).where(eq(scenarios.id, item.scenarioId)))[0];
+    const scen = item.scenario;
 
     return reply.send(ok({
       kind: 'practice',
@@ -82,7 +128,7 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
         targetPhrases: item.targetPhrases,
         scenario: scen ? { title: scen.title, category: scen.category, userRole: scen.userRole, aiRole: scen.aiRole, goal: scen.goal } : null,
       },
-    }));
+    }, topic.kind ? { topic: { kind: topic.kind, category: topic.category, topicSessionId: topic.topicSessionId, label: session.topicLabel } } : null));
   });
 
   app.get('/v1/scenarios', { preHandler: requireAuth }, async (_req, reply) => {

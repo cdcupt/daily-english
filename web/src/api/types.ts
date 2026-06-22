@@ -119,6 +119,74 @@ export interface StudyReview {
  */
 export type StudyNext = StudyPractice | StudyReview;
 
+/* ---------- Topic sessions (server/src/routes/topic.ts) ---------- */
+
+/** A topic is either a pre-seeded scenario category or an AI-generated custom one. */
+export type TopicKind = "category" | "custom";
+
+/** While a custom batch generates, status is "generating"; otherwise "ready". */
+export type TopicStatus = "ready" | "generating";
+
+/** GET /v1/topics — one selectable category chip (only those with published items). */
+export interface TopicCategory {
+  key: string;
+  label: string;
+  scenarioCount: number;
+  publishedItemCount: number;
+}
+
+/** GET /v1/topics — category chips + a few suggested custom topics. */
+export interface TopicsResponse {
+  categories: TopicCategory[];
+  suggestions: string[];
+}
+
+/**
+ * The active topic on the current session. `category` is set for category
+ * topics, `topicId` for custom (AI-generated) ones.
+ */
+export interface ActiveTopic {
+  kind: TopicKind;
+  label: string;
+  category?: string | null;
+  topicId?: string | null;
+  status: TopicStatus;
+  itemCount: number;
+}
+
+/** POST /v1/study/topic body — discriminated on `kind`. */
+export type SetTopicInput =
+  | { kind: "category"; category: string }
+  | { kind: "custom"; topic: string };
+
+/** POST /v1/study/topic — the session id + the now-active topic. */
+export interface SetTopicResult {
+  sessionId: string;
+  topic: ActiveTopic;
+}
+
+/** GET /v1/study/topic — null fields mean "no topic; adaptive mix". */
+export interface GetTopicResult {
+  sessionId: string | null;
+  topic: ActiveTopic | null;
+}
+
+/** DELETE /v1/study/topic — topic cleared, back to the adaptive mix. */
+export interface ClearTopicResult {
+  sessionId: string;
+  topic: null;
+}
+
+/**
+ * The `meta` carried by GET /v1/study/next. When a topic is active, `topic`
+ * echoes it; `reason` distinguishes the empty sub-states ("topic_warming"
+ * while a custom batch generates, vs "empty_bank" when caught up).
+ */
+export interface StudyNextMeta {
+  reason?: string;
+  topic?: ActiveTopic | null;
+}
+
 export type FeedbackIssueType =
   | "grammar"
   | "vocabulary"

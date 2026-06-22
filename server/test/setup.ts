@@ -6,3 +6,7 @@
 process.env['GOOGLE_CLIENT_ID'] = 'test-google-client.apps.googleusercontent.com';
 process.env['APPLE_CLIENT_ID'] = 'com.cdcupt.dailyenglish.web';
 process.env['APPLE_IOS_CLIENT_ID'] = 'com.cdcupt.DailyEnglish';
+
+// A dummy OpenAI key so the moderation module (Topic Sessions safety gate) has a
+// configured key under test; the moderations endpoint is always mocked (no net).
+process.env['OPENAI_API_KEY'] = process.env['OPENAI_API_KEY'] ?? 'test-openai-key';

@@ -12,6 +12,7 @@ import type {
   EmailAuth,
   AuthProvider,
   StudyNext,
+  StudyPractice,
   TurnResult,
   AudioTurnResult,
   ScoreReport,
@@ -25,6 +26,12 @@ import type {
   GenerateResult,
   TransitionResult,
   RegenerateResult,
+  TopicsResponse,
+  ActiveTopic,
+  SetTopicInput,
+  SetTopicResult,
+  GetTopicResult,
+  ClearTopicResult,
 } from "@/api/types";
 
 export function isMockMode(): boolean {
@@ -181,7 +188,15 @@ function buildTrends(days = 30): ProfileTrends {
   return { days, series };
 }
 
-const STUDY_NEXT: StudyNext = {
+const STUDY_NEXT_SCENARIO = {
+  title: "Reserving a table",
+  category: "Dining",
+  userRole: "Customer",
+  aiRole: "Restaurant host",
+  goal: "Reserve a table for tonight",
+};
+
+const STUDY_NEXT: StudyPractice = {
   kind: "practice",
   reason: "adaptive",
   sessionId: "mock-session-1",
@@ -193,13 +208,7 @@ const STUDY_NEXT: StudyNext = {
     promptCn: "我想订今晚七点、两个人的位子。",
     learningGoal: "Make a polite restaurant reservation",
     targetPhrases: ["book a table", "for two", "this evening"],
-    scenario: {
-      title: "Reserving a table",
-      category: "Dining",
-      userRole: "Customer",
-      aiRole: "Restaurant host",
-      goal: "Reserve a table for tonight",
-    },
+    scenario: STUDY_NEXT_SCENARIO,
   },
 };
 
@@ -222,6 +231,55 @@ const STUDY_REVIEW: StudyNext = {
     reviewKind: "ask_politely",
   },
 };
+
+/* ---------- Topic sessions ---------- */
+
+const TOPICS: TopicsResponse = {
+  categories: [
+    { key: "dining", label: "Dining", scenarioCount: 4, publishedItemCount: 12 },
+    { key: "travel", label: "Travel", scenarioCount: 3, publishedItemCount: 9 },
+    { key: "work", label: "Work & interviews", scenarioCount: 3, publishedItemCount: 8 },
+    { key: "shopping", label: "Shopping", scenarioCount: 2, publishedItemCount: 6 },
+    { key: "social", label: "Small talk", scenarioCount: 2, publishedItemCount: 5 },
+    { key: "health", label: "Health", scenarioCount: 1, publishedItemCount: 3 },
+  ],
+  suggestions: ["Job interview", "Café order", "Doctor visit"],
+};
+
+/**
+ * Mutable active-topic state for the mock session. Mirrors the server, where a
+ * topic lives on the active session. `setTopic` mutates this; `study/next`
+ * reads it; `clearTopic` resets it to null.
+ *
+ * Set NEXT_PUBLIC_MOCK_TOPIC_WARMING=1 to force a freshly-set CUSTOM topic to
+ * report `status: "generating"` and have `study/next` return the
+ * `meta.reason: "topic_warming"` empty sub-state (offline demo of the
+ * generating screen).
+ */
+let mockActiveTopic: ActiveTopic | null = null;
+
+function topicWarmingEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_MOCK_TOPIC_WARMING === "1";
+}
+
+/** Resolve the category label from its key, falling back to the raw key. */
+function categoryLabel(key: string): string {
+  return TOPICS.categories.find((c) => c.key === key)?.label ?? key;
+}
+
+/** Build a study/next practice item flavoured by the active topic. */
+function topicStudyNext(topic: ActiveTopic): StudyNext {
+  const scn =
+    topic.kind === "category"
+      ? { ...STUDY_NEXT_SCENARIO, category: topic.label }
+      : { ...STUDY_NEXT_SCENARIO, category: "Custom topic", title: topic.label, goal: `Practise: ${topic.label}` };
+  return {
+    kind: "practice",
+    reason: "topic",
+    sessionId: "mock-session-1",
+    item: { ...STUDY_NEXT.item, scenario: scn },
+  };
+}
 
 const SCORE_REPORT: ScoreReport = {
   session_id: "mock-session-1",
@@ -334,6 +392,61 @@ const mockAdminItems: AdminItem[] = [
   },
 ];
 
+/**
+ * Mirrors the live `ApiError` shape (`code` + `status` + `message`) so mock
+ * failures are caught and inspected by callers exactly like real ones. Defined
+ * here (not imported from client.ts) to avoid a circular import.
+ */
+class MockApiError extends Error {
+  code: string;
+  status: number;
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
+/**
+ * Resolve GET /v1/study/next for the mock, returning both the payload and the
+ * topic-aware `meta`. A custom topic in the "generating" state yields a null
+ * payload with `meta.reason: "topic_warming"`; the empty flavour yields
+ * `meta.reason: "empty_bank"`. Used by both `mockFetch` (data only) and
+ * `mockFetchRaw` (data + meta).
+ */
+function resolveStudyNext(): { data: StudyNext | null; meta: unknown } {
+  const flavour = process.env.NEXT_PUBLIC_MOCK_STUDY;
+  if (flavour === "review") return { data: STUDY_REVIEW, meta: {} };
+  if (flavour === "empty") return { data: null, meta: { reason: "empty_bank" } };
+
+  if (mockActiveTopic) {
+    if (mockActiveTopic.status === "generating") {
+      return { data: null, meta: { reason: "topic_warming", topic: mockActiveTopic } };
+    }
+    return { data: topicStudyNext(mockActiveTopic), meta: { topic: mockActiveTopic } };
+  }
+
+  return { data: STUDY_NEXT, meta: {} };
+}
+
+/**
+ * Raw mock dispatcher: returns `{ data, meta }`. Only `/study/next` carries a
+ * meaningful `meta`; every other route reuses `mockFetch` with a null meta.
+ */
+export async function mockFetchRaw<T>(
+  path: string,
+  req: MockRequest,
+): Promise<{ data: T | null; meta: unknown }> {
+  if (path === "/study/next") {
+    await delay(250);
+    const { data, meta } = resolveStudyNext();
+    return { data: data as T | null, meta };
+  }
+  const data = await mockFetch<T>(path, req);
+  return { data, meta: null };
+}
+
 export async function mockFetch<T>(
   path: string,
   req: MockRequest,
@@ -394,12 +507,67 @@ export async function mockFetch<T>(
   }
 
   if (path === "/study/next") {
-    // Default mock stays on the practice path. Set NEXT_PUBLIC_MOCK_STUDY=review
-    // to preview the spaced-repetition review card; =empty for the caught-up state.
-    const flavour = process.env.NEXT_PUBLIC_MOCK_STUDY;
-    if (flavour === "review") return STUDY_REVIEW as T;
-    if (flavour === "empty") return null as T;
-    return STUDY_NEXT as T;
+    return resolveStudyNext().data as T;
+  }
+
+  /* ---------- Topic sessions ---------- */
+  if (path === "/topics" && method === "GET") {
+    return TOPICS as T;
+  }
+
+  if (path === "/study/topic" && method === "GET") {
+    return {
+      sessionId: mockActiveTopic ? "mock-session-1" : null,
+      topic: mockActiveTopic,
+    } satisfies GetTopicResult as T;
+  }
+
+  if (path === "/study/topic" && method === "DELETE") {
+    mockActiveTopic = null;
+    return {
+      sessionId: "mock-session-1",
+      topic: null,
+    } satisfies ClearTopicResult as T;
+  }
+
+  if (path === "/study/topic" && method === "POST") {
+    const body = (req.body ?? {}) as Partial<SetTopicInput>;
+    if (body.kind === "category" && body.category) {
+      mockActiveTopic = {
+        kind: "category",
+        label: categoryLabel(body.category),
+        category: body.category,
+        topicId: null,
+        status: "ready",
+        itemCount: TOPICS.categories.find((c) => c.key === body.category)?.publishedItemCount ?? 0,
+      };
+    } else if (body.kind === "custom" && typeof body.topic === "string") {
+      const topic = body.topic.trim();
+      // Mirror the server's moderation gate: reject a couple of off-domain demo
+      // inputs so the inline coral error can be previewed offline.
+      const lower = topic.toLowerCase();
+      if (/ignore|build a bomb|hack|kill|porn/.test(lower)) {
+        throw new MockApiError(
+          422,
+          "topic_off_domain",
+          "Let's keep it about everyday English.",
+        );
+      }
+      mockActiveTopic = {
+        kind: "custom",
+        label: topic,
+        category: null,
+        topicId: `topic-${Date.now()}`,
+        status: topicWarmingEnabled() ? "generating" : "ready",
+        itemCount: topicWarmingEnabled() ? 0 : 3,
+      };
+    } else {
+      throw new MockApiError(400, "bad_request", "Invalid topic request.");
+    }
+    return {
+      sessionId: "mock-session-1",
+      topic: mockActiveTopic,
+    } satisfies SetTopicResult as T;
   }
 
   if (/\/review\/.+\/complete$/.test(path) && method === "POST") {

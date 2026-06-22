@@ -28,6 +28,12 @@ const EnvSchema = z.object({
   // instead of hanging the (synchronous) request. Tunable per environment.
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
 
+  // Tight per-request deadline for the SYNCHRONOUS first custom-topic item
+  // generation (Topic Sessions): the learner is waiting, so we cap it well below
+  // AI_REQUEST_TIMEOUT_MS. On timeout the topic stays 'generating' and the feed
+  // surfaces topic_warming instead of hanging the request.
+  AI_TOPIC_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
+
   // Gemini provider (OpenAI-compatible endpoint). Optional — if the key is unset,
   // the registry won't route any task to gemini (falls back to openai defaults).
   GEMINI_API_KEY: z.string().optional(),
