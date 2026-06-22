@@ -11,8 +11,9 @@ import { getOrCreateActiveSession } from './study.js';
 import { normalizeTopic, scaffoldTopic } from '../content/topic.js';
 import { validateItemQuality } from '../content/quality.js';
 import { generateItem } from '../content/generate.js';
-import { moderateText } from '../ai/moderation.js';
+import { moderateText, type ModerationResult } from '../ai/moderation.js';
 import { DualWindowLimiter } from '../util/rateLimiter.js';
+import type { ItemGen } from '../schemas.js';
 
 const DEFAULT_RUBRIC = { vocabulary: 20, grammar: 25, naturalness: 25, task_completion: 20, pronunciation: 10 };
 
@@ -25,14 +26,28 @@ const generationLimiter = new DualWindowLimiter(
   { max: 5, windowMs: 10 * 60_000 },
   { max: 30, windowMs: 24 * 60 * 60_000 },
 );
+// Per-IP new-generation limits, checked IN ADDITION to the per-user limit on the
+// cache-MISS path only. Anonymous (deviceId) accounts are free to mint, so the
+// per-user cap alone is bypassable; this IP dimension caps a single host
+// regardless of how many accounts it cycles through. ~10 per 10 min, 50 per day.
+const ipGenerationLimiter = new DualWindowLimiter(
+  { max: 10, windowMs: 10 * 60_000 },
+  { max: 50, windowMs: 24 * 60 * 60_000 },
+);
 let sweepTimer: ReturnType<typeof setInterval> | null = null;
 function startSweep(): void {
   if (sweepTimer) return;
-  sweepTimer = setInterval(() => generationLimiter.sweep(), 60 * 60_000);
+  sweepTimer = setInterval(() => {
+    generationLimiter.sweep();
+    ipGenerationLimiter.sweep();
+  }, 60 * 60_000);
   sweepTimer.unref?.();
 }
-/** Test-only: reset the generation limiter. */
-export function resetTopicRateLimit(): void { generationLimiter.reset(); }
+/** Test-only: reset the generation limiters (per-user + per-IP). */
+export function resetTopicRateLimit(): void {
+  generationLimiter.reset();
+  ipGenerationLimiter.reset();
+}
 
 // In-memory single-flight: collapse concurrent MISS requests for the same
 // normalized topic so we don't double-insert / double-generate. Maps the
@@ -52,12 +67,46 @@ interface TopicBinding {
 }
 
 /**
- * Generate one item for a topic, quality-gate it, and (if it passes) publish it
- * with topicSessionId set + a content_source. Returns true on a published item.
+ * Build the text moderated for a GENERATED item before publish. Concatenates the
+ * scenario title + goal, the Chinese prompt, and the reference answers — the
+ * fields a learner would actually see. Pure (no I/O) so it can be unit-tested.
+ *
+ * Input-topic moderation alone is insufficient: the generated content is cached
+ * and SHARED across users, so a benign topic that produces disallowed output
+ * would otherwise reach everyone. This is one extra moderation call per item.
+ */
+export function buildOutputModerationText(args: {
+  scenarioTitle: string;
+  scenarioGoal: string;
+  item: Pick<ItemGen, 'prompt_cn' | 'reference_answers'>;
+}): string {
+  return [
+    args.scenarioTitle,
+    args.scenarioGoal,
+    args.item.prompt_cn,
+    ...args.item.reference_answers,
+  ].join('\n');
+}
+
+/** Injectable deps for generateAndPublishItem (production defaults; tests override). */
+export interface GenerateDeps {
+  generate: typeof generateItem;
+  moderate: (text: string) => Promise<ModerationResult>;
+}
+const DEFAULT_GENERATE_DEPS: GenerateDeps = { generate: generateItem, moderate: moderateText };
+
+/**
+ * Generate one item for a topic, quality-gate it, moderate the GENERATED OUTPUT,
+ * and (if it passes both) publish it with topicSessionId set + a content_source.
+ * Returns true on a published item. A quality-gate failure OR a flagged output
+ * PARKS the item as status='generated' (never served — the served set filters on
+ * status='published') and returns false. Output moderation closes the gap that
+ * input-only moderation leaves: content is cached + shared cross-user.
+ *
  * Errors are surfaced to the caller (the synchronous path fails the request; the
  * background path swallows + logs).
  */
-async function generateAndPublishItem(args: {
+export async function generateAndPublishItem(args: {
   topicSessionId: string;
   scenarioId: string;
   scenarioSlug: string;
@@ -66,9 +115,9 @@ async function generateAndPublishItem(args: {
   category: string;
   cefrLevel: string;
   timeoutMs?: number;
-}): Promise<boolean> {
+}, deps: GenerateDeps = DEFAULT_GENERATE_DEPS): Promise<boolean> {
   const db = getDb();
-  const gen = await generateItem({
+  const gen = await deps.generate({
     scenarioTitle: args.scenarioTitle, scenarioGoal: args.scenarioGoal,
     category: args.category, type: ITEM_TYPE, cefrLevel: args.cefrLevel,
   }, undefined, { timeoutMs: args.timeoutMs });
@@ -79,18 +128,34 @@ async function generateAndPublishItem(args: {
     return false;
   }
 
+  // Output moderation (fail-CLOSED): moderate the generated fields BEFORE publish.
+  // A moderation error throws → caller treats it as a generation failure (the
+  // synchronous path 422s, the background path swallows + logs) and nothing is
+  // published, consistent with the input-moderation fail-closed posture.
+  const moderationText = buildOutputModerationText({
+    scenarioTitle: args.scenarioTitle, scenarioGoal: args.scenarioGoal, item: gen.item,
+  });
+  const outMod = await deps.moderate(moderationText);
+  const status = outMod.flagged ? 'generated' : 'published';
+  if (outMod.flagged) {
+    // Park (not publish) and exclude from the served set. Log reasons for abuse
+    // investigation; do NOT log the generated item text at info level.
+    console.warn(`[topic] output moderation parked an item for topicSession=${args.topicSessionId}: categories=[${outMod.categories.join(', ')}]`);
+  }
+
   const [source] = await db.insert(contentSources)
     .values({ type: 'ai_generated', license: 'owned', reviewedBy: null }).returning();
-  // Custom items skip the operator lifecycle: gate-passed → published directly.
+  // Custom items skip the operator lifecycle: gate-passed + output-clean →
+  // published directly; flagged → parked as 'generated' (never served).
   await db.insert(questionItems).values({
     itemKey: `${args.scenarioSlug}_${ITEM_TYPE}_${Date.now()}_${Math.floor(Math.random() * 1e6)}`,
-    scenarioId: args.scenarioId, type: ITEM_TYPE, status: 'published', version: 1,
+    scenarioId: args.scenarioId, type: ITEM_TYPE, status, version: 1,
     cefrLevel: args.cefrLevel, difficultyScore: gen.item.difficulty_score, learningGoal: args.scenarioGoal,
     promptCn: gen.item.prompt_cn, referenceAnswers: gen.item.reference_answers,
     targetPhrases: gen.item.target_phrases, commonMistakes: gen.item.common_mistakes,
     rubric: DEFAULT_RUBRIC, sourceId: source!.id, topicSessionId: args.topicSessionId,
   });
-  return true;
+  return !outMod.flagged;
 }
 
 /**
@@ -117,6 +182,8 @@ async function generateCustomTopic(normalized: string, rawTopic: string, userId:
     const { scaffold } = await scaffoldTopic(rawTopic, undefined, { timeoutMs: env.AI_TOPIC_TIMEOUT_MS });
     if (!scaffold.onDomain) {
       await db.update(topicSessions).set({ status: 'failed' }).where(eq(topicSessions.id, topicSessionId));
+      // Abuse logging: off-domain (often injection / misuse) attempts at warn.
+      console.warn(`[topic] off-domain reject for topic=${JSON.stringify(rawTopic)}: ${scaffold.rejectReason ?? 'not an English-practice scenario'}`);
       throw new TopicError('topic_off_domain', scaffold.rejectReason ?? 'Topic is not an English-practice scenario');
     }
     const category: ScenarioCategory = scaffold.category;
@@ -142,8 +209,11 @@ async function generateCustomTopic(normalized: string, rawTopic: string, userId:
     // 4) FIRST item synchronously (tight deadline — the learner is waiting).
     const firstOk = await generateAndPublishItem({ ...genArgs, timeoutMs: env.AI_TOPIC_TIMEOUT_MS });
     if (!firstOk) {
-      // Quality gate failed on the only synchronous item → mark failed.
+      // Quality gate failed OR output moderation parked the only synchronous
+      // item → nothing publishable → mark failed. (The specific reason was
+      // already logged at warn inside generateAndPublishItem.)
       await db.update(topicSessions).set({ status: 'failed' }).where(eq(topicSessions.id, topicSessionId));
+      console.warn(`[topic] generation failed (no publishable first item) for topic=${JSON.stringify(rawTopic)}`);
       throw new TopicError('topic_generation_failed', 'Could not generate a usable item for this topic');
     }
     await db.update(topicSessions).set({ status: 'ready', itemCount: 1 }).where(eq(topicSessions.id, topicSessionId));
@@ -256,60 +326,87 @@ export async function topicRoutes(app: FastifyInstance): Promise<void> {
         .where(eq(topicSessions.normalizedTopic, norm.cacheKey)))[0];
       if (cached && cached.status === 'ready') {
         // HIT → bind + return ready. No regeneration, NOT rate-limited.
-        await bindCustom(db, session.id, cached.id, cached.rawTopic);
+        // Label MUST be THIS requester's own topic, never the first creator's
+        // stored rawTopic, so one user's phrasing is never shown to another.
+        await bindCustom(db, session.id, cached.id, norm.normalized);
         return reply.send(ok({
           sessionId: session.id,
-          topic: { kind: 'custom', label: cached.rawTopic, topicId: cached.id, status: 'ready', itemCount: cached.itemCount },
+          topic: { kind: 'custom', label: norm.normalized, topicId: cached.id, status: 'ready', itemCount: cached.itemCount },
         }));
       }
 
-      // MISS → rate-limit NEW generations per user (cache hits above are free).
-      if (generationLimiter.isLimited(userId)) {
-        return reply.code(429).send(fail('rate_limited', 'Too many new topics, try again later'));
-      }
-
-      // Moderate (fail-CLOSED: flagged OR any moderation error → reject).
-      try {
-        const mod = await moderateText(norm.normalized);
-        if (mod.flagged) {
-          return reply.code(422).send(fail('topic_rejected', 'That topic is not allowed'));
-        }
-      } catch {
-        // Moderation outage → reject rather than let unmoderated text into the
-        // shared cache. Nothing is persisted.
-        return reply.code(422).send(fail('topic_rejected', 'Could not verify the topic right now'));
-      }
-
-      // Single-flight: collapse concurrent MISS for the same normalized topic so
-      // we generate (and insert) exactly once. Followers await the same promise.
+      // MISS. Single-flight FIRST: collapse concurrent MISS for the same
+      // normalized topic into ONE generation so two identical requests don't
+      // each charge the limiters / moderate / generate. A FOLLOWER (sees an
+      // in-progress entry) just awaits it and is NOT charged or moderated again;
+      // the LEADER (creates the entry) charges the rate limits, moderates, and
+      // generates. The DB unique index on normalizedTopic remains the backstop.
       let binding: TopicBinding;
       try {
         const existing = inflight.get(norm.cacheKey);
         if (existing) {
+          // FOLLOWER: await the leader's generation; no charge, no moderation.
           const topicSessionId = await existing;
           const ts = (await db.select().from(topicSessions).where(eq(topicSessions.id, topicSessionId)))[0]!;
           binding = { topicSessionId, status: ts.status === 'ready' ? 'ready' : 'generating', itemCount: ts.itemCount, cefrBand: ts.cefrBand };
         } else {
-          const promise = generateCustomTopic(norm.cacheKey, norm.normalized, userId);
-          // Followers only need the id; store an id-resolving view of the promise.
-          // The leader (below) owns error handling; swallow on the stored view so a
-          // rejection with no concurrent follower isn't an unhandled rejection.
-          const idView = promise.then((b2) => b2.topicSessionId);
-          idView.catch(() => {});
+          // LEADER: own the single-flight slot for the whole protected section
+          // (rate charge → moderation → generation) so a follower arriving at any
+          // point collapses onto us instead of starting a second generation.
+          let resolveId: (id: string) => void = () => {};
+          let rejectId: (err: unknown) => void = () => {};
+          const idView = new Promise<string>((res, rej) => { resolveId = res; rejectId = rej; });
+          idView.catch(() => {}); // a follower-less rejection isn't unhandled
           inflight.set(norm.cacheKey, idView);
           try {
-            binding = await promise;
+            // Rate-limit NEW generations: per-USER and per-IP (cache hits are
+            // free). Anonymous accounts make the per-user cap bypassable, so the
+            // per-IP dimension (trustProxy → req.ip) bounds a single host. 429 on
+            // either. Charged on the MISS leader path only.
+            if (generationLimiter.isLimited(userId) || ipGenerationLimiter.isLimited(req.ip)) {
+              const err = new TopicError('rate_limited', 'Too many new topics, try again later');
+              rejectId(err);
+              throw err;
+            }
+
+            // Moderate the INPUT topic (fail-CLOSED: flagged OR any moderation
+            // error → reject). Output moderation happens per generated item.
+            try {
+              const mod = await moderateText(norm.normalized);
+              if (mod.flagged) {
+                const err = new TopicError('topic_rejected', 'That topic is not allowed');
+                console.warn(`[topic] input moderation rejected topic=${JSON.stringify(norm.normalized)}: categories=[${mod.categories.join(', ')}]`);
+                rejectId(err);
+                throw err;
+              }
+            } catch (e) {
+              if (e instanceof TopicError) throw e;
+              // Moderation outage → reject rather than let unmoderated text into
+              // the shared cache. Nothing is persisted.
+              const err = new TopicError('topic_rejected', 'Could not verify the topic right now');
+              rejectId(err);
+              throw err;
+            }
+
+            binding = await generateCustomTopic(norm.cacheKey, norm.normalized, userId);
+            resolveId(binding.topicSessionId);
+          } catch (e) {
+            rejectId(e); // idempotent if already settled above
+            throw e;
           } finally {
             inflight.delete(norm.cacheKey);
           }
         }
       } catch (e) {
         if (e instanceof TopicError) {
-          return reply.code(422).send(fail(e.code, e.message));
+          const code = e.code === 'rate_limited' ? 429 : 422;
+          return reply.code(code).send(fail(e.code, e.message));
         }
         throw e;
       }
 
+      // Label MUST be THIS requester's own topic (followers share the leader's
+      // generated content but display their own phrasing).
       await bindCustom(db, session.id, binding.topicSessionId, norm.normalized);
       return reply.send(ok({
         sessionId: session.id,

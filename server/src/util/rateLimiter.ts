@@ -42,9 +42,12 @@ export class FixedWindowLimiter {
 }
 
 /**
- * Two-window limiter: a key is limited when EITHER window is over budget. Both
- * windows are charged on every allowed hit. Designed for "N per short window AND
- * M per day" caps.
+ * Two-window limiter: a key is limited when EITHER window is over budget.
+ * Designed for "N per short window AND M per day" caps.
+ *
+ * Check-then-charge ordering: the short window is charged first, and if it is
+ * already over budget the long window is NOT charged. This stops retry-hammering
+ * after a 429 from eroding the daily budget while the short window is exhausted.
  */
 export class DualWindowLimiter {
   private readonly short: FixedWindowLimiter;
@@ -55,11 +58,18 @@ export class DualWindowLimiter {
     this.long = new FixedWindowLimiter(long);
   }
 
-  /** True when this key is now over budget on either window. Charges both. */
+  /**
+   * True when this key is now over budget on either window. Charges the short
+   * window always; charges the long window ONLY when the short window passed
+   * (so a hammering caller blocked by the short window doesn't drain the daily
+   * cap). Once the short window resets, the long window starts being charged
+   * again, so the daily cap still bounds total throughput over a day.
+   */
   isLimited(key: string, now = Date.now()): boolean {
     const overShort = this.short.hit(key, now);
+    if (overShort) return true; // short over → don't charge the long window
     const overLong = this.long.hit(key, now);
-    return overShort || overLong;
+    return overLong;
   }
 
   sweep(now = Date.now()): void {

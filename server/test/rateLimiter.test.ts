@@ -58,4 +58,31 @@ describe('DualWindowLimiter (short burst AND daily cap)', () => {
     expect(limited).toBe(false); // exactly 30 allowed
     expect(lim.isLimited('u', t)).toBe(true); // 31st → over daily
   });
+
+  it('does NOT charge the long window while the short window is over (check-then-charge)', () => {
+    // Short cap 2, daily cap 100. After tripping the short window, retry-hammering
+    // must NOT erode the daily budget: the long window should only ever see the 2
+    // hits that passed the short window, never the over-budget retries.
+    const lim = new DualWindowLimiter({ max: 2, windowMs: 10 * 60_000 }, { max: 100, windowMs: 24 * 60 * 60_000 });
+    const t = 1_000_000;
+    expect(lim.isLimited('u', t)).toBe(false); // 1 (short 1, long 1)
+    expect(lim.isLimited('u', t)).toBe(false); // 2 (short 2, long 2)
+    // Hammer the same window 50 times while over the short cap.
+    for (let i = 0; i < 50; i += 1) expect(lim.isLimited('u', t)).toBe(true);
+
+    // After the short window resets, the long window has only been charged twice,
+    // so we should get (100 - 2) = 98 more allowed hits before the daily cap.
+    let t2 = t + 11 * 60_000;
+    let allowed = 0;
+    for (let w = 0; w < 60; w += 1) {
+      // Per short window only 2 pass; spread across windows to isolate the long cap.
+      for (let i = 0; i < 2; i += 1) {
+        if (!lim.isLimited('u', t2)) allowed += 1;
+      }
+      t2 += 11 * 60_000;
+    }
+    // 2 (initial) + 98 (remaining daily budget) = 100 total allowed; the hammering
+    // never counted toward the daily cap.
+    expect(allowed).toBe(98);
+  });
 });

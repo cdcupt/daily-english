@@ -60,8 +60,13 @@ export function normalizeTopic(raw: string): NormalizeResult {
   return { ok: true, normalized, cacheKey };
 }
 
-/** Escape the delimiter characters so the topic can't break out of <topic>…</topic>. */
-function escapeForDelimiter(text: string): string {
+/**
+ * Escape the delimiter characters so embedded text can't break out of a
+ * delimited block (e.g. <topic>…</topic>, <scenario>…</scenario>). Shared by the
+ * scaffold prompt (user topic) and the item-gen prompt (scaffold output, which
+ * is itself LLM-produced and therefore untrusted relative to the next call).
+ */
+export function escapeForDelimiter(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
