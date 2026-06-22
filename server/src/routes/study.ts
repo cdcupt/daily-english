@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, desc } from 'drizzle-orm';
 import { getDb } from '../db/client.js';
-import { scenarios, questionItems, practiceSessions, userAbilityProfiles, expressionBankItems, dimensionSnapshots } from '../db/schema.js';
+import { scenarios, questionItems, practiceSessions, practiceTurns, userAbilityProfiles, expressionBankItems, dimensionSnapshots } from '../db/schema.js';
 import { gte, and } from 'drizzle-orm';
 import { buildTrendSeries } from '../scoring/trends.js';
 import { requireAuth } from '../auth/plugin.js';
@@ -52,7 +52,18 @@ export async function studyRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const published = await db.select().from(questionItems).where(eq(questionItems.status, 'published'));
-    const chosen = selectNextItem(published.map((i) => ({ id: i.id, difficultyScore: i.difficultyScore })), profileScore);
+    // Don't serve the same item back-to-back: exclude items practiced in the
+    // user's recent turns; fall back to the full pool only once they're exhausted.
+    const recentTurns = await db.select({ itemId: practiceTurns.itemId })
+      .from(practiceTurns)
+      .innerJoin(practiceSessions, eq(practiceTurns.sessionId, practiceSessions.id))
+      .where(eq(practiceSessions.userId, userId))
+      .orderBy(desc(practiceTurns.createdAt))
+      .limit(8);
+    const recentIds = new Set(recentTurns.map((r) => r.itemId).filter((x): x is string => Boolean(x)));
+    const freshPool = published.filter((i) => !recentIds.has(i.id));
+    const pool = freshPool.length > 0 ? freshPool : published;
+    const chosen = selectNextItem(pool.map((i) => ({ id: i.id, difficultyScore: i.difficultyScore })), profileScore);
     if (!chosen) return reply.send(ok(null, { reason: 'empty_bank' }));
     const item = published.find((i) => i.id === chosen.id)!;
     const scen = (await db.select().from(scenarios).where(eq(scenarios.id, item.scenarioId)))[0];
