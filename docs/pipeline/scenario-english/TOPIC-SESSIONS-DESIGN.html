@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scenario English — Topic Sessions Design · Gate 1</title>
+<style>
+  :root{
+    --bg:#f6f7f9;--surface:#fff;--ink:#15171a;--muted:#5b6470;--line:#e4e7ec;
+    --teal:#0ea5a4;--teal-700:#0b6b6a;--violet:#7c3aed;--violet-bg:#f1ebfb;
+    --ok:#16a34a;--ok-bg:#e7f6ec;--hi:#dc2626;--warn:#d97706;--warn-bg:#fff3e2;--radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:clamp(20px,4vw,52px)}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--violet-bg);color:var(--violet);border:1px solid #ddd0f5}
+  h1{font-size:clamp(1.6rem,1rem+2.3vw,2.4rem);margin:.2em 0 .1em;letter-spacing:-.02em}
+  .lede{color:var(--muted);margin:0 0 6px;font-size:1.04rem}
+  h2{font-size:1.28rem;margin:2.2em 0 .3em;letter-spacing:-.01em}
+  h2 .n{color:var(--teal-700);font-variant-numeric:tabular-nums}
+  p{color:#33383f}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(16px,2.4vw,24px);margin-top:14px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px -18px rgba(16,24,40,.25)}
+  .diagram{overflow-x:auto}
+  svg{display:block;max-width:100%;height:auto;margin:0 auto}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);margin-top:14px}
+  table{border-collapse:collapse;width:100%;min-width:620px;font-size:.92rem;background:var(--surface)}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#fbfcfd;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  tr:last-child td{border-bottom:0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;background:#eef1f4;padding:1.5px 6px;border-radius:6px}
+  ul.tight{margin:.4em 0;padding-left:1.15em} ul.tight li{margin:.3em 0}
+  .note{border-left:3px solid var(--teal);background:#effbfb;padding:12px 16px;border-radius:0 10px 10px 0;margin-top:14px}
+  .note.dec{border-color:var(--violet);background:var(--violet-bg)}
+  .note.ok{border-color:var(--ok);background:var(--ok-bg)}
+  .tag{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .t-v1{background:var(--ok-bg);color:var(--ok)} .t-safe{background:#fdecec;color:var(--hi)}
+  footer{margin-top:40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="pill">Gate 1 · Design</span>
+  <h1>Topic Sessions — choose what to practise</h1>
+  <p class="lede">Let a learner steer a session by <strong>topic</strong>: quick-pick <strong>chips</strong> (your existing
+  scenario categories) or a <strong>custom</strong> free-text topic the app AI-generates a focused session for. The
+  current adaptive feed stays the default; topic is opt-in and per-session. Designed by 3 parallel agents (backend, AI+safety, frontend).</p>
+
+  <div class="note ok"><strong>No new setup from you.</strong> Moderation reuses the box's existing official OpenAI key (the
+  <code>/moderations</code> endpoint is free on standard keys) — unlike accounts, this needs no new credentials, keys, or DNS.</div>
+
+  <h2><span class="n">1.</span> How it works</h2>
+  <div class="card diagram">
+    <svg viewBox="0 0 920 250" role="img" aria-label="Topic session flow">
+      <defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto"><path d="M0,0 L7,3.2 L0,6.4 Z" fill="#9aa4b2"/></marker>
+      <style>.b{fill:#fff;stroke:#d8dde4;stroke-width:1.5}.t{font:600 13px -apple-system,sans-serif;fill:#15171a}.s{font:11px -apple-system,sans-serif;fill:#5b6470}.f{stroke:#9aa4b2;stroke-width:1.6;fill:none}.tl{fill:#0ea5a4}.vl{fill:#7c3aed}</style></defs>
+      <rect class="b" x="20" y="100" width="150" height="60" rx="11"/><text class="t" x="40" y="126">Choose a topic</text><text class="s" x="40" y="144">chip or custom text</text>
+      <!-- category path -->
+      <rect class="b" x="250" y="24" width="200" height="56" rx="11"/><circle class="tl" cx="274" cy="50" r="4"/><text class="t" x="286" y="46">Category chip</text><text class="s" x="266" y="66">filter published items</text>
+      <!-- custom path -->
+      <rect class="b" x="250" y="150" width="150" height="74" rx="11"/><circle class="vl" cx="274" cy="176" r="4"/><text class="t" x="286" y="172">Custom topic</text><text class="s" x="266" y="190">moderate → scaffold</text><text class="s" x="266" y="206">→ generate (cache)</text>
+      <rect class="b" x="430" y="150" width="150" height="74" rx="11"/><text class="t" x="450" y="180">Cache by topic</text><text class="s" x="446" y="198">shared, grows</text><text class="s" x="446" y="214">over time</text>
+      <!-- feed -->
+      <rect class="b" x="640" y="86" width="180" height="84" rx="11"/><circle class="tl" cx="664" cy="112" r="4"/><text class="t" x="676" y="112">study/next (topic)</text><text class="s" x="656" y="132">adaptive within topic</text><text class="s" x="656" y="150">reviews still interleave</text>
+      <path class="f" d="M170,118 C205,96 215,60 248,52" marker-end="url(#a)"/>
+      <path class="f" d="M170,140 C205,160 215,182 248,186" marker-end="url(#a)"/>
+      <path class="f" d="M400,187 H428" marker-end="url(#a)"/>
+      <path class="f" d="M450,55 C540,70 560,100 638,112" marker-end="url(#a)"/>
+      <path class="f" d="M580,185 C610,170 615,150 638,140" marker-end="url(#a)"/>
+    </svg>
+  </div>
+
+  <h2><span class="n">2.</span> Two paths</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Path</th><th>How</th><th>Cost / risk</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Category chip</strong> <span class="tag t-v1">v1-easy</span></td><td>Pure filter of already-<em>published</em> items by <code>scenario.category</code>. No AI, instant, reliable.</td><td>Limited to seeded content (today's 16 scenarios).</td></tr>
+      <tr><td><strong>Custom topic</strong> <span class="tag t-safe">AI + safety</span></td><td>Normalize → <strong>moderate</strong> → AI scaffolds a scenario → generates a small item batch → <strong>caches by topic</strong>. First item ~5s, rest in background.</td><td>Generation latency + a safety surface (free-text → LLM + shared content) — handled below.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2><span class="n">3.</span> API &amp; data</h2>
+  <ul class="tight">
+    <li><code>GET /v1/topics</code> — category chips (only categories with ≥1 published item) + a few custom suggestions.</li>
+    <li><code>POST /v1/study/topic</code> — set the topic on the active session (<code>{kind:'category',category}</code> or <code>{kind:'custom',topic}</code>); custom triggers moderation + generation. <code>GET</code>/<code>DELETE</code> read/clear it.</li>
+    <li><code>GET /v1/study/next</code> — <strong>same shape</strong>, now topic-aware: reviews resurface first (global), then the practice pool is narrowed to the topic, then recency-exclusion + adaptive pick. New <code>topic_warming</code> empty sub-state while a custom batch generates.</li>
+    <li><strong>Schema (additive, nullable — safe online migrate):</strong> <code>practice_sessions</code> gets <code>topicKind/topicCategory/topicSessionId/topicLabel</code>; new <code>topic_sessions</code> cache table (normalized topic + CEFR + status + moderation); <code>question_items.topicSessionId</code>. Custom topics reuse a synthetic <code>scenario</code> row so every existing join keeps working.</li>
+  </ul>
+
+  <h2><span class="n">4.</span> Safety (custom free-text) <span class="tag t-safe">must-have</span></h2>
+  <div class="card">
+    <ul class="tight">
+      <li><strong>Moderate before generating</strong> — OpenAI omni-moderation on the topic; reject inappropriate input (fail-closed, since content is shared).</li>
+      <li><strong>On-domain gate</strong> — the AI scaffold flags non-English-practice requests (e.g. "how to build X", "ignore your instructions") → rejected.</li>
+      <li><strong>Prompt-injection hardening</strong> — the topic is passed as delimited untrusted <em>data</em>, length-capped, escaped; strict JSON-schema + Zod output means injection can't change output shape or leak the prompt.</li>
+      <li><strong>Quality gate</strong> before a generated item is shown/shared (schema + CEFR/difficulty sanity + language checks); failures parked, not served.</li>
+      <li><strong>Rate-limit</strong> new-topic generation per user (≈5/10 min, 30/day); cache hits are free. React auto-escapes all rendered text (no XSS).</li>
+    </ul>
+  </div>
+
+  <h2><span class="n">5.</span> Frontend</h2>
+  <ul class="tight">
+    <li>A slim <strong>TopicBar</strong> atop Study: default "Today's mix · Adaptive" + a "Choose a topic" button; when active, a topic chip with a clear ×.</li>
+    <li>A <strong>TopicPicker</strong> sheet: category chips + an "or" divider + a custom text field with example quick-fills.</li>
+    <li>Custom topics show a "Building your <em>{topic}</em> session…" state (Cleo + the existing thinking-dots/skeleton); category chips refetch instantly.</li>
+    <li>Each topic item shows a small provenance badge; due reviews still interleave (review &gt; topic) and keep their review badge.</li>
+  </ul>
+
+  <h2><span class="n">6.</span> Recommended decisions (baked in unless you object)</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Decision</th><th>Recommendation</th></tr></thead>
+    <tbody>
+      <tr><td>First-item latency</td><td>Generate item #1 <strong>synchronously</strong> (~5–8s, tight timeout) for instant start; rest in the background.</td></tr>
+      <tr><td>Background mechanism</td><td>In-process fire-and-forget (single box, no new deps) + a "failed → retry" affordance.</td></tr>
+      <tr><td>Custom items lifecycle</td><td>Publish on passing the quality gate (provenance lane), skipping the operator workflow.</td></tr>
+      <tr><td>Cache scope</td><td>By topic only (shared library grows); adaptive selection handles level fit. (Revisit per-CEFR later.)</td></tr>
+      <tr><td>Chinese-language topics</td><td><strong>Accept</strong> zh input (your audience is zh-native) → scaffold an English scenario from it.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2><span class="n">7.</span> Suggested build order</h2>
+  <ol class="tight">
+    <li><strong>Curated chips first</strong> — category filter on study/next + TopicBar/TopicPicker (chips). Ships half the feature fast, zero AI risk.</li>
+    <li><strong>Custom AI topics second</strong> — moderation + scaffold + generation + cache + the generating state.</li>
+    <li>QA both (incl. an adversarial safety pass on the custom path), deploy, verify live.</li>
+  </ol>
+
+  <footer>Gate 1 · Topic sessions · designed via a 3-agent workflow (backend + AI/safety + frontend). Per-session, opt-in, additive — no breaking change to the adaptive feed. Awaiting PM approval on the design + build phasing.</footer>
+</div>
+</body>
+</html>
