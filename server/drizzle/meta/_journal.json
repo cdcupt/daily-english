@@ -36,6 +36,13 @@
       "when": 1782143513160,
       "tag": "0004_nostalgic_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782150659833,
+      "tag": "0005_permit_test_provider",
+      "breakpoints": true
     }
   ]
 }

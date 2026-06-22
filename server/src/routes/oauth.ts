@@ -66,8 +66,12 @@ export function resetRateLimit(): void {
   rateBuckets.clear();
 }
 
-/** preHandler: 429 once an IP exceeds the OAuth window budget. */
-async function rateLimitGuard(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+/**
+ * preHandler: 429 once an IP exceeds the OAuth window budget. Exported so the
+ * test-login route shares the SAME per-IP buckets (one budget across all
+ * unauthenticated auth POSTs, not a separate per-route allowance).
+ */
+export async function rateLimitGuard(req: FastifyRequest, reply: FastifyReply): Promise<void> {
   if (isRateLimited(req.ip)) {
     reply.code(429).send(fail('rate_limited', 'Too many requests, slow down'));
   }
@@ -178,18 +182,23 @@ async function resolveOwner(
 /**
  * Resolve a verified provider identity into a user account, creating/linking
  * rows as needed — all in ONE transaction so a partial link can't leave a
- * burned identity with no account.
+ * burned identity with no account. Exported so POST /v1/auth/test-login can mint
+ * a synthetic ('test'-namespace) session through the EXACT same upsert/link path
+ * the real OAuth flow uses (idempotent under repeat / concurrency).
  */
-async function resolveIdentity(
+export async function resolveIdentity(
   identity: VerifiedIdentity,
   deviceUserId: string | null,
 ): Promise<LinkedAccount> {
   const db = getDb();
   return db.transaction(async (tx) => {
-    // Existing identity for (provider, sub)?
-    const identityRows = await tx.select().from(oauthIdentities).where(eq(oauthIdentities.providerSub, identity.sub));
-    // providerSub alone isn't unique across providers; narrow by provider too.
-    const existingIdentity = identityRows.find((r) => r.provider === identity.provider) ?? null;
+    // Existing identity for (provider, sub)? Match on BOTH columns (the unique key)
+    // so we never over-fetch unrelated rows that share a providerSub across providers.
+    const identityRows = await tx
+      .select()
+      .from(oauthIdentities)
+      .where(and(eq(oauthIdentities.provider, identity.provider), eq(oauthIdentities.providerSub, identity.sub)));
+    const existingIdentity = identityRows[0] ?? null;
 
     // Verified email already owns a (non-merged) account?
     const emailUser = identity.emailVerified && identity.email
@@ -337,10 +346,10 @@ export function oauthRoutes() {
 }
 
 /** Standard auth success body: fresh JWTs + the resolved identity. */
-function buildAuthResponse(
+export function buildAuthResponse(
   account: typeof users.$inferSelect,
   outcome: LinkOutcome,
-  provider: 'google' | 'apple',
+  provider: 'google' | 'apple' | 'test',
 ) {
   const role = account.isOperator ? 'operator' : 'user';
   return ok({

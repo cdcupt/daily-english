@@ -73,7 +73,9 @@ export const users = pgTable('users', {
 export const oauthIdentities = pgTable('oauth_identities', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull().references(() => users.id),
-  // 'google' | 'apple' — constrained by a CHECK in the migration.
+  // 'google' | 'apple' | 'test' — constrained by a CHECK in the migration.
+  // 'test' is the secret-gated E2E namespace (POST /v1/auth/test-login); it can
+  // never collide with a real social identity.
   provider: text('provider').notNull(),
   // The provider's stable subject id for this account ('sub' claim).
   providerSub: text('provider_sub').notNull(),
@@ -84,7 +86,7 @@ export const oauthIdentities = pgTable('oauth_identities', {
 }, (t) => ({
   providerSubIdx: uniqueIndex('oauth_provider_sub').on(t.provider, t.providerSub),
   userIdx: index('oauth_user_id').on(t.userId),
-  providerCheck: check('oauth_provider_check', sql`${t.provider} IN ('google', 'apple')`),
+  providerCheck: check('oauth_provider_check', sql`${t.provider} IN ('google', 'apple', 'test')`),
 }));
 
 export const contentSources = pgTable('content_sources', {

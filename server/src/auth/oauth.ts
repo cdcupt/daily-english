@@ -11,8 +11,17 @@ import { env } from '../env.js';
 
 export type OAuthProvider = 'google' | 'apple';
 
+/**
+ * Identity providers an account row may carry. 'google'/'apple' are real social
+ * sign-ins (cryptographically verified ID tokens); 'test' is a synthetic,
+ * secret-gated namespace used ONLY by POST /v1/auth/test-login for E2E. Keeping
+ * 'test' in its own namespace guarantees it can never collide with — or mint a
+ * session for — a real Google/Apple identity.
+ */
+export type IdentityProvider = OAuthProvider | 'test';
+
 export interface VerifiedIdentity {
-  provider: OAuthProvider;
+  provider: IdentityProvider;
   sub: string;
   email: string | null;
   emailVerified: boolean;

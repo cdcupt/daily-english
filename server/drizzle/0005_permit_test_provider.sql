@@ -1,0 +1,2 @@
+ALTER TABLE "oauth_identities" DROP CONSTRAINT "oauth_provider_check";--> statement-breakpoint
+ALTER TABLE "oauth_identities" ADD CONSTRAINT "oauth_provider_check" CHECK ("oauth_identities"."provider" IN ('google', 'apple', 'test'));

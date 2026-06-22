@@ -12,7 +12,7 @@ export interface LinkUser {
 }
 
 export interface LinkInput {
-  provider: 'google' | 'apple';
+  provider: 'google' | 'apple' | 'test'; // 'test' = synthetic E2E identity (see auth/oauth.ts IdentityProvider)
   sub: string;                 // provider subject id
   email: string | null;        // email from the verified ID token (may be null)
   emailVerified: boolean;      // provider asserted the email is verified
