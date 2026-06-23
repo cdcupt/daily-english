@@ -40,6 +40,8 @@ targets:
       path: DailyEnglish/Info.plist
       properties:
         CFBundleDisplayName: Dailingo
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
