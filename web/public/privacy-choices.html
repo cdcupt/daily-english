@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dailingo - Your Privacy Choices</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+            line-height: 1.8;
+            color: #1C1917;
+            background: #FAF8F5;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 28px; margin: 24px 0 6px; color: #0B5C56; letter-spacing: -0.5px; }
+        h2 { font-size: 20px; margin: 24px 0 8px; color: #1C1917; }
+        h3 { font-size: 16px; margin: 14px 0 4px; color: #0B5C56; }
+        p, li { font-size: 15px; color: #44403C; margin-bottom: 8px; }
+        ul { padding-left: 20px; }
+        .date { color: #78716C; font-size: 13px; }
+        .section { background: #fff; padding: 22px; border-radius: 18px; margin: 16px 0; box-shadow: 0 2px 10px rgba(11,92,86,0.06); }
+        a { color: #EA580C; font-weight: 600; }
+        .lang-btn { display: inline-block; color: #0B5C56; font-weight: 600; padding: 6px 16px; border: 2px solid #0B5C56; border-radius: 20px; cursor: pointer; font-size: 14px; background: none; }
+        .lang-btn:hover { background: #0B5C56; color: #fff; }
+        .lang-switch { text-align: right; margin: 10px 0; }
+        .zh { display: none; }
+        .choice { border-left: 4px solid #0B5C56; padding-left: 14px; margin: 14px 0; }
+        .choice.accent { border-left-color: #EA580C; }
+        .choice.violet { border-left-color: #7C3AED; }
+        .banner { background: #0B5C56; color: #e7f4f2; border-radius: 18px; padding: 20px 22px; margin: 16px 0; }
+        .banner h2 { color: #fff; margin-top: 0; }
+        .banner p { color: #cfe6e3; }
+        .footer { text-align: center; padding: 30px 0 20px; color: #78716C; font-size: 13px; }
+        .footer a { color: #0B5C56; margin: 0 8px; }
+        .pill { display: inline-block; background: #FDBA74; color: #7c2d12; font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="lang-switch">
+    <button class="lang-btn" onclick="toggleLang()">中文</button>
+</div>
+
+<h1>Dailingo</h1>
+<span class="pill">v2.0</span>
+<h2 class="en">Your Privacy Choices</h2>
+<h2 class="zh">您的隐私选择</h2>
+<p class="date en">Last Updated: 2026-06-25</p>
+<p class="date zh">最后更新：2026-06-25</p>
+
+<div class="section">
+<p class="en">You stay in control of your data in Dailingo. This page summarizes the choices available to you. For full details, see our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+<p class="zh">在 Dailingo 中，您始终掌控自己的数据。本页面汇总了您可使用的各项选择。完整说明请参阅 <a href="privacy-policy.html">隐私政策</a>。</p>
+</div>
+
+<div class="section">
+<h2 class="en">What You Can Control</h2>
+<h2 class="zh">您可以控制的内容</h2>
+
+<div class="choice en">
+<h3>Delete your account &amp; data</h3>
+<p>Email us at <a href="mailto:cdcupt@gmail.com">cdcupt@gmail.com</a> from your account email and we will delete your account and all associated data — your progress, Expression Bank, and practice history.</p>
+</div>
+<div class="choice zh">
+<h3>删除您的账户与数据</h3>
+<p>请使用您的账户邮箱发送邮件至 <a href="mailto:cdcupt@gmail.com">cdcupt@gmail.com</a>，我们将删除您的账户及所有关联数据——包括学习进度、表达库和练习记录。</p>
+</div>
+
+<div class="choice accent en">
+<h3>Deny microphone &amp; speech — keep practicing</h3>
+<p>Speaking practice uses your microphone with on-device speech recognition. You can deny these permissions and still use text-based practice (translation, role-play, topic description). The choice is yours, and you can change it anytime in iOS Settings.</p>
+</div>
+<div class="choice accent zh">
+<h3>拒绝麦克风与语音——仍可继续练习</h3>
+<p>口语练习会使用麦克风并配合设备端语音识别。您可以拒绝这些权限，仍然使用文字练习（翻译、角色扮演、话题描述）。选择权在您，且可随时在 iOS 设置中更改。</p>
+</div>
+
+<div class="choice violet en">
+<h3>Sign out</h3>
+<p>You can sign out at any time from within the app. Signing in again (with Apple or Google) restores your synced data.</p>
+</div>
+<div class="choice violet zh">
+<h3>退出登录</h3>
+<p>您可以随时在应用内退出登录。再次登录（使用 Apple 或 Google）即可恢复已同步的数据。</p>
+</div>
+</div>
+
+<div class="banner">
+<h2 class="en">No tracking. No ads. No data sale.</h2>
+<h2 class="zh">不追踪。不投广告。不出售数据。</h2>
+<p class="en">We do not use third-party advertising, we do not track you across other apps or websites, and we never sell your data. We collect only what's needed to run the app: your account email and a user identifier (via Sign in with Apple/Google), and the practice answers you submit for AI grading.</p>
+<p class="zh">我们不使用第三方广告，不会在其他应用或网站上追踪您，也绝不出售您的数据。我们只收集运行应用所必需的信息：您的账户邮箱与用户标识符（通过使用 Apple/Google 登录），以及您提交评分的练习答案。</p>
+</div>
+
+<div class="section">
+<h2 class="en">Contact</h2>
+<h2 class="zh">联系方式</h2>
+<p class="en">For any privacy request or question, contact us at:</p>
+<p class="zh">如有任何隐私相关请求或疑问，请联系我们：</p>
+<p>Email: <a href="mailto:cdcupt@gmail.com">cdcupt@gmail.com</a></p>
+</div>
+
+<div class="footer">
+    <p><a href="welcome.html">Home</a> · <a href="support.html">Support</a> · <a href="privacy-policy.html">Privacy Policy</a></p>
+    <p>&copy; 2026 cdcupt. All rights reserved.</p>
+</div>
+
+<script>
+let lang = 'en';
+function toggleLang() {
+    lang = lang === 'en' ? 'zh' : 'en';
+    document.querySelectorAll('.en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
+    document.querySelectorAll('.zh').forEach(el => el.style.display = lang === 'zh' ? '' : 'none');
+    document.querySelector('.lang-btn').textContent = lang === 'en' ? '中文' : 'English';
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+}
+</script>
+
+</body>
+</html>

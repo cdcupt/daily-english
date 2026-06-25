@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dailingo — Practice English Through Real-World Scenarios</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7;
+            color: #1C1917;
+            background: #FAF8F5;
+        }
+        .wrap { max-width: 960px; margin: 0 auto; padding: 20px; }
+        .lang-switch { text-align: right; margin: 6px 0; }
+        .lang-btn { color: #0B5C56; font-weight: 600; padding: 6px 16px; border: 2px solid #0B5C56; border-radius: 20px; cursor: pointer; font-size: 14px; background: none; }
+        .lang-btn:hover { background: #0B5C56; color: #fff; }
+        .zh { display: none; }
+
+        /* Hero */
+        .hero { text-align: center; padding: 28px 16px 36px; }
+        .hero img { width: 132px; height: 132px; border-radius: 32px; box-shadow: 0 10px 30px rgba(11,92,86,0.18); margin-bottom: 18px; }
+        .hero h1 { font-size: 46px; color: #0B5C56; letter-spacing: -1px; margin-bottom: 8px; }
+        .tagline { font-size: 19px; color: #44403C; max-width: 620px; margin: 0 auto 6px; }
+        .subline { font-size: 15px; color: #78716C; max-width: 600px; margin: 8px auto 22px; }
+        .badge-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+        .badge { background: #fff; border: 1px solid #f0e9e1; color: #0B5C56; font-size: 13px; font-weight: 600; padding: 5px 14px; border-radius: 20px; }
+        .cta { display: inline-flex; align-items: center; gap: 8px; background: #0B5C56; color: #fff; font-size: 17px; font-weight: 700; padding: 14px 30px; border-radius: 30px; text-decoration: none; box-shadow: 0 8px 22px rgba(11,92,86,0.28); transition: transform .15s ease; }
+        .cta:hover { transform: translateY(-2px); background: #094a45; }
+
+        /* Loop strip */
+        .loop { background: #fff; border-radius: 22px; padding: 24px; margin: 8px 0 28px; box-shadow: 0 2px 12px rgba(11,92,86,0.06); }
+        .loop h2 { font-size: 22px; color: #1C1917; text-align: center; margin-bottom: 18px; }
+        .loop-flow { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: stretch; }
+        .loop-step { flex: 1 1 150px; min-width: 140px; background: #FAF8F5; border-radius: 16px; padding: 14px; text-align: center; border: 1px solid #f0e9e1; }
+        .loop-step .n { display: inline-block; width: 26px; height: 26px; line-height: 26px; border-radius: 50%; background: #EA580C; color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .loop-step p { font-size: 14px; margin: 0; }
+
+        /* Feature cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .card { background: #fff; border-radius: 18px; padding: 22px; box-shadow: 0 2px 12px rgba(11,92,86,0.06); border-top: 4px solid #0B5C56; }
+        .card.accent { border-top-color: #EA580C; }
+        .card.violet { border-top-color: #7C3AED; }
+        .card .ico { font-size: 30px; margin-bottom: 8px; }
+        .card h3 { font-size: 17px; color: #1C1917; margin-bottom: 6px; }
+        .card p { font-size: 14px; color: #57534E; }
+        .card ul { margin: 6px 0 0 0; padding-left: 18px; }
+        .card li { font-size: 14px; color: #57534E; margin-bottom: 3px; }
+
+        /* Privacy note */
+        .privacy { background: #0B5C56; color: #e7f4f2; border-radius: 18px; padding: 22px; margin-bottom: 24px; }
+        .privacy h3 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+        .privacy p { font-size: 14px; color: #cfe6e3; }
+        .privacy a { color: #FDBA74; font-weight: 600; }
+
+        .note { font-size: 12px; color: #a8a29e; text-align: center; margin-bottom: 18px; }
+
+        .footer { text-align: center; padding: 24px 0; color: #78716C; font-size: 13px; border-top: 1px solid #efe8e0; }
+        .footer a { color: #0B5C56; margin: 0 8px; font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="lang-switch">
+    <button class="lang-btn" onclick="toggleLang()">中文</button>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+    <img src="mascot-cleo-264.png" width="132" height="132" loading="eager" decoding="async" fetchpriority="high" alt="Cleo the cat, Dailingo's mascot">
+    <h1>Dailingo</h1>
+    <p class="tagline en">Practice English through real-world scenarios, get focused AI corrections, and build a personal expression bank plus a CEFR ability profile.</p>
+    <p class="tagline zh">通过真实场景练习英语，获得有针对性的 AI 纠错，并积累个人表达库与 CEFR 能力画像。</p>
+    <p class="subline en">Not a course. Not a generic chatbot. A scenario trainer built around how you actually talk.</p>
+    <p class="subline zh">不是课程，也不是普通聊天机器人，而是围绕真实表达打造的情景训练器。</p>
+    <div class="badge-row">
+        <span class="badge en">🐱 Meet Cleo</span><span class="badge zh">🐱 认识 Cleo</span>
+        <span class="badge en">Free · iPhone</span><span class="badge zh">免费 · iPhone</span>
+        <span class="badge en">iOS 17+</span><span class="badge zh">iOS 17+</span>
+        <span class="badge en">English ⇄ 中文</span><span class="badge zh">中英双语</span>
+    </div>
+    <a class="cta" href="https://apps.apple.com/us/app/dailingo/id6761429907"> Download on the App Store</a>
+</header>
+
+<!-- CORE LOOP -->
+<section class="loop">
+    <h2 class="en">The Learning Loop</h2>
+    <h2 class="zh">学习闭环</h2>
+    <div class="loop-flow en">
+        <div class="loop-step"><span class="n">1</span><p>Pick a real-world scenario or topic</p></div>
+        <div class="loop-step"><span class="n">2</span><p>Practice in one of 3 modes</p></div>
+        <div class="loop-step"><span class="n">3</span><p>Get focused AI corrections + a CEFR score</p></div>
+        <div class="loop-step"><span class="n">4</span><p>Useful words &amp; mistakes auto-save to your bank</p></div>
+        <div class="loop-step"><span class="n">5</span><p>Spaced review brings them back</p></div>
+    </div>
+    <div class="loop-flow zh">
+        <div class="loop-step"><span class="n">1</span><p>选择真实场景或话题</p></div>
+        <div class="loop-step"><span class="n">2</span><p>用三种模式之一练习</p></div>
+        <div class="loop-step"><span class="n">3</span><p>获得有针对性的 AI 纠错 + CEFR 评分</p></div>
+        <div class="loop-step"><span class="n">4</span><p>有用词汇与错误自动存入表达库</p></div>
+        <div class="loop-step"><span class="n">5</span><p>间隔复习再次唤起记忆</p></div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="grid">
+    <div class="card">
+        <div class="ico">🎭</div>
+        <h3 class="en">Three Practice Modes</h3>
+        <h3 class="zh">三种练习模式</h3>
+        <ul class="en">
+            <li>Translation practice</li>
+            <li>Role-play dialogue</li>
+            <li>Topic description</li>
+        </ul>
+        <ul class="zh">
+            <li>翻译练习</li>
+            <li>角色扮演对话</li>
+            <li>话题描述</li>
+        </ul>
+        <p class="en">Across scenarios like ordering food, travel, small talk, the workplace, and job interviews.</p>
+        <p class="zh">覆盖点餐、旅行、闲聊、职场、求职面试等真实场景。</p>
+    </div>
+
+    <div class="card accent">
+        <div class="ico">🎯</div>
+        <h3 class="en">Focused Corrections + CEFR</h3>
+        <h3 class="zh">有针对性的纠错 + CEFR</h3>
+        <p class="en">AI surfaces only the 1–3 issues that matter most for your level — grammar, vocabulary, naturalness, pronunciation, fluency, task completion — plus an explainable CEFR score (A1–C2).</p>
+        <p class="zh">AI 只指出对你水平最关键的 1–3 个问题——语法、词汇、地道度、发音、流利度、任务完成度——并给出可解释的 CEFR 评分（A1–C2）。</p>
+    </div>
+
+    <div class="card violet">
+        <div class="ico">📚</div>
+        <h3 class="en">Expression Bank + Spaced Review</h3>
+        <h3 class="zh">表达库 + 间隔复习</h3>
+        <p class="en">Unknown words, useful patterns, and recurring mistakes auto-save to a personal bank, then resurface through spaced review so they actually stick.</p>
+        <p class="zh">生词、实用句型和反复出现的错误会自动存入个人表达库，并通过间隔复习再次出现，真正记住。</p>
+    </div>
+
+    <div class="card">
+        <div class="ico">🔄</div>
+        <h3 class="en">Always-Fresh Question Bank</h3>
+        <h3 class="zh">常练常新的题库</h3>
+        <p class="en">A three-layer bank keeps practice fresh: a curated base bank, an AI-generated bank, and a personal mistake-based review bank.</p>
+        <p class="zh">三层题库让练习常新：精选基础题库、AI 生成题库，以及基于个人错误的复习题库。</p>
+    </div>
+
+    <div class="card accent">
+        <div class="ico">🎙️</div>
+        <h3 class="en">Speak It Out Loud</h3>
+        <h3 class="zh">开口说出来</h3>
+        <p class="en">Uses the microphone with on-device speech recognition to practice pronunciation and fluency. Prefer typing? Text practice works without the mic.</p>
+        <p class="zh">使用麦克风配合设备端语音识别练习发音与流利度。喜欢打字？无需麦克风也能进行文字练习。</p>
+    </div>
+
+    <div class="card violet">
+        <div class="ico">✨</div>
+        <h3 class="en">Topic Sessions, Your Way</h3>
+        <h3 class="zh">随心定制话题</h3>
+        <p class="en">Pick from category chips or ask the AI to generate a custom topic. Sign in with Apple or Google — the AI is built in, no API key needed.</p>
+        <p class="zh">从分类标签中挑选，或让 AI 生成自定义话题。使用 Apple 或 Google 登录——AI 已内置，无需 API 密钥。</p>
+    </div>
+</section>
+
+<!-- PRIVACY NOTE -->
+<section class="privacy">
+    <h3 class="en">Private by design</h3>
+    <h3 class="zh">隐私优先设计</h3>
+    <p class="en">Dailingo is login-first and stores your progress on our server to sync across devices. We collect only your account email and the practice you submit for AI grading. No third-party ads, no tracking across apps, and we never sell your data. Read the <a href="privacy-policy.html">Privacy Policy</a> and <a href="privacy-choices.html">Your Privacy Choices</a>.</p>
+    <p class="zh">Dailingo 采用登录优先模式，并将您的进度存储在服务器上以便多设备同步。我们只收集您的账户邮箱以及您提交评分的练习内容。没有第三方广告、不跨应用追踪，也绝不出售您的数据。请阅读 <a href="privacy-policy.html">隐私政策</a> 与 <a href="privacy-choices.html">您的隐私选择</a>。</p>
+</section>
+
+<p class="note en">CEFR scores are AI estimates to guide learning, not an official certification. iPhone-only. Also available on the web at english.daichenlab.com.</p>
+<p class="note zh">CEFR 评分为辅助学习的 AI 估算，并非官方认证。仅支持 iPhone。同时提供网页版 english.daichenlab.com。</p>
+
+<footer class="footer">
+    <p><a href="support.html">Support</a> · <a href="privacy-policy.html">Privacy Policy</a> · <a href="privacy-choices.html">Your Privacy Choices</a></p>
+    <p>&copy; 2026 cdcupt. All rights reserved.</p>
+</footer>
+
+</div>
+
+<script>
+let lang = 'en';
+function toggleLang() {
+    lang = lang === 'en' ? 'zh' : 'en';
+    document.querySelectorAll('.en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
+    document.querySelectorAll('.zh').forEach(el => el.style.display = lang === 'zh' ? '' : 'none');
+    document.querySelector('.lang-btn').textContent = lang === 'en' ? '中文' : 'English';
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+}
+</script>
+</body>
+</html>
