@@ -279,7 +279,10 @@ export function oauthRoutes() {
       try {
         identity = await verifyGoogle(body.idToken, body.nonce);
       } catch (err) {
-        if (err instanceof OAuthError) return reply.code(401).send(fail('invalid_token', 'Invalid Google sign-in token'));
+        if (err instanceof OAuthError) {
+          req.log.warn({ reason: err.message }, 'google sign-in token rejected');
+          return reply.code(401).send(fail('invalid_token', 'Invalid Google sign-in token'));
+        }
         throw err;
       }
 
@@ -300,7 +303,10 @@ export function oauthRoutes() {
       try {
         identity = await verifyApple(body.identityToken, body.nonce);
       } catch (err) {
-        if (err instanceof OAuthError) return reply.code(401).send(fail('invalid_token', 'Invalid Apple sign-in token'));
+        if (err instanceof OAuthError) {
+          req.log.warn({ reason: err.message }, 'apple sign-in token rejected');
+          return reply.code(401).send(fail('invalid_token', 'Invalid Apple sign-in token'));
+        }
         throw err;
       }
 
