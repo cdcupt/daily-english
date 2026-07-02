@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
-import { generateKeyPairSync, createSign, type JsonWebKey } from 'node:crypto';
+import { createHash, generateKeyPairSync, createSign, type JsonWebKey } from 'node:crypto';
 import { decideLink } from '../src/auth/linking.js';
 import {
   verifyGoogle, verifyApple, setJwksFetcher, clearJwksCache, OAuthError,
@@ -188,6 +188,36 @@ describe('verifyApple', () => {
     const token = mintIdToken({ iss: APPLE_ISS, aud: APPLE_AUD, email: 'x@example.com' });
     const identity = await verifyApple(token);
     expect(identity.emailVerified).toBe(false);
+  });
+
+  // Native iOS flow: the app puts SHA256(rawNonce) in the authorization request
+  // (Apple's guidance), so the identity token's nonce claim is the hex digest,
+  // while the raw nonce is what the client POSTs to us. The verifier must
+  // accept the digest match — bare equality here broke every native Apple
+  // sign-in (App Store rejection, Guideline 2.1a).
+  it('accepts the native-flow nonce (token carries SHA256(rawNonce), client sends raw)', async () => {
+    const rawNonce = 'raw-nonce-from-ios-client';
+    const hashedNonce = createHash('sha256').update(rawNonce).digest('hex');
+    const token = mintIdToken({
+      iss: APPLE_ISS, aud: 'com.cdcupt.DailyEnglish', sub: 'apple-native', nonce: hashedNonce,
+    });
+    await expect(verifyApple(token, rawNonce)).resolves.toMatchObject({ sub: 'apple-native' });
+  });
+
+  it('still enforces the raw pass-through nonce (web flow)', async () => {
+    const token = mintIdToken({ iss: APPLE_ISS, aud: APPLE_AUD, sub: 'apple-web', nonce: 'raw-web-nonce' });
+    await expect(verifyApple(token, 'raw-web-nonce')).resolves.toMatchObject({ sub: 'apple-web' });
+  });
+
+  it('rejects a wrong nonce in the native (hashed) flow', async () => {
+    const hashedNonce = createHash('sha256').update('the-real-raw-nonce').digest('hex');
+    const token = mintIdToken({ iss: APPLE_ISS, aud: 'com.cdcupt.DailyEnglish', nonce: hashedNonce });
+    await expect(verifyApple(token, 'a-different-raw-nonce')).rejects.toThrow(/nonce/);
+  });
+
+  it('rejects when the client supplies a nonce but the token has no nonce claim', async () => {
+    const token = mintIdToken({ iss: APPLE_ISS, aud: 'com.cdcupt.DailyEnglish' });
+    await expect(verifyApple(token, 'raw-nonce')).rejects.toThrow(/nonce/);
   });
 });
 

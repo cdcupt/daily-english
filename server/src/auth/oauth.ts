@@ -1,4 +1,4 @@
-import { createPublicKey, createVerify, type JsonWebKey } from 'node:crypto';
+import { createHash, createPublicKey, createVerify, type JsonWebKey } from 'node:crypto';
 import { env } from '../env.js';
 
 /**
@@ -161,6 +161,19 @@ function audienceMatches(aud: string | string[] | undefined, allowed: string[]):
 }
 
 /**
+ * True when the token's nonce claim matches the client-supplied raw nonce.
+ * Web flows pass the raw nonce straight through to the provider, so the claim
+ * equals the raw value. Native flows follow Apple's guidance and put
+ * SHA256(rawNonce) in the authorization request — the claim carries the hex
+ * digest while the client sends us the raw nonce — so the digest also matches.
+ */
+function nonceMatches(claimNonce: string | undefined, suppliedNonce: string): boolean {
+  if (claimNonce === undefined) return false;
+  if (claimNonce === suppliedNonce) return true;
+  return claimNonce === createHash('sha256').update(suppliedNonce).digest('hex');
+}
+
+/**
  * Verify a compact RS256 ID token against a provider's JWKS + claim rules.
  * Returns the captured identity, or throws OAuthError (→ 401 invalid_token).
  */
@@ -227,7 +240,7 @@ async function verifyIdToken(
   // or replayed token from a clock-skewed/hostile issuer.
   if (typeof claims.iat === 'number' && claims.iat > now + CLOCK_SKEW_SEC) throw new OAuthError('token not yet valid');
   if (typeof claims.sub !== 'string' || claims.sub.length === 0) throw new OAuthError('token missing sub');
-  if (opts.nonce !== undefined && claims.nonce !== opts.nonce) throw new OAuthError('nonce mismatch');
+  if (opts.nonce !== undefined && !nonceMatches(claims.nonce, opts.nonce)) throw new OAuthError('nonce mismatch');
 
   return {
     provider: opts.provider,
