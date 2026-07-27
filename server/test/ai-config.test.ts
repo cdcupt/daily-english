@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { supportsTemperature, isProviderId } from '../src/ai/providers.js';
 import { pickConfig, type TaskDefault } from '../src/ai/registry.js';
-import { runWithResilience, isTransientErr, isTimeoutErr, type AttemptTarget } from '../src/ai/execute.js';
+import { runWithResilience, isTransientErr, isTimeoutErr, isQuotaExhaustedErr, type AttemptTarget } from '../src/ai/execute.js';
 import { AIError } from '../src/ai/client.js';
 import { AIContractError } from '../src/ai/runner.js';
 
@@ -135,6 +135,55 @@ describe('runWithResilience', () => {
     expect(fbCalls).toBe(1);
   });
 
+  // A 429 carries two different failures. Quota exhaustion is permanent until
+  // someone tops up billing, so the primary must not be retried — but the whole
+  // point of a cross-provider fallback is that the OTHER provider still has
+  // credit, so it must still fail over. Before this, a 429 was neither retried
+  // nor failed over, and the Gemini fallback sat idle through a billing outage.
+  const quotaErr = () => new AIError(
+    'AI provider error 429: {"error":{"message":"You exceeded your current quota","type":"insufficient_quota"}}',
+    429,
+  );
+
+  it('a 429 insufficient_quota fails over IMMEDIATELY without burning primary retries', async () => {
+    let primaryCalls = 0; let fbCalls = 0;
+    const { used } = await runWithResilience({
+      primary: t('prim'), fallback: t('fb'),
+      run: async (target) => {
+        if (target.model === 'prim') { primaryCalls += 1; throw quotaErr(); }
+        fbCalls += 1; return 'fb-ok';
+      },
+      sleep: noSleep,
+    });
+    expect(used.model).toBe('fb');
+    expect(primaryCalls).toBe(1); // NOT 3 — retrying cannot restore credit
+    expect(fbCalls).toBe(1);
+  });
+
+  it('a genuine rate-limit 429 stays transient: retried, then failed over', async () => {
+    let primaryCalls = 0;
+    const rateLimited = new AIError(
+      'AI provider error 429: {"error":{"code":"rate_limit_exceeded"}}', 429,
+    );
+    const { used } = await runWithResilience({
+      primary: t('prim'), fallback: t('fb'),
+      run: async (target) => {
+        if (target.model === 'prim') { primaryCalls += 1; throw rateLimited; }
+        return 'fb-ok';
+      },
+      sleep: noSleep,
+    });
+    expect(used.model).toBe('fb');
+    expect(primaryCalls).toBe(3); // a real rate limit IS worth waiting out
+  });
+
+  it('isQuotaExhaustedErr matches only a 429 whose body says insufficient_quota', () => {
+    expect(isQuotaExhaustedErr(quotaErr())).toBe(true);
+    expect(isQuotaExhaustedErr(new AIError('429: rate_limit_exceeded', 429))).toBe(false);
+    expect(isQuotaExhaustedErr(new AIError('insufficient_quota', 500))).toBe(false);
+    expect(isQuotaExhaustedErr(new Error('insufficient_quota'))).toBe(false);
+  });
+
   it('isTimeoutErr matches aborts/timeouts but not plain 5xx', () => {
     expect(isTimeoutErr(Object.assign(new Error('x'), { name: 'AbortError' }))).toBe(true);
     expect(isTimeoutErr(new AIError('AI request timed out (AbortError): ...'))).toBe(true);
@@ -145,6 +194,7 @@ describe('runWithResilience', () => {
     expect(isTransientErr(new AIError('a', 503))).toBe(true);
     expect(isTransientErr(new AIError('b'))).toBe(true); // no status = network (client rewraps)
     expect(isTransientErr(new AIError('c', 400))).toBe(false);
+    expect(isTransientErr(new AIError('rate limited', 429))).toBe(true); // 429 must reach the fallback
     expect(isTransientErr(Object.assign(new Error('aborted'), { name: 'AbortError' }))).toBe(true);
     expect(isTransientErr(Object.assign(new Error('slow'), { name: 'TimeoutError' }))).toBe(true);
     expect(isTransientErr(new TypeError('fetch failed'))).toBe(true); // undici network failure

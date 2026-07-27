@@ -32,16 +32,29 @@ export interface AttemptTarget { provider: ProviderId; model: string; baseUrl: s
 const defaultSleep = (ms: number) => new Promise<void>((r) => { setTimeout(r, ms); });
 
 /**
- * Transient = worth retrying then falling over. Covers provider 5xx and any
+ * Transient = worth retrying then falling over. Covers provider 5xx, 429, and any
  * status-less AIError (the client rewraps network failures / aborted-timeouts
  * as status-less AIErrors), plus bare AbortError/TimeoutError/TypeError in case
- * a raw fetch rejection ever reaches here unwrapped. A 4xx stays non-transient.
+ * a raw fetch rejection ever reaches here unwrapped. Other 4xx stay non-transient.
+ *
+ * 429 counts because a rate limit passes and, when it does not (see
+ * `isQuotaExhaustedErr`), the cross-provider fallback is exactly the escape hatch
+ * that should fire — the other provider has its own quota.
  */
 export const isTransientErr = (e: unknown): boolean => {
-  if (e instanceof AIError) return e.status === undefined || e.status >= 500;
+  if (e instanceof AIError) return e.status === undefined || e.status === 429 || e.status >= 500;
   if (e instanceof Error) return e.name === 'AbortError' || e.name === 'TimeoutError' || e instanceof TypeError;
   return false;
 };
+
+/**
+ * A 429 whose body says `insufficient_quota`: the provider account is out of
+ * credit, not throttled. Retrying the primary cannot clear it — only failing
+ * over to the other provider can — so this short-circuits the retry loop the
+ * same way a timeout does.
+ */
+export const isQuotaExhaustedErr = (e: unknown): boolean =>
+  e instanceof AIError && e.status === 429 && /insufficient_quota/i.test(e.message);
 const isContractErr = (e: unknown): boolean => e instanceof AIContractError;
 
 /**
@@ -65,12 +78,14 @@ export async function runWithResilience<T, R extends AttemptTarget>(opts: {
   transient?: (e: unknown) => boolean;
   contract?: (e: unknown) => boolean;
   timedOut?: (e: unknown) => boolean;
+  quotaExhausted?: (e: unknown) => boolean;
 }): Promise<{ result: T; used: R }> {
   const delays = opts.delays ?? [400, 1200];
   const sleep = opts.sleep ?? defaultSleep;
   const transient = opts.transient ?? isTransientErr;
   const contract = opts.contract ?? isContractErr;
   const timedOut = opts.timedOut ?? isTimeoutErr;
+  const quotaExhausted = opts.quotaExhausted ?? isQuotaExhaustedErr;
   let lastErr: unknown;
   for (let i = 0; i <= delays.length; i += 1) {
     try {
@@ -78,6 +93,7 @@ export async function runWithResilience<T, R extends AttemptTarget>(opts: {
     } catch (e) {
       lastErr = e;
       if (timedOut(e)) break; // stalled primary — don't burn retries, fail over now
+      if (quotaExhausted(e)) break; // out of credit — no retry can pay the bill
       if (transient(e) && i < delays.length) { await sleep(delays[i]!); continue; }
       break;
     }
