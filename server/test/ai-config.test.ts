@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { supportsTemperature, isProviderId } from '../src/ai/providers.js';
-import { pickConfig, type TaskDefault } from '../src/ai/registry.js';
+import { pickConfig, defaults, TASK_KEYS, type TaskDefault } from '../src/ai/registry.js';
 import { runWithResilience, isTransientErr, isTimeoutErr, isQuotaExhaustedErr, type AttemptTarget } from '../src/ai/execute.js';
 import { AIError } from '../src/ai/client.js';
 import { AIContractError } from '../src/ai/runner.js';
@@ -22,6 +22,37 @@ describe('isProviderId', () => {
     expect(isProviderId('openai')).toBe(true);
     expect(isProviderId('gemini')).toBe(true);
     expect(isProviderId('anthropic')).toBe(false);
+  });
+});
+
+// A task with a single provider has nowhere to go when that provider is down.
+// The 2026-07-26 OpenAI billing outage took feedback + dialogue out completely
+// while the Gemini key stayed healthy, so these assert the fallback wiring rather
+// than leaving it to be rediscovered during the next outage.
+describe('task fallbacks (single-provider outage cover)', () => {
+  it('every task except asr declares a fallback', () => {
+    const d = defaults();
+    const noFallback = TASK_KEYS.filter((t) => !d[t].fallback);
+    expect(noFallback).toEqual(['asr']);
+  });
+
+  it('each fallback is on the OTHER provider — a same-provider fallback is no cover', () => {
+    const d = defaults();
+    for (const task of TASK_KEYS) {
+      const fb = d[task].fallback;
+      if (!fb) continue;
+      expect(fb.provider, `${task} fallback must cross providers`).not.toBe(d[task].provider);
+    }
+  });
+
+  it('feedback and dialogue keep openai primary and fall back to stable gemini', () => {
+    const d = defaults();
+    for (const task of ['feedback', 'dialogue'] as const) {
+      expect(d[task].provider).toBe('openai');
+      expect(d[task].fallback).toMatchObject({ provider: 'gemini', model: 'gemini-2.5-flash' });
+      // A -preview model must not become the cross-provider safety net.
+      expect(d[task].fallback!.model).not.toMatch(/-preview$/);
+    }
   });
 });
 
