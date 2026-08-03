@@ -38,8 +38,9 @@ export function defaults(): Record<TaskKey, TaskDefault> {
     // the same stable cross-provider fallback as scoring. Before this they were
     // openai-ONLY: during the 2026-07-26 OpenAI billing outage they had nowhere to
     // go and simply failed, while the Gemini key was healthy the whole time. The
-    // fallback never touches the happy path — it engages only after the primary
-    // has exhausted retries (see execute.ts runWithResilience).
+    // fallback never touches the happy path — it engages only once the primary has
+    // failed: after its retries, or immediately when retrying is pointless (a
+    // timeout, or a 429 insufficient_quota). See execute.ts runWithResilience.
     feedback: { provider: 'openai', model: openaiText, fallback: { provider: 'gemini', model: 'gemini-2.5-flash' } },
     dialogue: { provider: 'openai', model: openaiText, fallback: { provider: 'gemini', model: 'gemini-2.5-flash' } },
     // scoring runs on the SYNCHRONOUS finish path, so latency + reliability win.
