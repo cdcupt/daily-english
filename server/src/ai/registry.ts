@@ -34,8 +34,14 @@ export interface ResolvedTask {
 export function defaults(): Record<TaskKey, TaskDefault> {
   const openaiText = env.AI_TEXT_MODEL;
   return {
-    feedback: { provider: 'openai', model: openaiText },
-    dialogue: { provider: 'openai', model: openaiText },
+    // feedback + dialogue keep openai primary (MODEL-EVAL-v2 picked it), but carry
+    // the same stable cross-provider fallback as scoring. Before this they were
+    // openai-ONLY: during the 2026-07-26 OpenAI billing outage they had nowhere to
+    // go and simply failed, while the Gemini key was healthy the whole time. The
+    // fallback never touches the happy path — it engages only after the primary
+    // has exhausted retries (see execute.ts runWithResilience).
+    feedback: { provider: 'openai', model: openaiText, fallback: { provider: 'gemini', model: 'gemini-2.5-flash' } },
+    dialogue: { provider: 'openai', model: openaiText, fallback: { provider: 'gemini', model: 'gemini-2.5-flash' } },
     // scoring runs on the SYNCHRONOUS finish path, so latency + reliability win.
     // QA (2026-06-18) measured gemini-3-flash-preview at 12–86s (frequent stalls)
     // vs openai gpt-5.4-mini at ~1.4s with equivalent scores → openai primary.
@@ -46,6 +52,11 @@ export function defaults(): Record<TaskKey, TaskDefault> {
     // Scaffolds a custom free-text topic into an English scenario. Same routing
     // as item_gen (gemini primary, openai fallback) — runtime-switchable.
     topic_scaffold: { provider: 'gemini', model: 'gemini-2.5-flash', fallback: { provider: 'openai', model: openaiText } },
+    // asr is deliberately the ONE task with no fallback: env.ASR_MODEL is an
+    // OpenAI transcription model and Gemini has no drop-in equivalent behind the
+    // same OpenAI-shaped client, so there is nothing honest to fail over to.
+    // Speech stays down during an OpenAI outage — a known, accepted gap, not an
+    // oversight. Revisit if a compatible transcription endpoint is wired up.
     asr: { provider: 'openai', model: env.ASR_MODEL },
   };
 }
